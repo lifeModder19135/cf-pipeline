@@ -27,9 +27,15 @@ import os
 #     
 #     
 #     
-#     
+#
+class Context:
+    '''
+    Base for all contexts. Main purpose is just to act
+    '''
 
-class CfpContext:
+     
+
+class Cfp_Shell_Context:
     '''
     This is a context which is run on top of a process with its own environment that is kept seperate from the process environment by default, but whose variables can be accessed in the same way as process envvars at context runtime.
     '''
