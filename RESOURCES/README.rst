@@ -10,7 +10,7 @@ At first, the project will probably just need an installer program for windows u
 a Makefile for Linux. Later, I would like to add archives for at least deb and rpm so that it can be deployed to repos for various package mgrs such 
 as Apt.
 
-Additionally, it will need to be run through the setuptools process so it can be added to `PyPi/pip`.
+Additionally, it will need to be run through the setuptools process so it can be added to ``PyPi/pip``.
 
 At this point, since there are no finished modules to install or run, there is nothing else to add here, and this document (and indeed, this package) 
 will only be useful to contributors. If you are an end user reading this, try back occasionally. When this section changes, you will know that it is 
@@ -27,7 +27,7 @@ definition of the term, see the subsection below with the same name.
 Currently, only Linux is supported, but there are plans to support Windows and Mac in future versions.
 
 To run, simply type in the appropriate command into a shell style tty/pty command prompt of your choosing. the full synopsis is included in the 
-`Synopsis` subsection below. The command always starts with `cfp` followed by a command. All commands are divided into two groups: low-level task 
+``Synopsis`` subsection below. The command always starts with ``cfp`` followed by a command. All commands are divided into two groups: low-level task 
 commands and higher-level workflow commands. The latter is a convenience which runs a group of the former. More accurately, the former were created to 
 support development of the latter in an efficient, reusable, and extensible way.
 
@@ -49,9 +49,11 @@ supports. The goal for the final implementation of CF-P is to provide a package 
 
 ### CONTRIBUTING
 
+Not much to 
+
 ### TODO
 
-At this point, focus should be on building tasks. The next section, titled `TASKLIST', is a list of all tasks that have been implemented so far. If 
+At this point, focus should be on building tasks. The next section, titled ``TASKLIST``, is a list of all tasks that have been implemented so far. If 
 you want to 
 
 ### Git Conventions
@@ -68,7 +70,7 @@ https://github.com/lifeModder19135/cf-pipeline
 
 #### Commits
 
-Commits will follow these conventions. The message will have a title of the format of `_datestring_--_scope_--_title_` on the first line. The second 
+Commits will follow these conventions. The message will have a title of the format of ``_datestring_--_scope_--_title_`` on the first line. The second 
 will be blank. 
 
 All remaining lines will be either change-items or change-subitems. Both types will follow the format of a bulleted list item preceded by whitespaces. 
@@ -79,7 +81,7 @@ Change-subitem(s) go on the line(s) immediately below the change-item to which t
 steps involved in the implementation of, a change-item in greater detail. The format for change-subitems is the same as it is for change-items, but the
 former also includes an
 
-For examples, run `git log` from inside the main project directory to see the previous commits. 
+For examples, run ``git log`` from inside the main project directory to see the previous commits. 
 
 8< ------------------------------------------------------------------------------------------------------------------------------------------------ >8
 
