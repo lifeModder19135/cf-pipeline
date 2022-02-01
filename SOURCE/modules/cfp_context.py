@@ -37,17 +37,14 @@ class Context:
     '''
     namespace: str = ''
     ctx_type: str = ''
-    
-
-
-     
+    env_dict = dict()
 
 class Cfp_Shell_Context(Context):
     '''
     This is a context for running commands in a shell such as bash or zsh. The bash process is run on top of a Python process with its own environment that is kept seperate from the process environment by default, but whose variables can be accessed in the same way as process envvars at context runtime.
     '''
-    env_dict = dict()
-    shell = ''
+    
+    shell:str = ''
     cmds:list[Command] = []
     cf_allowedlangs = ['C# mono',
                         'D DMD32',
