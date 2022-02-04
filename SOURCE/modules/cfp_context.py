@@ -1,4 +1,5 @@
 import os, click
+from dataclasses import dataclass
 
 
 
@@ -35,17 +36,17 @@ class Context:
     '''
     Base for all contexts. 
     '''
-    namespace: str = ''
-    ctx_type: str = ''
-    env_dict = dict()
+    namespace: str 
+    ctx_type: str 
+    env_dict: dict
 
-class Cfp_Shell_Context(Context):
+class CfpShellContext(Context):
     '''
     This is a context for running commands in a shell such as bash or zsh. The bash process is run on top of a Python process with its own environment that is kept seperate from the process environment by default, but whose variables can be accessed in the same way as process envvars at context runtime.
     '''
     
     shell:str = ''
-    cmds:list[Command] = []
+    cmds: list = []
     cf_allowedlangs = ['C# mono',
                         'D DMD32',
                         'Go',
@@ -100,11 +101,11 @@ class Cfp_Shell_Context(Context):
     def getenv(self, key):
         return self.env_dict[key]
     
-    def check_for_preferred_shell(self, shellpref:string):
+    def check_for_preferred_shell(self, shellpref:str):
         '''runs which command with shellname as argument. If cmd returns empty, self.shellpref_avail is set to False and this func returns False. otherwise,it is set to True, and func returns the path which the os uses to execute it, usually "$PREFIX/bin/shellname".'''
         
     
-    def __run_commands(self,cmd: str, shellpath):
+    def __run_commands(self, cmds: str, shellpath):
         '''simply runs cmd using self.shellpref. self.shellpref_avail must be True. DO NOT SET IT YOURSELF! To set it, you must first run the check_for_preferred_shell() func above. If it is False, then the shell isn't installed on the current system. In this case '''
         cmds_ls = cmds.split('&&')
         for c in cmds_ls:
@@ -114,9 +115,9 @@ class Cfp_Shell_Context(Context):
 class DynamicStrRunnerContext(Context): 
     '''sets up the runner based on the value of ctx_type in the parent. Uses concept known as reflection in Java via running eval(runner_str) where runner str is based on ctx_type. This lets us dynamically build a string and then run that string as python3 code. e.g. say ctx_type is "subprocess". The resulting runner_str would be "subprocess.run(cmd)". '''
     
-class CfpTestContext(CfpContext):
+class CfpTestContext(CfpShellContext):
 
 
-    def __init__(self, **envvars):
-        super().__init__(envvars)
+    def __init__(self, cmds, **envvars):
+        super().__init__(cmds, envvars)
          
