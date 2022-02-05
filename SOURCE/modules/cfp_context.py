@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from .cfp_errors import CfpInitializationError, CfpUserInputError
 from enum import Enum
 from shutil import which
+from shlex import whitespace_split
 from pathlib import Path
 
 #          ^
@@ -79,12 +80,7 @@ class CfpShellContext(Context):
         super().__init__('shell_ctx','shell')
         
         self.env_dict.update(envvars)
-        self.cmds_fmt = list()
-        for cmd in cmds:
-            if type(cmd) == list:
-                self.cmds_fmt.append(cmd)
-            elif type(cmd) == str:
-                self.cmds_fmt.append(list(map(str, cmd.split(' '))))
+        
 
         
                 
@@ -110,16 +106,24 @@ class CfpShellContext(Context):
     
     def __run_jobs_with_runner(self, job_runner: CfpRunner, shellpath: str):
         '''simply runs cmd using self.shellpref. self.shellpref_avail must be True. DO NOT SET IT YOURSELF! To set it, you must first run the check_for_preferred_shell() func above. If it is False, then the shell isn't installed on the current system. In this case '''
+        pass
         
         
-    def __prep_commands(self, cmds_: list[str], shellpath):
+    def __prep_commands(self, cmd_str: list[str], shellpath):
         cmds_ls = command.split('&&')
-        for c in cmds_ls:
-            pass
+        self.cmds_fmt = list()
+        for c_str in cmds_ls:
+            for cmd in c_str:
+                if type(cmd) == list:
+                    self.cmds_fmt.append(cmd)
+                elif type(cmd) == str:
+                    self.cmds_fmt.append(shlex.whitespace_split(cmd))
             
                 
 class DynamicStrRunnerContext(Context): 
-    '''sets up the runner based on the value of ctx_type in the parent. Uses concept known as reflection in Java via running eval(runner_str) where runner str is based on ctx_type. This lets us dynamically build a string and then run that string as python3 code. e.g. say ctx_type is "subprocess". The resulting runner_str would be "subprocess.run(cmd)". '''
+    """
+    Sets up the runner based on the value of ctx_type in the parent. Uses concept known as reflection in Java via running eval(runner_str) where runner str is based on ctx_type. This lets us dynamically build a string and then run that string as python3 code. e.g. say ctx_type is "subprocess". The resulting runner_str would be "subprocess.run(cmd)". 
+    """
     pass
     
 class CfpShellBasedTestContext(CfpShellContext):
