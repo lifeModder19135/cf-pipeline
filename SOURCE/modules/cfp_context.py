@@ -1,4 +1,4 @@
-import os, click
+import os, click, subprocess
 from dataclasses import dataclass
 from .cfp_errors import CfpInitializationError, CfpUserInputError
 from enum import Enum
@@ -12,37 +12,37 @@ from pathlib import Path
 #          |
 #  has-a = |   /  is-a =  < < < ----
 
-#                 context < < < ----------------------------  test_contest
-#                  |   |
-#                 |     |
-#                |       |
-#               |         |
-#              |           |
-#     environment         Runner
-#       |   |             |  |  |
-#      |    |            |   |   |
-#     |     |           |    |    |
-#  Keys  Values      Infile  |   Command_Line   |
-#                          Outfile   | |
-#                                   |   |
-#                                  |     |
-#                              Shell    CmdMode
-#                                        |    |
-#                                        |     |
-#                                        |      |
-#                                  cmdModule  {[cmdmodule.Follower], ...} 
-#                                         |           |    |
-#                                          |         |      |
-#                                           |       |        |
-#                                            |  Separator    cmdModule
-#                                             | <_________> | 
-#                                              |           |
-#                                              command, commandFollowerWrapper  
-#                                                |  |
-#                                               |   |
-#                                              |    |
-#                                     Executable   args
-# 
+#                   context < < < ----------------------------  test_contest
+#                  |      |
+#                 |         |
+#                |           |
+#               |             |
+#              |               |
+#     environment         -----Runner
+#       |   |            |     |  |  |
+#      |    |           |     |   |   |
+#     |     |          |     |    |    |
+#  Keys  Values    corque  Input   |   Command_Line   |
+#                  board   |   Output    | |
+#                          |    |       |   |
+#                          |   |       |     |
+#                        Message    Shell    CmdMode
+#                                            |    |
+#                                            |     |
+#                                            |      |
+#                                      cmdModule  {[cmdmodule.Follower], ...} 
+#                                             |           |    |
+#                                              |         |      |
+#                                               |       |        |
+#                                                |  Separator    cmdModule
+#                                                 | <_________> | 
+#                                                  |           |
+#                                                  command, commandFollowerWrapper  
+#                                                    |  |
+#                                                   |   |
+#                                                  |    |
+#                                         Executable   args
+#     
 #
 # 
 #
@@ -56,9 +56,9 @@ from pathlib import Path
 
 @dataclass
 class Context:
-    '''
+    """
     Base for all contexts. 
-    '''
+    """
     namespace: str 
     ctx_type: str 
     env_dict: dict
@@ -73,14 +73,14 @@ class CfpShellContext(Context):
     
      
     
-    def __init__(self, cmds, **envvars):
+    def __init__(self, cmds, shell_env: str, **envvars):
         '''
         Init calls parent init (sets namespace, ctx_type) and updates virtual_environment. Sets `cmds_fmt` to a 2d list where each outer element represents a command, itself represented by the inner list, with cmd[0] being the command and the rest of the inner list is its args. 
         '''
         super().__init__('shell_ctx','shell')
         
         self.env_dict.update(envvars)
-        
+        self.shellpath = check_for_preferred_shell(self.shellchoice)
 
         
                 
@@ -100,7 +100,6 @@ class CfpShellContext(Context):
             return False
 
     def run_ctx(self):
-        shellpath_clean = check_for_preferred_shell(self.shell)
         self.__run_jobs_with_runner(self.job_runner, shellpath_clean)        
         
     
@@ -191,24 +190,27 @@ class CfpRunner:
         elif self.runtype == Runtype.SUBPROCESS:
             self.frompipe = False
             self.topipe = False
-            exec_string = '' 
-
+        elif self.runtype == Runtype.SUBPROCESS_LEGACY:
+            self.strategy = 'subprocess.'      
+            
+    def configure(self):
     
     def get_new_subprocess_runner(self, legacy:bool=False):
         """
-        
+        What it says. It returns a fresh instance of CfpRunner with the Runtype set to SUBPROCESS.   
         """
         if legacy == True:
             self.setRuntype(Runtype.SUBPROCESS_LEGACY)
         else:
             self.setRuntype(Runtype.SUBPROCESS)             
+        self.__init__()
         
-    def setRuntype(self, rt: Runtype):
+    def __setRuntype(self, rt: Runtype):
         self.runtype = rt
         return True
     
     def __subproc_rnr_run():
-        pass
+        subprocess.
     
     
 class Runtype(Enum):
