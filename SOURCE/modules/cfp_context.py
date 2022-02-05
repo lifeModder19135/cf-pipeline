@@ -17,21 +17,41 @@ from pathlib import Path
 #                |       |
 #               |         |
 #              |           |
-#        environment     
-#    
-#     
-#     
-#     
-#     
-#     
-#     
-#     
-#     
-#     
-#     
-#     
+#     environment         Runner
+#       |   |             |  |  |
+#      |    |            |   |   |
+#     |     |           |    |    |
+#  Keys  Values      Infile  |   Command_Line   |
+#                          Outfile   | |
+#                                   |   |
+#                                  |     |
+#                              Shell    CmdMode
+#                                        |    |
+#                                        |     |
+#                                        |      |
+#                                  cmdModule  {[cmdmodule.Follower], ...} 
+#                                         |           |    |
+#                                          |         |      |
+#                                           |       |        |
+#                                            |  Separator    cmdModule
+#                                             | <_________> | 
+#                                              |           |
+#                                              command, commandFollowerWrapper  
+#                                                |  |
+#                                               |   |
+#                                              |    |
+#                                     Executable   args
+# 
+#
+# 
+#
+# 
+#
+# 
 #
 
+
+                                                  
 
 @dataclass
 class Context:
