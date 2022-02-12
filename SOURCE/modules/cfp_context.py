@@ -102,7 +102,6 @@ class CfpShellContext(Context):
         
         self.env_dict.update(envvars)
         self.shellpath = check_for_preferred_shell(self.shellchoice, resolve_mode="returnstatement")
-
     
     def check_for_preferred_shell(self, shellpref:str):
         '''runs which command with shellname as argument. If cmd returns empty, self.shellpref_avail is set to False and this func returns False. otherwise,it is set to True, and func returns the path which the os uses to execute it, usually "$PREFIX/bin/shellname".'''
@@ -115,11 +114,9 @@ class CfpShellContext(Context):
     def run_ctx(self):
         self.__run_jobs_with_runner(self.job_runner, shellpath_clean)        
         
-    
     def __run_jobs_with_runner(self, job_runner: CfpRunner, shellpath: str):
         '''simply runs cmd using self.shellpref. self.shellpref_avail must be True. DO NOT SET IT YOURSELF! To set it, you must first run the check_for_preferred_shell() func above. If it is False, then the shell isn't installed on the current system. In this case '''
-        pass
-        
+        pass       
         
     def __prep_commands(self, cmd_str: list[str], shellpath):
         cmds_ls = command.split('&&')
@@ -129,8 +126,7 @@ class CfpShellContext(Context):
                 if type(cmd) == list:
                     self.cmds_fmt.append(cmd)
                 elif type(cmd) == str:
-                    self.cmds_fmt.append(shlex.whitespace_split(cmd))
-            
+                    self.cmds_fmt.append(shlex.whitespace_split(cmd))            
                 
 class DynamicStrRunnerContext(Context): 
     """
@@ -229,17 +225,16 @@ class CfpRunner:
         self.runtype = rt
         return True
 
-
     def __subprocrun_rnr_run_cmdstring(command_string, ):
         try:
             subprocess.run(command_string,)
         except subprocess.SubprocessError:
             print('Something went wrong. Check input and "try" again.')
     
+########                                                                                         ########
+########################################  ~~~~ RUNNER SUBS ~~~~  ########################################
+########                                                                                         ########     
 
-    
-
-    
 class Command_Line:
     cl_aliases: list[str] = None
     content: List[Command_String] = None
@@ -252,9 +247,7 @@ class Command_Line:
     
     def to_string(self):
         pass
-        
-    
-    
+              
     
 @dataclass
 class CfpFile:
