@@ -53,14 +53,50 @@ from cfpipeline.SOURCE.lib.libcfp_metautils import *
 #
 
 ########                                                                                         ########
+###########################################  ~~~~ ENUMS ~~~~  ###########################################
+########                                                                                         ########
+
+class Runtype(Enum):
+    """
+    Args:
+        Enum ([type]): [description]
+    """
+    # 'asynchronous single-command runner using subprocess api'
+    SUBPROCESS = {'description_string': 'subprocess_default', 
+                  'topipe': False, 
+                  'frompipe': False, 
+                  'default_input_src': 'subprocess.STDIN', 
+                  'default_output_src': 'subprocess.STDOUT'}
+    # 'asynchronous pipe-exit command runner using subprocess api'
+    SUBPROCESS_LEGACY = {'description_string': 'subprocess_legacy', 
+                         'exec_string': 'subprocess.check_output'}    
+    
+class ResultResolutionMode(Enum):
+    """
+    This is meant to be a parameter for functions that configure one or more values that are persisted in the application after the function call finishes. It lets the caller specify how they want that value to be set /given. For example, the function could pass the value to its caller via return stmt, set a class variable, add a kv pair to env_dict, etc. To use, just add a kwarg of `arg: ResultResolutionMode = XXX` to func, where XXXX (the default) is one of the options below.
+    """
+    # Resolver should return result in the func return statement.
+    RETURN_STATEMENT = 1
+    INSTANCE_PROPERTY = 2
+    ENV_DICT = "self.putenv({},{})"
+
+########                                                                                         ########
 ########################################  ~~~~ RUNNER SUBS ~~~~  ########################################
 ########                                                                                         ########     
 
-class Command_Line:
-    cl_aliases: list[str] = None
-    content: list[Command_String] = None
+class Command:
+    exe: str
+    args: list
+
+class Task:
+    content:list[Command]
+
+
+class Job:
+    aliases: list[str] = None
+    content: list[Task] = None
     
-    def __init__(self, cmd_ls: list[Command_String], *aliases):
+    def __init__(self, cmd_ls: list[Task], *aliases):
         if len(cmd_ls) <= 0:
             raise CfpUserInputError('Command_Line objects must always contain at least one Command_string.')
         else:
@@ -273,7 +309,7 @@ class CfpShellBasedTestContext(CfpShellContext):
     # represents the chosen language's index in the cf_allowedlangs list 
     cf_lang_index = -1 
 
-    def __init__(self, cmds, rnnr: CpfRunner, shell_env: str, language: str, **envvars: any):
+    def __init__(self, cmds, rnnr: CfpRunner, shell_env: str, language: str, **envvars: any):
         super().__init__(cmds, rnnr,  envvars)
         self.setlang(language)
     
@@ -291,31 +327,3 @@ class CfpShellBasedTestContext(CfpShellContext):
     
 
 
-########                                                                                         ########
-###########################################  ~~~~ ENUMS ~~~~  ###########################################
-########                                                                                         ########
-
-class Runtype(Enum):
-    """
-    Args:
-        Enum ([type]): [description]
-    """
-    # 'asynchronous single-command runner using subprocess api'
-    SUBPROCESS = {typevalue_string: 'subprocess_solo', 
-                  topipe: False, 
-                  frompipe: False, 
-                  default_input_src: subprocess.STDIN, 
-                  default_output_src: subprocess.STDOUT}
-    # 'asynchronous pipe-exit command runner using subprocess api'
-    SUBPROCESS_LEGACY = {description_string: 'subprocess_legacy', 
-                         exec_string: 'subprocess.call().out'}    
-    
-class ResultResolutionMode(Enum):
-    """
-    This is meant to be a parameter for functions that configure one or more values that are persisted in the application after the function call finishes. It lets the caller specify how they want that value to be set /given. For example, the function could pass the value to its caller via return stmt, set a class variable, add a kv pair to env_dict, etc. To use, just add a kwarg of `arg: ResultResolutionMode = XXX` to func, where XXXX (the default) is one of the options below.
-    """
-    # Resolver should return result in the func return statement.
-    RETURN_STATEMENT = 1
-    INSTANCE_PROPERTY = 2
-    ENV_DICT = "self.putenv({},{})"
-    
