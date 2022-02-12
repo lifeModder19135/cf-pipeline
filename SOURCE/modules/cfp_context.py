@@ -5,6 +5,7 @@ from enum import Enum
 from shutil import which
 from shlex import whitespace_split
 from pathlib import Path
+from cfpipeline.SOURCE.modules.libcfp_metautils import *
 
 #          ^
 #          ^
@@ -18,13 +19,13 @@ from pathlib import Path
 #                |           |
 #               |             |
 #              |               |
-#     environment         -----Runner
-#       |   |            |     |  |  |
-#      |    |           |     |   |   |
-#     |     |          |     |    |    |
-#  Keys  Values    corque  Input   |   Command_Line   |
+#     environment         ---Runner---
+#       |   |            |     |  |   |
+#      |    |           |     |   |    |
+#     |     |          |     |    |     |
+#  Keys  Values    corque  Input   |     Job  
 #                  board   |   Output    | |
-#                          |    |       |   |
+#                (queue)   |    |       |   |
 #                          |   |       |     |
 #                        Message    Shell    CmdMode
 #                                            |    |
@@ -51,8 +52,9 @@ from pathlib import Path
 # 
 #
 
-
-                                                  
+########                                                                                         ########
+##########################################  ~~~~ CONTEXTS ~~~~  ##########################################
+########                                                                                         ########
 
 @dataclass
 class Context:
@@ -62,34 +64,45 @@ class Context:
     namespace: str 
     ctx_type: str 
     env_dict: dict
-
-class CfpShellContext(Context):
-    '''
-    This is a context for running commands in a shell such as bash or zsh. The bash process is run on top of a Python process with its own environment that is kept seperate from the process environment by default, but whose variables can be accessed in the same way as process envvars at context runtime.
-    '''
-    
-    shellchoice: str = ''
-    cmds: list = []
-    
-     
-    
-    def __init__(self, cmds, shell_env: str, **envvars):
-        '''
-        Init calls parent init (sets namespace, ctx_type) and updates virtual_environment. Sets `cmds_fmt` to a 2d list where each outer element represents a command, itself represented by the inner list, with cmd[0] being the command and the rest of the inner list is its args. 
-        '''
-        super().__init__('shell_ctx','shell')
-        
-        self.env_dict.update(envvars)
-        self.shellpath = check_for_preferred_shell(self.shellchoice)
-
-        
-                
+                   
     def putenv(k, v):
         env_dict.update({k: v})
         return True
             
     def getenv(self, key):
         return self.env_dict[key]
+    
+    def get_info(self,outputFmt:str):
+        """
+        TODO: make sure this is tested with a populated env_dict. Need to create a 
+        """
+        print.format('CURRENT CONTEXT:' )
+        print.format('        Instance of Type:   {} Context', self.ctx_type)
+        print.format('    Ctx Namespace Prefix:   {}_')
+        print.format('   Ctx Inner Environment: \{')
+        for k,v in env_dict.items():
+            if type(v) == string:
+                print(f'              {k}: {v}')
+            else:
+                print(f'              {k}: {str(v)}')           
+
+class CfpShellContext(Context):
+    '''
+    This is a context for running commands in a shell such as bash or zsh. The bash process is run on top of a Python process with its own environment that is kept seperate from the process environment by default, but whose variables can be accessed in the same way as process envvars at context runtime.
+    '''
+
+    shellchoice: str = ''
+    cmds: list = []
+        
+    def __init__(self, cmds, runner: Runner, shell_env: str, **envvars):
+        '''
+        Init calls parent init (sets namespace, ctx_type) and updates virtual_environment. Sets `cmds_fmt` to a 2d list where each outer element represents a command, itself represented by the inner list, with cmd[0] being the command and the rest of the inner list is its args. 
+        '''
+        super().__init__('shell_ctx','shell')
+        
+        self.env_dict.update(envvars)
+        self.shellpath = check_for_preferred_shell(self.shellchoice, resolve_mode="returnstatement")
+
     
     def check_for_preferred_shell(self, shellpref:str):
         '''runs which command with shellname as argument. If cmd returns empty, self.shellpref_avail is set to False and this func returns False. otherwise,it is set to True, and func returns the path which the os uses to execute it, usually "$PREFIX/bin/shellname".'''
@@ -157,8 +170,8 @@ class CfpShellBasedTestContext(CfpShellContext):
     # represents the chosen language's index in the cf_allowedlangs list 
     cf_lang_index = -1 
 
-    def __init__(self, cmds, rnnr: CpfRunner, language: str, **envvars):
-        super().__init__(cmds, envvars)
+    def __init__(self, cmds, rnnr: CpfRunner, shell_env: str, language: str, **envvars: any):
+        super().__init__(cmds, rnnr,  envvars)
         self.setlang(language)
     
     def setlang(self):
@@ -171,11 +184,16 @@ class CfpShellBasedTestContext(CfpShellContext):
             lang = self.cf_allowedlangs[cf_lang_index]
             self.putenv('solutionlanguage', lang)
             
+########                                                                                         ########
+##########################################  ~~~~ RUNNERS ~~~~  ##########################################
+########                                                                                         ########
             
 class CfpRunner:
     """
     This is a highly dynamic class which is responsible for nearly all cfp runner types. If the init method 
     is called directly, it will raise an error, but the various runner-type-getters, e.g. get_new_*_runner(), call init after setting a class property. After this is set, the runner will build itself according to its value.
+    
+    TODO:
     """
     
     runtype = None
@@ -183,6 +201,7 @@ class CfpRunner:
     topipe: bool = False
     default_input_src = subprocess.STDIN, 
     default_output_src = subprocess.STDOUT
+    argstring: Argstring = ''
     
     def __init__(self):
         if self.runtype is None:
@@ -194,6 +213,7 @@ class CfpRunner:
             self.strategy = 'subprocess.'      
             
     def configure(self):
+        pass
     
     def get_new_subprocess_runner(self, legacy:bool=False):
         """
@@ -208,22 +228,17 @@ class CfpRunner:
     def __setRuntype(self, rt: Runtype):
         self.runtype = rt
         return True
+
+
+    def __subprocrun_rnr_run_cmdstring(command_string, ):
+        try:
+            subprocess.run(command_string,)
+        except subprocess.SubprocessError:
+            print('Something went wrong. Check input and "try" again.')
     
-    def __subproc_rnr_run():
-        subprocess.
+
     
-    
-class Runtype(Enum):
-    # 'asynchronous single-command runner using subprocess api'
-    SUBPROCESS = {typevalue_string: 'subprocess_solo', 
-                       topipe: False, 
-                       frompipe: False, 
-                       default_input_src: subprocess.STDIN, 
-                       default_output_src: subprocess.STDOUT}
-    # 'asynchronous pipe-exit command runner using subprocess api'
-    SUBPROCESS_LEGACY = {description_string: 'subprocess_legacy', 
-                         exec_string: 'subprocess.call().out'}
-    
+
     
 class Command_Line:
     cl_aliases: list[str] = None
@@ -251,4 +266,35 @@ class CfpFile:
     size_in_bytes: int = None
     isOpenable: bool = None
 
-class 
+class Argstring(str):
+    def to_cmd_objs(self):
+        pass 
+
+########                                                                                         ########
+###########################################  ~~~~ ENUMS ~~~~  ###########################################
+########                                                                                         ########
+
+class Runtype(Enum):
+    """
+    Args:
+        Enum ([type]): [description]
+    """
+    # 'asynchronous single-command runner using subprocess api'
+    SUBPROCESS = {typevalue_string: 'subprocess_solo', 
+                  topipe: False, 
+                  frompipe: False, 
+                  default_input_src: subprocess.STDIN, 
+                  default_output_src: subprocess.STDOUT}
+    # 'asynchronous pipe-exit command runner using subprocess api'
+    SUBPROCESS_LEGACY = {description_string: 'subprocess_legacy', 
+                         exec_string: 'subprocess.call().out'}    
+    
+class ResultResolutionMode(Enum):
+    """
+    This is meant to be a parameter for functions that configure one or more values that are persisted in the application after the function call finishes. It lets the caller specify how they want that value to be set /given. For example, the function could pass the value to its caller via return stmt, set a class variable, add a kv pair to env_dict, etc. To use, just add a kwarg of `arg: ResultResolutionMode = XXX` to func, where XXXX (the default) is one of the options below.
+    """
+    # Resolver should return result in the func return statement.
+    RETURN_STATEMENT = 1
+    INSTANCE_PROPERTY = 2
+    ENV_DICT = "self.putenv({},{})"
+    
