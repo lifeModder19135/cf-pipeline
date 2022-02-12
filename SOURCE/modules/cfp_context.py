@@ -27,7 +27,7 @@ from cfpipeline.SOURCE.lib.libcfp_metautils import *
 #                  board   |   Output    | |
 #                (queue)   |    |       |   |
 #                          |   |       |     |
-#                        Message    Shell    CmdMode
+#                        Message    Shell    Task
 #                                            |    |
 #                                            |     |
 #                                            |      |
@@ -51,6 +51,113 @@ from cfpipeline.SOURCE.lib.libcfp_metautils import *
 #
 # 
 #
+
+########                                                                                         ########
+########################################  ~~~~ RUNNER SUBS ~~~~  ########################################
+########                                                                                         ########     
+
+class Command_Line:
+    cl_aliases: list[str] = None
+    content: list[Command_String] = None
+    
+    def __init__(self, cmd_ls: list[Command_String], *aliases):
+        if len(cmd_ls) <= 0:
+            raise CfpUserInputError('Command_Line objects must always contain at least one Command_string.')
+        else:
+            self.content = cmd_ls
+    
+    def to_string(self):
+        pass
+              
+    
+@dataclass
+class CfpFile:
+    """
+    Base class for Executable, Source_File, Shell_Application, Input_File, and anything with a location: Path attribute. Not all will be eligible for File.open(), as directories are files as well.  
+    """    
+    
+    location: Path = None
+    size_in_bytes: int = None
+    isOpenable: bool = None
+
+class Argstring(str):
+    def to_cmd_objs(self):
+        pass 
+
+########                                                                                         ########
+##########################################  ~~~~ RUNNERS ~~~~  ##########################################
+########                                                                                         ########
+
+class BaseRunner:
+    """
+    This class should be a relative of EVERY runner defined in the application. It defines only logic that must be present for all runners, and therefore lays out the minimal contract for this abstraction.
+    """
+    infile = None
+    infrom = None
+    outto = None
+    cmd = None
+    
+    def __init__(self, in_from=None, out_to=None, infile=None, cmd=None):
+        self.infrom = in_from 
+        self.outto = out_to
+        self.infile = infile
+        if self.infile and self.infrom:
+            raise CfpUserInputError("You cannot specify values for both input and infile")
+        elif self.infile:
+            pth = Path(self.infile)
+            if Path.exists(pth):
+                self.in_from = open(pth)
+            else:
+                raise CfpUserInputError("If included, value for infile must be a valid path")        
+             
+    
+
+class CfpRunner:
+    """
+    This is a highly dynamic class which is responsible for nearly all cfp runner types. If the init method 
+    is called directly, it will raise an error, but the various runner-type-getters, e.g. get_new_*_runner(), call init after setting a class property. After this is set, the runner will build itself according to its value.
+    
+    TODO:
+    """
+    
+    DEFAULT_INPUT_SRC = 'subprocess.STDIN'
+    DEFAULT_OUTPUT_SRC = 'subprocess.STDOUT'
+    runtype = None
+    frompipe: bool = False
+    topipe: bool = False
+    argstring: Argstring = ''
+    
+    def __init__(self):
+        if self.runtype is None:
+            raise CfpInitializationError("You cannot invoke this __init__() method directly. Try using one of the @classmethods defined by this class to get a new instance.")
+        elif self.runtype == Runtype.SUBPROCESS:
+            self.frompipe = False
+            self.topipe = False
+        elif self.runtype == Runtype.SUBPROCESS_LEGACY:
+            self.strategy = 'subprocess_check_output'      
+            
+    def configure(self):
+        pass
+    
+    def get_new_subprocess_runner(self, legacy:bool=False):
+        """
+        What it says. It returns a fresh instance of CfpRunner with the Runtype set to SUBPROCESS.   
+        """
+        if legacy == True:
+            self.setRuntype(Runtype.SUBPROCESS_LEGACY)
+        else:
+            self.setRuntype(Runtype.SUBPROCESS)             
+        self.__init__()
+        
+    def __setRuntype(self, rt: Runtype):
+        self.runtype = rt
+        return True
+
+    def __subprocrun_rnr_run_cmdstring(command_string, ):
+        try:
+            subprocess.run(command_string,)
+        except subprocess.SubprocessError:
+            print('Something went wrong. Check input and "try" again.')
 
 ########                                                                                         ########
 ##########################################  ~~~~ CONTEXTS ~~~~  ##########################################
@@ -180,88 +287,9 @@ class CfpShellBasedTestContext(CfpShellContext):
             lang = self.cf_allowedlangs[cf_lang_index]
             self.putenv('solutionlanguage', lang)
             
-########                                                                                         ########
-##########################################  ~~~~ RUNNERS ~~~~  ##########################################
-########                                                                                         ########
-            
-class CfpRunner:
-    """
-    This is a highly dynamic class which is responsible for nearly all cfp runner types. If the init method 
-    is called directly, it will raise an error, but the various runner-type-getters, e.g. get_new_*_runner(), call init after setting a class property. After this is set, the runner will build itself according to its value.
-    
-    TODO:
-    """
-    
-    runtype = None
-    frompipe: bool = False
-    topipe: bool = False
-    default_input_src = subprocess.STDIN, 
-    default_output_src = subprocess.STDOUT
-    argstring: Argstring = ''
-    
-    def __init__(self):
-        if self.runtype is None:
-            raise CfpInitializationError("You cannot invoke this __init__() method directly. Try using one of the @classmethods defined by this class to get a new instance.")
-        elif self.runtype == Runtype.SUBPROCESS:
-            self.frompipe = False
-            self.topipe = False
-        elif self.runtype == Runtype.SUBPROCESS_LEGACY:
-            self.strategy = 'subprocess.'      
-            
-    def configure(self):
-        pass
-    
-    def get_new_subprocess_runner(self, legacy:bool=False):
-        """
-        What it says. It returns a fresh instance of CfpRunner with the Runtype set to SUBPROCESS.   
-        """
-        if legacy == True:
-            self.setRuntype(Runtype.SUBPROCESS_LEGACY)
-        else:
-            self.setRuntype(Runtype.SUBPROCESS)             
-        self.__init__()
-        
-    def __setRuntype(self, rt: Runtype):
-        self.runtype = rt
-        return True
 
-    def __subprocrun_rnr_run_cmdstring(command_string, ):
-        try:
-            subprocess.run(command_string,)
-        except subprocess.SubprocessError:
-            print('Something went wrong. Check input and "try" again.')
     
-########                                                                                         ########
-########################################  ~~~~ RUNNER SUBS ~~~~  ########################################
-########                                                                                         ########     
 
-class Command_Line:
-    cl_aliases: list[str] = None
-    content: List[Command_String] = None
-    
-    def __init__(self, cmd_ls: list[Command_String], *aliases):
-        if len(cmd_ls) <= 0:
-            raise CfpUserInputError('Command_Line objects must always contain at least one Command_string.')
-        else:
-            self.content = cmd_ls
-    
-    def to_string(self):
-        pass
-              
-    
-@dataclass
-class CfpFile:
-    """
-    Base class for Executable, Source_File, Shell_Application, Input_File, and anything with a location: Path attribute. Not all will be eligible for File.open(), as directories are files as well.  
-    """    
-    
-    location: Path = None
-    size_in_bytes: int = None
-    isOpenable: bool = None
-
-class Argstring(str):
-    def to_cmd_objs(self):
-        pass 
 
 ########                                                                                         ########
 ###########################################  ~~~~ ENUMS ~~~~  ###########################################
