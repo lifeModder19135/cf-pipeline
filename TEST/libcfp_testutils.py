@@ -1,12 +1,15 @@
 class McfpTestFixture(dictionary):
     
-    def describe(self, outputFmt: string):
+    def describe(self, output_fmt: string):
         """
         params:        
-            <: valuesFrom :: string :> 
+            <: output_fmt :: string :> 
                     must expand to any of the values in ['def', 'silent', 'short', 'mid', 'long']
-                        ?'def'>> 
-
+                        ?'def'>> default; re-expands to one of the remaining 4, depending on config setting       OUTPUT_VERBOSITY_USER_DEF
+                        ?'silent'>> silent-mode; no output returned
+                        ?'short'>>  short-mode; very little output returned
+                        ?'mid'>> mid-length mode; medium amt of output returned; default if OUTPUT_VERBOSITY_USER_DEF unset
+                        ?'long'>> long-mode; verbose output returned
         """
     
     def setdescription(self,dscrptn: str):

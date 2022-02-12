@@ -3,9 +3,9 @@ from dataclasses import dataclass
 from .cfp_errors import CfpInitializationError, CfpUserInputError
 from enum import Enum
 from shutil import which
-from shlex import whitespace_split
+from shlex import split, join
 from pathlib import Path
-from cfpipeline.SOURCE.modules.libcfp_metautils import *
+from cfpipeline.SOURCE.lib.libcfp_metautils import *
 
 #          ^
 #          ^
@@ -94,7 +94,7 @@ class CfpShellContext(Context):
     shellchoice: str = ''
     cmds: list = []
         
-    def __init__(self, cmds, runner: Runner, shell_env: str, **envvars):
+    def __init__(self, cmds, runner: CfpRunner, shell_env: str, **envvars):
         '''
         Init calls parent init (sets namespace, ctx_type) and updates virtual_environment. Sets `cmds_fmt` to a 2d list where each outer element represents a command, itself represented by the inner list, with cmd[0] being the command and the rest of the inner list is its args. 
         '''
