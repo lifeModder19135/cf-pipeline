@@ -96,6 +96,10 @@ class ResultResolutionMode(Enum):
 ########################################  ~~~~ RUNNER SUBS ~~~~  ########################################
 ########                                                                                         ########     
 
+class InputString(str):
+    def to_cmd_objs(self):
+        pass 
+
 class Program(pathlib.Path):
     def __init__(input_src):
         super().__init__(input_src)
@@ -118,6 +122,19 @@ class Command:
     
     def __init__(self):
         pass
+
+@dataclass
+class CfpFile:
+    """
+    Base class for Executable, Source_File, Shell_Application, Input_File, and anything with a location: Path attribute. Not all will be eligible for File.open(), as directories are files as well.  
+    """    
+    
+    location: Path = None
+    size_in_bytes: int = None
+    isOpenable: bool = None
+
+
+
 
 class Task:
     """
@@ -147,19 +164,6 @@ class Job:
         pass
               
     
-@dataclass
-class CfpFile:
-    """
-    Base class for Executable, Source_File, Shell_Application, Input_File, and anything with a location: Path attribute. Not all will be eligible for File.open(), as directories are files as well.  
-    """    
-    
-    location: Path = None
-    size_in_bytes: int = None
-    isOpenable: bool = None
-
-class Argstring(str):
-    def to_cmd_objs(self):
-        pass 
 
 ########                                                                                         ########
 ##########################################  ~~~~ RUNNERS ~~~~  ##########################################
