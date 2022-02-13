@@ -1,4 +1,4 @@
-from cfpipeline.SOURCE.modules.cfp_context import *
+from ..SOURCE.modules.cfp_context import *
 
 def test__Context_base_init_01():
     description = "ensure that new Context objs are created with namespace set"
