@@ -1,11 +1,11 @@
-import os, click, subprocess
+import os, click,invoke, subprocess
 from dataclasses import dataclass
 from .cfp_errors import CfpInitializationError, CfpUserInputError
 from enum import Enum
 from shutil import which
 from shlex import split, join
 from pathlib import Path
-from cfpipeline.SOURCE.lib.libcfp_metautils import *
+from ..lib.libcfp_metautils import *
 
 #          ^
 #          ^
@@ -43,14 +43,26 @@ from cfpipeline.SOURCE.lib.libcfp_metautils import *
 #                                                   |   |
 #                                                  |    |
 #                                         Executable   args
-#     
+####  
 #
 # 
 #
 # 
+#FULL JOB BREAKDOWN:
+# 
+#
+#   |
+#   C
+#   |
+#   p
+#   | 
+#  pwd && cd /dir/other; sudo cmd -v --list .. | /usr/bin/xargs -f 'oreos first' | tee -a filefile | wc && exec 'sh -c cmd'
+#
+#
 #
 # 
 #
+# 
 
 ########                                                                                         ########
 ###########################################  ~~~~ ENUMS ~~~~  ###########################################
@@ -84,15 +96,44 @@ class ResultResolutionMode(Enum):
 ########################################  ~~~~ RUNNER SUBS ~~~~  ########################################
 ########                                                                                         ########     
 
+class Program(pathlib.Path):
+    def __init__(input_src):
+        super().__init__(input_src)
+
+class CmdArg(str):
+    def __init__(input_src):
+        super().__init__(input_src)
+
+class CmdArgstring(str):
+    def __init__(input_src):
+        super().__init__(input_src)
+
+class CmdArglist(str):
+    def __init__(input_src):
+        super().__init__(input_src)
+
 class Command:
-    exe: str
-    args: list
+    exe: str = None
+    args: list = None
+    
+    def __init__(self):
+        pass
 
 class Task:
-    content:list[Command]
-
+    """
+    Represents a group of one or more commands connected together via pipes / fifos. IMPORTANT: commands which are connected via `&&` , `||` , or `;` are not 
+    """
+    content:list[Command] = None
+    
+    def __init__(self):
+        pass
 
 class Job:
+    """
+    Params:
+            top_level -- constant -- boolean -- if true, this Job is meant for running lower level jobs. If false, it is a lower_level itself, and is for running Task lists
+    """
+    TOP_LEVEL:bool = False
     aliases: list[str] = None
     content: list[Task] = None
     
