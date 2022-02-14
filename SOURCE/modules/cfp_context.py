@@ -133,7 +133,8 @@ class CfpFile:
     size_in_bytes: int = None
     isOpenable: bool = None
 
-
+    @property
+    def getContent():
 
 
 class Task:
@@ -163,6 +164,48 @@ class Job:
     def to_string(self):
         pass
               
+########                                                                                         ########
+########################################  ~~~~ IO_HANDLERS ~~~~  ########################################
+########                                                                                         ########    
+
+class IOHandlerBase:
+    handler_args = None
+    
+    def __init__(self, *args, **kwargs):
+        if not args and not kwargs:
+            return self
+        else:
+            self.handler_args = args
+            for k,v in kwargs:
+                st = f'{k}={v}'
+                self.handler_args.append(st)
+        return self
+    
+    
+    def set_io_type(self, io_type: str):
+        """
+        io_type is either input or output, otherwise throw error.
+        """
+        if io_type == 'i' or io_type == 'in' or io_type == 'input':    
+            self.io_type = 'I'
+        elif io_type == 'o' or io_type == 'out' or io_type == 'output':
+            self.io_type = 'O'
+        else:
+            raise CfpUserInputError(f'Invalid value given for parameter {io_type}')
+        return True
+    
+    @property
+    def get_io_type(self):
+        return self.io_type
+    
+class InputHandler(IOHandlerBase):
+    
+    def __init__(self, itype: str, file=None, *args, **kwargs):
+        
+        input_type = itype
+
+class OutputHandler(IOHandlerBase):
+    pass
     
 
 ########                                                                                         ########
@@ -187,11 +230,24 @@ class BaseRunner:
         elif self.infile:
             pth = Path(self.infile)
             if Path.exists(pth):
-                self.in_from = open(pth)
+                self.in_from = fileinput(pth)
             else:
                 raise CfpUserInputError("If included, value for infile must be a valid path")        
              
-    
+    def InitializeIOHandler(handler_args):
+        """
+        Description: creates and returns an IOHandler with 
+        Args: []
+        Raises: [
+            CfpUserInputError : [Raised if the data given to the instance is invalid]
+            IOError: [Called as a parent of the first Error]
+            CfpInitializationError: [Raised if a system error is caught upon init of the link]
+        ]
+        Returns:
+            IOHandler: [This class is responsible for the IO of its Runner. May be InputIOHandler or OutputIOHandler]
+        """
+        handler = IOHandler(handler_args)
+        return handler
 
 class CfpRunner:
     """
