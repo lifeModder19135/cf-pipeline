@@ -22,12 +22,21 @@ jobs:
     # Change the version below to your required version of python
     docker:
       - image: cimg/python:3.10.2
+        auth:
+          username: lifeModder19135
+          password: $CCI_PASSWD
     # Checkout the code as the first step. This is a dedicated CircleCI step.
     # The python orb's install-packages step will install the dependencies from a Pipfile via Pipenv by default.
     # Here we're making sure we use just use the system-wide pip. By default it uses the project root's requirements.txt.
     # Then run your tests!
     # CircleCI will report the results back to your VCS provider.
     steps:
+      - run:
+          name: Change POV
+          command: pushd .. 
+      - run:
+          name: Regain Perspectivev
+          command: ls -la || sudo ls -la
       - checkout
       - python/install-packages:
           pkg-manager: pip
