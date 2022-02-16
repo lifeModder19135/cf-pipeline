@@ -130,12 +130,26 @@ class CfpFile:
     """    
     
     location: Path = None
+    filetype: str = None
     size_in_bytes: int = None
     isOpenable: bool = None
+    handler:IOHandler
 
     @property
-    def getContent():
+    def get_filetype(self)
+        """
+        explicit params: n/a
+        input: self
+        output: string - file type of self
+        """
 
+    @property
+    def getContent(self.):
+        if self.get_filetype() == 'unknown':
+            
+        
+    def from_scratch():
+        createfilehandler(file, mask, func)
 
 class Task:
     """
@@ -246,6 +260,8 @@ class BaseRunner:
         Returns:
             IOHandler: [This class is responsible for the IO of its Runner. May be InputIOHandler or OutputIOHandler]
         """
+        if infile:
+            
         handler = IOHandler(handler_args)
         return handler
 
