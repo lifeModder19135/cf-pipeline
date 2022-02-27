@@ -37,7 +37,7 @@ class ParamType(click.ParamType):
             res = ParamTypes.TUPLE
         elif x == 'set':
             res = ParamTypes.SET
-        elif x == 'dict' or x == 'dictionary':
+        elif x == 'dict ' or x == 'dictionary':
             res = ParamTypes.DICT
         elif x == 'object' or x == 'obj' or x == 'object_subtype':
             res = ParamTypes.OBJECT_SUBTYPE
