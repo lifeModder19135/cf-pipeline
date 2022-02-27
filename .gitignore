@@ -2,3 +2,10 @@
 TEST/__pycache__/test_context_classes.cpython-38-pytest-6.2.5.pyc
 .vscode/
 ./reqs.txt
+###      TAG FILES        ###
+#############################
+
+# Empty files that serve as tags or markers
+
+**/zzGOOD_VERSION!!!
+**/zzVERSION_0.1.01
