@@ -5,7 +5,7 @@ from enum import Enum
 from shutil import which
 from shlex import split, join
 from pathlib import Path
-from ..lib.libcfp_metautils import *
+from ..__lib__.libcfp_metautils import *
 
 #          ^
 #          ^

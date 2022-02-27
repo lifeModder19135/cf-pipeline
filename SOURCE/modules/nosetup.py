@@ -4,7 +4,10 @@
 setup(
     name = 'Codeforces:_CF_Pipeline',
     version = '',
-    py_modules = [],
+    package_dirs = {"libcfp_utils": "SOURCE", 'commands': 'SOURCE.commands', 'libcfp_metautils': 'SOURCE.lib.', 'cfp_types': 'SOURCE.modules'},
     install_requires = ['click', 'venv'],
-    entry_points = [cfp_coordinator]
+    entry_points = '''
+        [console_scripts]
+        cfp=main:cli_entry
+    '''
 )
