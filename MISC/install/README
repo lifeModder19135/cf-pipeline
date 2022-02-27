@@ -1,0 +1,57 @@
+## INSTALL DIRECTORY
+
+What follows is a description of the files contained within this directory, or more precicely, the system that is made up of them.
+
+##### FILES:
+    install.sh
+    locate_package.py
+    xfile
+    configure
+    README (this)
+
+##### PROCESS:
+
+    -install.sh is invoked from the command line. It checks and stores the value of 
+$CFP_PKG_LOCATION, then immediately calls locate_package.py,handles any necessary environment 
+configuration settings, and then starts polling the $CFP_PKG_LOCATION variable.
+    - Meanwhile, locate_package.py is efficiently searching for the correct value for that 
+same variable. That is to say, it is looking for the full path of the package. Once it finds
+it, it will set it and return 0.
+    - When the variable is set, install.sh will run make after copying ./xfile to a file in the 
+main directory named Makefile, with this command:
+
+
+  if [ -f "${CFP_PKG_LOCATION}/Makefile" ] && [ "${CFP_OVERWRITE}" = "true" ]
+  then
+    cat ./Makefile 2>"${CFP_PKG_LOCATION}" 3>&/dev/null
+  else
+    cp -t "${CFP_PKG_LOCATION}/" ./xfile && make install
+  fi
+
+
+
+##### WHEN TO USE:
+
+    - **For developer use just before deployment:** It will be built into the deployment pipeline
+so it is never overlooked. This will let us keep some of the clutter out of site and out of our 
+IDE explorer windows during development. Every file helps; they add up quickly.
+
+    - **For developer use just before development:** This is a fairly solid little tool that could 
+easily be extended in the future into a full-on dev-environment configuration system. For example, it would be easy to include other Makefiles here, each of which accomplishes a different dev-ops or dev-maintainence task. One could even include a dummy setup.py which installs  nothing, but instead maps actions (such as a run action for some, or a shellscript to switch them out), to shell commands. A well-thought bash-script with aliases would work just as well. Many to most of these tasks can be achieved just as easily without this system, but not _in a portable way..._ That is where I feel that it would be useful to us. Either way, it's just a thought. The real point here is that if we want to create a small framework for any mundane dev-ops day-to-day tasks, etc.,
+
+        1.) It will save timein the long run, and 
+        2.) We already have an ideal launchpad tucked away right here.
+
+ Leave a message on the [Cf-Pipeline Slack Channel]() and let me know your thoughts.
+
+    - **For the end user** _(occasionally)_**:** in the event that you need to reset the
+Makefile to it`s default state before installing or reinstalling the package. In the end, this is your package, your license, your machine, and your responsibility. This is not Android, after all, this is REAL open-source!
+
+-------8<--------NOTHING USEFUL BEYOND THIS POINT------------->8-------------------------------
+
+    - NOTE: If you somehow managed to run it on a non Termux-style system -- Termux isn't
+Android; Termux is Linux, Android is Linux -- , then you can refer to Papa Google to find out where you are allowed to go and what you are allowed to do ON YOUR DEVICE, but I digress...)
+    - If nothing in the last point made sense, it is probably because you are a normal human
+being. Okay, now it's just getting wierd. This is what working remotely with a keyboard for extended periods will do to a person. You start typing to yourself... now it's _too_ wierd... 
+Looking forward to chatting with you.
+    - No matter who you are, have a great day!
