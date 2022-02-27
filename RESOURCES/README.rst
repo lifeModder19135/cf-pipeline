@@ -49,7 +49,40 @@ supports. The goal for the final implementation of CF-P is to provide a package 
 
 ### CONTRIBUTING
 
-Not much to 
+Not much to put here at the moment... Shameless self promotion, I guess??? 
+
+#### Another Competetive Programming app? (What?)
+
+\.\.\.because this is NOT just another c.p. application. It is a _framework for building applications!_ Once 
+it is complete, it will give developers (in this case, the entire userbase) a tool for more easily creating 
+the apps that they want / need. In the end, I want to go as far as to set up some sort of community hub 
+(maybe a subreddit or a github repository) for the community to post their tools and download tools posted 
+by others which they find useful. 
+
+And from there, these tools can be combined in creative ways and used as parts in even more tools. 
+
+The whole thing is based on the idea of "the porcelain and the plumbing." If at this point you still aren't 
+seeing the usefulness of the cf-pipeline framework (once finished), just google this term. It should be 
+pretty popular, the concept is one on which Unix itself (or technically GNU) is built. 
+
+In a sentence, the idea is this: 
+
+_Build apps that do only one small thing, and build them so that the output is formatted as input to other 
+apps, so that each user-facing program ends up being many small programs working in a system._
+
+#### And why should I care? (Why?)
+
+Because this app _will_ catch on! I'm certain of it. That is because, as a programmer, I can't wait to finish it, 
+just so I can use it myself! I know how programmers think. We don't want an api front end built by another 
+programmer. We want an API that we can hack in order to **build our own programs!** 
+
+Therefore, the primary purpose here is to beef up the api that cf (and eventually other platforms) has 
+already laid out. It will offer abstractions for the various datatypes that are offered via the available 
+api methods, and other handy utilities that are commonly desired / needed when working with them. The rest 
+will be up to the community!
+
+So get in early while our group is small and get a say-so regarding development decisions. Not to mention the 
+fact that building in an area this "close to home" (where the domain is one that you enjoy) is just plain fun.
 
 ### TODO
 

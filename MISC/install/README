@@ -50,7 +50,7 @@ Makefile to it`s default state before installing or reinstalling the package. In
 -------8<--------NOTHING USEFUL BEYOND THIS POINT------------->8-------------------------------
 
     - NOTE: If you somehow managed to run it on a non Termux-style system -- Termux isn't
-Android; Termux is Linux, Android is Linux -- , then you can refer to Papa Google to find out where you are allowed to go and what you are allowed to do ON YOUR DEVICE, but I digress...)
+Android; Termux is Linux, Android is NOT Linux -- , then you can refer to Papa Google to find out where you are allowed to go and what you are allowed to do ON YOUR DEVICE, but I digress...)
     - If nothing in the last point made sense, it is probably because you are a normal human
 being. Okay, now it's just getting wierd. This is what working remotely with a keyboard for extended periods will do to a person. You start typing to yourself... now it's _too_ wierd... 
 Looking forward to chatting with you.
