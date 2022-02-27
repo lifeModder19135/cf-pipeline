@@ -33,10 +33,10 @@ jobs:
     steps:
       - run:
           name: Change POV
-          command: pushd .. 
+          command: pushd .. && ls -la || sudo ls -la
       - run:
-          name: Regain Perspectivev
-          command: ls -la || sudo ls -la
+          name: Regain Perspective
+          command: (ls -la || sudo ls -la) >> /home/circleci/project/RESOURCES/
       - checkout
       - python/install-packages:
           pkg-manager: pip
