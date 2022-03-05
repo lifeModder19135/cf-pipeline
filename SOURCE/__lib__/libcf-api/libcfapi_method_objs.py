@@ -15,6 +15,32 @@ class ParamTypes(Enum):
     SET = 7
     DICT = 8
     OBJECT_SUBTYPE = 9
+
+class Apis(Enum):
+    CODEFORCES = 'codeforces.com'
+
+class CodeforcesApiMethodValues(Enum):
+    '''
+    A comprehensive listing of all Codeforces api Methods supported by the program at a time.
+    '''
+    BLOGENTRY_COMMENTS = 'blogEntry.comments'
+    BLOGENTRY_VIEW = 'blogEntry.view'
+    CONTEST_HACKS = 'contest.hacks'
+    CONTEST_LIST = 'contest.list'
+    CONTEST_RATINGCHANGES = 'contest.ratingChanges'
+    CONTEST_STANDINGS = 'contest.standings'
+    CONTEST_STATUS = 'contest.status'
+    PROBLEMSET_PROBLEMS = 'problemset.problems'
+    PROBLEMSET_RECENTSTATUS = 'problemset.recentStatus'
+    RECENTACTIONS = 'recentActions'
+    USER_BLOGENTRIES = 'user.blogEntries'
+    USER_FRIENDS = 'user.friends'
+    USER_INFO = 'user.info'
+    USER_RATEDLIST = 'user.ratedList'
+    USER_RATING = 'user.rating'
+    USER_STATUS = 'user.status'
+    
+    
     
 class ParamType(click.ParamType):
 
@@ -54,7 +80,7 @@ class ParamType(click.ParamType):
         self
         pass
 
-class API_Method_Parameter(object):
+class APIMethodParameter(object):
     '''
     This is the class used to define a parameter for an api method. When a method object is defined, any parameters that this method takes will be declared as type api_method_parameter. It does not hold the value, it just checks that the value passes all of the specified constraints. 
     '''
@@ -84,17 +110,120 @@ class API_Method_Parameter(object):
             if self.parameter_type == self.types_accepted:
             if 
             
+class ReturnType(json.JSONEncoder):
+    '''
+    Return type of an ApiMethod object.
+    '''
+    class ReturnObject(object):
+        pass
+
+    def __init__(self,input):
+        super.__init__()    
             
-class api_method(object):
+class ApiMethod(object):
     '''
     A callable api method specified in an api. 
     '''
+    @property
+    def parentapi(self):
+        '''
+        For now it is hard-wired as Codeforces. Eventually, platform will support other comp. coding apis.
+        This property is only in place for that eventuality, at which time the value will be added as a configuration option. The getter and setter defined here will obviously need altered as well. 
+        '''
+        return 'codeforces.com/api/'
+    
+    @parent_api.setter
+    def setparentapi(self, arg):
+        self._api_string = arg
+        return True
+
+    @property
+    def conn_protocol(self):
+        return self._c_proto
+
+    @conn_protocol.setter
+    def conn_protocol(self, arg):
+        self._c_proto = arg
+
+    @property
+    def params_list(self):
+        return self._p_list
+
+    @params_list.setter
+    def params_list(self, args):
+        '''
+        sets parameters for an a
+        '''
+        self._p_list = {}
+        if len(args[1:-1]) == 0
+            pass
+        elif len(args[1:-1]) == 1
+            if type(args) == 'dict':
+                for k,v in args:
+                    self._p_list[str(k)] = v
+            elif type(args) == 'list' and (len(args[1]) % 2) == 0:
+                # list w/ even amt of items. Set to params_list as 'k,v,k,v,k,v....'
+                keys = []
+                vals = []
+                for i in args[1]:
+                    if type(i) != 'str':
+                        print('The `params_list` setter only supports input in the format of a dictionary or a list of strings representing kevs and values in k,v,k,v,k,v.. order. {} is not a string')
+                        return False
+                    elif len(keys) > len(vals):
+                        vals.append(i)
+                    else:
+                        keys.append(i)
+                if len(keys) == len(vals) and len(keys) == (len(args[1]) / 2):
+                    for i in range(len(keys)):
+                    _p_list[keys[i]] = vals[i]
+        else: 
+            raise ValueError
+
+        return self._p_list 
+
+    @property
+    def call_string(self):
+        return self._cs     
+        
+    @call_string.setter
+    def call_string(self, arg):
+        self._cs = arg
+
+    def run_query():
+        pass
+    
+    def __init__(self,*params:ApiMethodParameters)->ParamTypes:
+        pass
+
+    def is_member_of(self, api)
+
+
+class CodeforcesApiMethod(ApiMethod):
     
     @property
-    def call_string():
-        pass
+    def parentapi(self):
+        '''
+        For now it is hard-wired as Codeforces. Eventually, platform will support other comp. coding apis.
+        This property is only in place for that eventuality, at which time the value will be added as a configuration option. The getter and setter defined here will obviously need altered as well. 
+        '''
+        return 'codeforces.com/api/'
+    
+    @parent_api.setter
+    def setparentapi(self, *args):
+        click.echo('The current version of this program only supports codeforces.com. The `parent_api` property and it's methods are only included to make provisions for future versions.')
+        return False
+
+    @property
+    def conn_protocol(self):
+        return self._c_proto
+
+    @property
+    def call_string(self):
+        self._cs =     
         
-    def call_method():
+    def run_query():
         pass
     
+    def __init__(self,*params:ApiMethodParameters)->ParamTypes:
+        pass
     
