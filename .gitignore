@@ -1,7 +1,3 @@
-**/__pycache__/*.pyc
-TEST/__pycache__/test_context_classes.cpython-38-pytest-6.2.5.pyc
-.vscode/
-./reqs.txt
 
 ###      TAG FILES        ###
 #############################
@@ -10,6 +6,17 @@ TEST/__pycache__/test_context_classes.cpython-38-pytest-6.2.5.pyc
 
 **/zzGOOD_VERSION!!!
 **/zzVERSION_0.1.01
-venv3.10
+
+###    GENERATED FILES    ###
+#############################
+
+### Directories
+__pycache__/
+.vscode/
+venv3.10/
 build/
 cfpipeline.egg-info/
+
+### Files
+**/reqs.txt
+.todo
