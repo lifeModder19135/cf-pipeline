@@ -58,12 +58,97 @@ from ..__lib__.libcfp_metautils import *
 #   | 
 #  pwd && cd /dir/other; sudo cmd -v --list .. | /usr/bin/xargs -f 'oreos first' | tee -a filefile | wc && exec 'sh -c cmd'
 #
+#  ^^ ??? (Don't even remember adding it. Most likely a half-idea that I jotted down in the closest spot 
+#          available in the middle of doing something else)
 #
+# --------8<------------------------------------------------------------------------------>8--------------
 #
-# 
+#            CfPipeline IO Files: Format & Object Notes:
 #
-# 
-
+# This section is comprised of 4 main subsections. The first 2 are for the file layout/conventions of an 
+# InputFile and the structure of the corresponding InputFile object represented in the CfPipeline sourcecode.
+# The last 2 discuss the same 2 topics, but for OutputFiles.
+#
+#     ~InputFiles: Format ~
+#
+# All input files will:
+#       * have the extension '.cfpin'
+#       * possibly contain comments:
+#           - these can be on any line by themselves, but cannot prefix or follow valid data on the same line
+#           - in this section, when you see 'line N' used, the comment lines are skipped when counting 
+#       * end with a blank line
+#       * be otherwise made up of _specifiers_ (spec.) and _sections_, which are themselves made up
+#*         of specifiers and nested sections a.k.a. subsections. 
+#           - Sections: 
+#               - a section is defined by including `section_name:` at the current nessting level on its owm
+#                 line, just like the 'Sections:' line onr nesting level above this line
+#               - every line that is meant to be contained in said section should be nested inside the #   
+#                 section. That is, it should all be further indented than the section by one or more 
+#                 tab-widths. 
+#           - specs.
+#               - a specifier is just a set statement of the format `var = val`
+#               - notice the spaces. The parser needs to see each spec as 3 space-separated tokens, var, =, & val
+#       * include the following metadata:
+#           - The InputFile doctype specifier, `!DOCTYPE cfp-fileinput-datadoc`
+#           - At least two of the predefined sections for the file.fmt
+#               - These are the `file` section, which contains the `fmt` spec., and the `data` section
+#           - a format specifier of `FORMAT` on line 1 (Required)
+#           - a date on line 2, in the format of `DATE=MMDDYYYY` (Required)
+#       * follow on of a few predefined structures: 
+#           - the following is the definition of CFP_INPUTFILE_FMT_2, an example of what a predefined
+#              structure might look like.
+#           - this structure has 3 sections: the two required sections and the `creation` section which 
+#              specifies the details related to the file's creation. If you want to define your own input
+#              structure, remember that the sections `file` and `data` are both required. they are defined in
+#              the base InputParser class from which custom parsers are extended. 
+#           - The definition of CFP_INPUTFILE_FMT_2 is as follows (obviously without the #s):
+#
+# --------8<------------------------------------------------------------------------------>8--------------
+#  | <--START OF PAGE -- STARTS ON NEXT LINE
+#   !DOCTYPE cfp-fileio-datadoc
+#   # Comments like this can occupy any line AFTER the doctype definition
+#   # Start of the 'file' section. This section gives type and formatting info for the file.
+#   File:
+#       .type = INFILE
+#       .fmt = CFP_INPUTFILE_FMT_2
+#       .Perms:
+#           .type = OCTAL | STR
+#           # This is just regex for a three digit octal number or a linux style perm-string e.g. 'drwxr-xr-x'
+#           .value = [1-8]{3} | ['"]d?([r-][w-][x-]){3}['"]
+#   Data:
+#       .CasesPrecursorLines:
+#             # Be sure to wrap any lone ints like this in quotes if you want to feed your data in as the cf 
+#             # online judge would.
+#             # There should be N back-to-back '.precline = ...' defs, where N is the value of `.num_precursors`.
+#             # for this example we will assume that this value is 3. The same goes for all other values starting
+#             # with `.num_*s`. The * corresponds to a (usually-)nested spec. for which there should be M defs 
+#             # where M is the value of the `num_*s` spec. You'll see what is meant below.
+#           .num_precursors = '3'
+#           .prec_line = 'lorem ipsum'
+#           .prec_line = 'lorem ipsum two' 
+#           .prec_line = 'ipsum lorem' 
+#       .Cases:
+#             # This bool is true if the test case should include a line correponing to Cases.num_cases
+#             # If included, it would usually be the 1st line unless precursor lines were defined above
+#           .given = bool
+#           .num_cases = 'some_int'
+#           .Case:
+#               .num_lines = 'other_int'
+#               .Line:
+#                   .num_args = 'third_int'
+#                    # pretend num_args for this line was '2'
+#                   .arg:
+#                       .value = 'lorem'
+#                   .arg:
+#                       .value = 'ipsum'
+#            ...
+#   Creation:
+#       .date = MMDDYYYY 
+#       .author:
+#           .name = 'str'
+#           .git:
+#               .username = 'str'
+#               .email
 ########                                                                                         ########
 ###########################################  ~~~~ ENUMS ~~~~  ###########################################
 ########                                                                                         ########
@@ -73,6 +158,8 @@ class Runtype(Enum):
     Args:
         Enum ([type]): [description]
     """
+    # TODO:
+
     # 'asynchronous single-command runner using subprocess api'
     SUBPROCESS = {'description_string': 'subprocess_default', 
                   'topipe': False, 
