@@ -155,7 +155,7 @@ from ..__lib__.libcfp_metautils import *
 
 class Runtype(Enum):
     """
-    Args:
+    properties:
         Enum ([type]): [description]
     """
     # TODO:
@@ -174,36 +174,104 @@ class ResultResolutionMode(Enum):
     """
     This is meant to be a parameter for functions that configure one or more values that are persisted in the application after the function call finishes. It lets the caller specify how they want that value to be set /given. For example, the function could pass the value to its caller via return stmt, set a class variable, add a kv pair to env_dict, etc. To use, just add a kwarg of `arg: ResultResolutionMode = XXX` to func, where XXXX (the default) is one of the options below.
     """
+    # TODO:
+
     # Resolver should return result in the func return statement.
     RETURN_STATEMENT = 1
     INSTANCE_PROPERTY = 2
     ENV_DICT = "self.putenv({},{})"
 
+class InputType(Enum):
+    """
+    properties:
+        Enum ([type]): [description]
+    """
+    # TODO:
+
+    INFILE = ''
+    INSTREAM = ''
+
+class FileType(Enum):
+    """
+    properties:
+        Enum ([type]): [description]
+    """
+    # TODO:
+
+    PLAINTEXT_FILE = 0
+    INTS_ONLY_TEXT_FILE = 1
+    # For more info about FILE_FMT_N, see section 'IO File Formats' at the top of this module
+    CFP_INPUTFILE_FMT_1 = 2
+    CFP_INPUTFILE_FMT_2 = 3
+    SOURCE_FILE_GENERIC = 4
+    SOURCE_FILE_PY2 = 5
+    SOURCE_FILE_PY3 = 6
+    SOURCE_FILE_C = 7
+    SOURCE_FILE_CPP = 8
+
+
+
+
 ########                                                                                         ########
 ########################################  ~~~~ RUNNER SUBS ~~~~  ########################################
 ########                                                                                         ########     
 
-class InputString(str):
+class InputCommandString(str):
+    """
+    properties:
+        [type]: [description]
+    """
+    # TODO:
+
     def to_cmd_objs(self):
         pass 
 
 class Program(pathlib.Path):
+    """
+    properties:
+        [type]: [description]
+    """
+    # TODO:
+
     def __init__(input_src):
         super().__init__(input_src)
 
 class CmdArg(str):
+    """
+    properties:
+        [type]: [description]
+    """
+    # TODO:
+
     def __init__(input_src):
         super().__init__(input_src)
 
-class CmdArgstring(str):
+class CmdArgstring(str):    """
+    properties:
+        [type]: [description]
+    """
+    # TODO:
+
     def __init__(input_src):
         super().__init__(input_src)
 
 class CmdArglist(str):
+    """
+    properties:
+        [type]: [description]
+    """
+    # TODO:
+
     def __init__(input_src):
         super().__init__(input_src)
 
 class Command:
+    """
+    properties:
+        [type]: [description]
+    """
+    # TODO:
+
     exe: str = None
     args: list = None
     
@@ -215,7 +283,8 @@ class CfpFile:
     """
     Base class for Executable, Source_File, Shell_Application, Input_File, and anything with a location: Path attribute. Not all will be eligible for File.open(), as directories are files as well.  
     """    
-    
+    # TODO:
+
     location: Path = None
     filetype: str = None
     size_in_bytes: int = None
@@ -223,25 +292,31 @@ class CfpFile:
     handler:IOHandler
 
     @property
-    def get_filetype(self)
+    def filetype(self):
         """
         explicit params: n/a
         input: self
         output: string - file type of self
         """
+        return self.__f_type
+
+    @filetype.setter
+    def filetype(self, filetype)
 
     @property
-    def getContent(self.):
+    def getContent(self):
         if self.get_filetype() == 'unknown':
             
         
-    def from_scratch():
+    def from_scratch(self):
         createfilehandler(file, mask, func)
 
 class Task:
     """
     Represents a group of one or more commands connected together via pipes / fifos. IMPORTANT: commands which are connected via `&&` , `||` , or `;` are not 
     """
+    # TODO:
+
     content:list[Command] = None
     
     def __init__(self):
@@ -252,6 +327,8 @@ class Job:
     Params:
             top_level -- constant -- boolean -- if true, this Job is meant for running lower level jobs. If false, it is a lower_level itself, and is for running Task lists
     """
+    # TODO:
+
     TOP_LEVEL:bool = False
     aliases: list[str] = None
     content: list[Task] = None
@@ -270,6 +347,12 @@ class Job:
 ########                                                                                         ########    
 
 class IOHandlerBase:
+    """
+    properties:
+        [type]: [description]
+    """
+    # TODO:
+
     handler_args = None
     
     def __init__(self, *args, **kwargs):
@@ -300,12 +383,29 @@ class IOHandlerBase:
         return self.io_type
     
 class InputHandler(IOHandlerBase):
-    
+    """
+
+    """
+    # TODO:
+
+    @property
+    def input_type(self):
+        return self.__input_typestring
+
+    @input_type.setter
+    def input_type(self,type_str: str)->bool:
+        try:
+            self.__input_typestring = type_str    
+
     def __init__(self, itype: str, file=None, *args, **kwargs):
-        
-        input_type = itype
+        self.input_type(itype)
 
 class OutputHandler(IOHandlerBase):
+    """
+    Active container which implements an interface for controlling what happens to, and what is affected by, the output of a runner in a context.
+    """
+    # TODO:
+
     pass
     
 
@@ -317,6 +417,8 @@ class BaseRunner:
     """
     This class should be a relative of EVERY runner defined in the application. It defines only logic that must be present for all runners, and therefore lays out the minimal contract for this abstraction.
     """
+    # TODO:
+
     infile = None
     infrom = None
     outto = None
@@ -335,7 +437,7 @@ class BaseRunner:
             else:
                 raise CfpUserInputError("If included, value for infile must be a valid path")        
              
-    def InitializeIOHandler(handler_args):
+    def InitializeIOHandler(self, handler_args):
         """
         Description: creates and returns an IOHandler with 
         Args: []
@@ -348,17 +450,15 @@ class BaseRunner:
             IOHandler: [This class is responsible for the IO of its Runner. May be InputIOHandler or OutputIOHandler]
         """
         if infile:
-            
-        handler = IOHandler(handler_args)
+            handler = IOHandler(handler_args)
         return handler
 
 class CfpRunner:
     """
     This is a highly dynamic class which is responsible for nearly all cfp runner types. If the init method 
     is called directly, it will raise an error, but the various runner-type-getters, e.g. get_new_*_runner(), call init after setting a class property. After this is set, the runner will build itself according to its value.
-    
-    TODO:
     """
+    # TODO:
     
     DEFAULT_INPUT_SRC = 'subprocess.STDIN'
     DEFAULT_OUTPUT_SRC = 'subprocess.STDOUT'
@@ -408,9 +508,34 @@ class Context:
     """
     Base for all contexts. 
     """
-    namespace: str 
-    ctx_type: str 
-    env_dict: dict
+    # TODO:
+
+
+    @property
+    def namespace(self)->str:
+        return self.__name_space
+
+   @namespace.setter
+    def namespace(self, ns:str)->None:
+        self.__name_space = ns
+
+    @property
+    def ctx_type(self)->str:
+        return self.__ctx_t: str 
+
+    @ctx_type.setter
+    def ctx_type(self, ctxtype: str)->None:
+        self.__ctx_t = ctxtype 
+
+    @property
+    def env_dict(self)->dict:
+        return self.__environ_dict
+
+    @env_dict.setter
+    def env_dict(self):
+        if len(self.__environ_dict) == 0
+        self.__environ_dict
+        self.__environ_dict
                    
     def putenv(k, v):
         env_dict.update({k: v})
@@ -437,6 +562,7 @@ class CfpShellContext(Context):
     '''
     This is a context for running commands in a shell such as bash or zsh. The bash process is run on top of a Python process with its own environment that is kept seperate from the process environment by default, but whose variables can be accessed in the same way as process envvars at context runtime.
     '''
+    # TODO:
 
     shellchoice: str = ''
     cmds: list = []
@@ -479,9 +605,15 @@ class DynamicStrRunnerContext(Context):
     """
     Sets up the runner based on the value of ctx_type in the parent. Uses concept known as reflection in Java via running eval(runner_str) where runner str is based on ctx_type. This lets us dynamically build a string and then run that string as python3 code. e.g. say ctx_type is "subprocess". The resulting runner_str would be "subprocess.run(cmd)". 
     """
+    # TODO:
+
     pass
     
 class CfpShellBasedTestContext(CfpShellContext):
+    """
+    Context for testing potential Codeforces solutions in a shell context
+    """
+     # TODO:
 
     cf_allowedlangs = ['C# mono',
                         'D DMD32',
@@ -508,16 +640,20 @@ class CfpShellBasedTestContext(CfpShellContext):
                         'nodejs'
                        ]
     
-    runner: CfpRunner = None
+    @property
+    def solutions_testrunner(self): 
+        return self.__cfp_runner
+
+    @solutions_testrunner.setter
+    def solutions_testrunner(self, rnr:): 
+        self.__cfp_runner = rnr
     
     # represents the chosen language's index in the cf_allowedlangs list 
-    cf_lang_index = -1 
+    cf_lang_index = -1
 
-    def __init__(self, cmds, rnnr: CfpRunner, shell_env: str, language: str, **envvars: any):
-        super().__init__(cmds, rnnr,  envvars)
-        self.setlang(language)
-    
-    def setlang(self):
+    def lang(self)->str:
+
+    def setlang(self, language:)->None:
         for i,lang_choice in enumerate(self.cf_allowedlangs):
             if lang_choice.lower() in ''.join(list(map(str, language.split(' ')))).lower():
                 self.cf_lang_index = i
@@ -526,8 +662,9 @@ class CfpShellBasedTestContext(CfpShellContext):
         else:    
             lang = self.cf_allowedlangs[cf_lang_index]
             self.putenv('solutionlanguage', lang)
-            
 
-    
+    def __init__(self, cmds, rnnr: CfpRunner, shell_env: str, language: str, **envvars: any):
+        super().__init__(cmds, rnnr,  envvars)
+        self.setlang(language)
 
 
