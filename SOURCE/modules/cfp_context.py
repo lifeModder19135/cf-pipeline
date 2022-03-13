@@ -1,4 +1,4 @@
-import os, click,invoke, subprocess
+import os, click, invoke, subprocess
 from dataclasses import dataclass
 from .cfp_errors import CfpInitializationError, CfpUserInputError
 from enum import Enum
@@ -179,11 +179,11 @@ class ResultResolutionMode(Enum):
 
     # Resolver should return result in the func return statement.
     RETURN_STATEMENT = "return {}".format(args[2])
-    INSTANCE_PROPERTY = "{}({})".format(args[2], args[3]) 
+    INSTANCE_PROPERTY = "{}({})".format(args[2], args[3])
     ENV_DICT = "self.putenv({},{})".format(args[2], args[3])
 
     def Resolver(self)->bool:
-        exec()
+        exec(self.value)
 
 class IOType(Enum):
     """
@@ -226,6 +226,30 @@ class FileType(Enum):
     SOURCE_FILE_CPP = 8
 
 
+class LanguageChoice(Enum):
+    C_SHARP_MONO = 'C#mono',
+    D_DMD32 = 'D_DMD32',
+    GO = 'Go',
+    HASKELL = 'Haskell',
+    JAVA_8 = 'Java8',
+    JAVA_11 = 'Java11',
+    KOTLIN_14 = 'Kotlin1.4',
+    KOTLIN_15 = 'Kotlin1.5',
+    OCAML = 'Ocaml',
+    DELPHI = 'Delphi',
+    FREE_PASCAL = 'Free Pascal',
+    PASCAL_ABC_DOT_NET = 'PascalABC.NET',
+    PERL = 'Perl',
+    PHP = 'PHP',
+    PYTHON_2 = 'Python2',
+    PYTHON_3 = 'Python3',
+    PYPY_2 = 'Pypy2',
+    PYPY_3 = 'Pypy3',
+    RUBY = 'Ruby',
+    RUST = 'Rust',
+    SCALA = 'Scala',
+    JS_V8 = 'JavaScriptV8',
+    NODE_JS = 'nodejs'
 
 
 ########                                                                                         ########
@@ -262,14 +286,15 @@ class CmdArg(str):
     def __init__(input_src):
         super().__init__(input_src)
 
-class CmdArgstring(str):    """
+class CmdArgstring(str):    
+    """
     properties:
         [type]: [description]
     """
     # TODO:
 
-    def __init__(input_src):
-        super().__init__(input_src)
+    def __init__(input):
+        super().__init__(input)
 
 class CmdArglist(str):
     """
@@ -301,11 +326,12 @@ class CfpFile:
     """    
     # TODO:
 
+    handler:IOHandlerBase
     location: Path = None
     filetype: str = None
     size_in_bytes: int = None
     isOpenable: bool = None
-    handler:IOHandler
+    
 
     @property
     def filetype(self):
@@ -317,15 +343,17 @@ class CfpFile:
         return self.__f_type
 
     @filetype.setter
-    def filetype(self, filetype)
+    def filetype(self, filetype):
+        self.__f_type = filetype
 
     @property
     def getContent(self):
         if self.get_filetype() == 'unknown':
             
         
-    def from_scratch(self):
-        createfilehandler(file, mask, func)
+    def from_scratch(self, header):
+        pass
+        
 
 class Task:
     """
@@ -369,13 +397,12 @@ class IOHandlerBase:
     """
     # TODO:
 
-    handler_args = None
+    handler_args = []
     
     def __init__(self, *args, **kwargs):
-        if not args and not kwargs:
-            return self
-        else:
-            self.handler_args = args
+        if args or kwargs:
+            for a in args:
+                self.handler_args.append(str(a))
             for k,v in kwargs:
                 st = f'{k}={v}'
                 self.handler_args.append(st)
@@ -425,11 +452,17 @@ class InputHandler(IOHandlerBase):
 
     @input_type.setter
     def input_type(self,type_str: str)->bool:
-        try:
-            self.__inp_t = type_str    
+        self.__inp_t = type_str    
 
     def __init__(self, itype: str, file=None, *args, **kwargs):
+        super().__init__(args, kwargs)
         self.input_type(itype)
+
+
+class InputFileHandler(InputHandler):
+
+    def __init__(self):
+        super().__init__( itype, file=None, *args, **kwargs)
 
 class OutputHandler(IOHandlerBase):
     """
@@ -444,16 +477,15 @@ class OutputHandler(IOHandlerBase):
 ##########################################  ~~~~ RUNNERS ~~~~  ##########################################
 ########                                                                                         ########
 
+@dataclass
 class BaseRunner:
     """
     This class should be a relative of EVERY runner defined in the application. It defines only logic that must be present for all runners, and therefore lays out the minimal contract for this abstraction.
     """
     # TODO:
 
-
-
     @property
-    def infile(self, arg)->None:
+    def infile(self)->InputHandler:
         return self.__input_file
 
     @infile.setter
@@ -470,9 +502,12 @@ class BaseRunner:
 
     @property
     def outto(self)-> OutputHandler:
-        return self.__out_to: OutputHandler
+        if type(self.__out_to) == OutputHandler:
+            return self.__out_to
+        else:
+            raise TypeError
 
-    @X.setter
+    @outto.setter
     def outto(self, dest)->None:
         self.__out_to = dest
 
@@ -480,16 +515,9 @@ class BaseRunner:
     def job(self, arg)->None:
         return self.__cmd_list
 
-    @X.setter
+    @job.setter
     def job(self, clist)->None:
         self.__cmd_list = clist
-
-
-
-
-
-
-
 
     def __init__(self, in_from=None, out_to=None, infile=None, cmd=None):
         self.infrom = in_from 
@@ -504,10 +532,12 @@ class BaseRunner:
             else:
                 raise CfpUserInputError("If included, value for infile must be a valid path")        
              
-    def InitializeIOHandler(self, handler_args):
+    def InitializeIOHandler(self, **handler_args):
         """
         Description: creates and returns an IOHandler with 
-        Args: []
+        Args: [
+            handler_args: 
+        ]
         Raises: [
             CfpUserInputError : [Raised if the data given to the instance is invalid]
             IOError: [Called as a parent of the first Error]
@@ -516,7 +546,7 @@ class BaseRunner:
         Returns:
             IOHandler: [This class is responsible for the IO of its Runner. May be InputIOHandler or OutputIOHandler]
         """
-        if infile:
+        if self.infile:
             handler = IOHandler(handler_args)
         return handler
 
