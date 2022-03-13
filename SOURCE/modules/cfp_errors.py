@@ -15,3 +15,9 @@ class CfpMethodInputError(CfpUserInputError):
     """
     pass
 
+class CfpTypeError(TypeError):
+    """
+    Just a wrapper for TypeErrors
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
