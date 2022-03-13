@@ -7,9 +7,9 @@ from shlex import split, join
 from pathlib import Path
 from ..__lib__.libcfp_metautils import *
 
-#          ^
-#          ^
-#          ^
+#          ^                                                                Legend:
+#          ^                                              ~_ (as a prefix)   =====   conditional attribute       
+#          ^                                              #_ (as a prefix)   =====   
 #          |
 #  has-a = |   /  is-a =  < < < ----
 
@@ -23,15 +23,15 @@ from ..__lib__.libcfp_metautils import *
 #       |   |            |     |  |   |
 #      |    |           |     |   |    |
 #     |     |          |     |    |     |
-#  Keys  Values    corque  Input   |     Job  
-#                  board   |   Output    | |
-#                (queue)   |    |       |   |
-#                          |   |       |     |
-#                        Message    Shell    Task
-#                                            |    |
-#                                            |     |
-#                                            |      |
-#                                      cmdModule  {[cmdmodule.Follower], ...} 
+#  Keys  Values       |    Input   |     Job  
+#                    |      |   Output    | |
+#          corque_board     |    |       |   |
+#           (queue)         |   |       |     |
+#                        IOBuffer    Shell   #_Task___
+#                                            |        |
+#                                            |         |
+#                 DataStream                 |          |
+#                                      cmdModule   #_[cmdmodule.CmdFollower] 
 #                                             |           |    |
 #                                              |         |      |
 #                                               |       |        |
@@ -153,8 +153,9 @@ from ..__lib__.libcfp_metautils import *
 ###########################################  ~~~~ ENUMS ~~~~  ###########################################
 ########                                                                                         ########
 
-class Runtype(Enum):
+class RunType(Enum):
     """
+    Description: RunType is an attribute of a runner which determines what happens when its run method is called.
     properties:
         Enum ([type]): [description]
     """
@@ -177,9 +178,24 @@ class ResultResolutionMode(Enum):
     # TODO:
 
     # Resolver should return result in the func return statement.
-    RETURN_STATEMENT = 1
-    INSTANCE_PROPERTY = 2
-    ENV_DICT = "self.putenv({},{})"
+    RETURN_STATEMENT = "return {}".format(args[2])
+    INSTANCE_PROPERTY = "{}({})".format(args[2], args[3]) 
+    ENV_DICT = "self.putenv({},{})".format(args[2], args[3])
+
+    def Resolver(self)->bool:
+        exec()
+
+class IOType(Enum):
+    """
+    Description: An Enum used for defining whether an IO object is to be used with input or output.
+    Values: 
+        INPUT: 0
+        OUTPUT: 1
+    """
+    # TODO:
+
+    INPUT = 0
+    OUTPUT = 1
 
 class InputType(Enum):
     """
@@ -379,30 +395,45 @@ class IOHandlerBase:
         return True
     
     @property
-    def get_io_type(self):
-        return self.io_type
+    def io_type(self)->IOType:
+        return self.__io_t
+
+    @io_type.setter
+    def io_type(self, iotype: IOType)->None:
+        self.__io_t = iotype
+
+    def __init__(self, *args, **kwargs):
+        if not args and not kwargs:
+            return self
+        else:
+            self.handler_args = args
+            for k,v in kwargs:
+                st = f'{k}={v}'
+                self.handler_args.append(st)
+        return self
     
 class InputHandler(IOHandlerBase):
     """
-
+    Note: Must be run with ContextManager
+    Description: An IOHandler subclass set up to feed an input source (params.source)
     """
     # TODO:
 
     @property
     def input_type(self):
-        return self.__input_typestring
+        return self.__inp_t
 
     @input_type.setter
     def input_type(self,type_str: str)->bool:
         try:
-            self.__input_typestring = type_str    
+            self.__inp_t = type_str    
 
     def __init__(self, itype: str, file=None, *args, **kwargs):
         self.input_type(itype)
 
 class OutputHandler(IOHandlerBase):
     """
-    Active container which implements an interface for controlling what happens to, and what is affected by, the output of a runner in a context.
+    Description: Active container which implements an interface for controlling what happens to, and what is affected by, the output of a runner in a context.
     """
     # TODO:
 
@@ -419,11 +450,47 @@ class BaseRunner:
     """
     # TODO:
 
-    infile = None
-    infrom = None
-    outto = None
-    cmd = None
-    
+
+
+    @property
+    def infile(self, arg)->None:
+        return self.__input_file
+
+    @infile.setter
+    def infile(self, arg)->None:
+        self.__input_file = arg
+
+    @property
+    def infrom(self)->str:
+        return self.__in_from
+
+    @infrom.setter
+    def infrom(self, arg)->None:
+        self.__in_from = arg
+
+    @property
+    def outto(self)-> OutputHandler:
+        return self.__out_to: OutputHandler
+
+    @X.setter
+    def outto(self, dest)->None:
+        self.__out_to = dest
+
+    @property
+    def job(self, arg)->None:
+        return self.__cmd_list
+
+    @X.setter
+    def job(self, clist)->None:
+        self.__cmd_list = clist
+
+
+
+
+
+
+
+
     def __init__(self, in_from=None, out_to=None, infile=None, cmd=None):
         self.infrom = in_from 
         self.outto = out_to
@@ -488,9 +555,17 @@ class CfpRunner:
         else:
             self.setRuntype(Runtype.SUBPROCESS)             
         self.__init__()
-        
-    def __setRuntype(self, rt: Runtype):
-        self.runtype = rt
+
+    @property
+    def runtype(self)->RunType:
+        return self.__invoc_type
+
+    @runtype.setter
+    def runtype(self, rt: RunType)->bool:
+        try:
+            if self.__invoc_type and self.__invoc_type is not None:
+                self.__r_type_old = self.__r_type
+            self.__r_type = rt
         return True
 
     def __subprocrun_rnr_run_cmdstring(command_string, ):
@@ -506,9 +581,14 @@ class CfpRunner:
 @dataclass
 class Context:
     """
-    Base for all contexts. 
+    Base for all contexts.
     """
     # TODO:
+        # Add __enter__() & __exit__() methods to each context subtype
+            # if method doesnt finish due to crash, __exit__() needs to write a log entry into the .exceptilog file in the $CTX_DATA_DIR/log/ directory.
+            # Both methods should come after __init__() at the end of the class.
+                # If __init__() is not already the last method, move it.
+
 
 
     @property
@@ -532,9 +612,9 @@ class Context:
         return self.__environ_dict
 
     @env_dict.setter
-    def env_dict(self):
+    def env_dict(self, ed: dict):
         if len(self.__environ_dict) == 0
-        self.__environ_dict
+            self.__environ_dict = 
         self.__environ_dict
                    
     def putenv(k, v):
@@ -613,10 +693,14 @@ class CfpShellBasedTestContext(CfpShellContext):
     """
     Context for testing potential Codeforces solutions in a shell context
     """
-     # TODO:
+#   TODO:
+#       - fix_me!
+#           - multiple lang get/set implementations intermingled
+#           - needs only one
+#           - allowedlangs needs moved to enum 
 
-    cf_allowedlangs = ['C# mono',
-                        'D DMD32',
+    cf_allowedlangs = ['C#mono',
+                        'D_DMD32',
                         'Go',
                         'Haskell',
                         'Java8',
@@ -645,18 +729,30 @@ class CfpShellBasedTestContext(CfpShellContext):
         return self.__cfp_runner
 
     @solutions_testrunner.setter
-    def solutions_testrunner(self, rnr:): 
+    def solutions_testrunner(self, rnr): 
         self.__cfp_runner = rnr
     
     # represents the chosen language's index in the cf_allowedlangs list 
     cf_lang_index = -1
 
+    @property
     def lang(self)->str:
+        return self.__lang
 
-    def setlang(self, language:)->None:
-        for i,lang_choice in enumerate(self.cf_allowedlangs):
-            if lang_choice.lower() in ''.join(list(map(str, language.split(' ')))).lower():
+    @lang.setter
+    def lang(self,lng)->None:
+        self.__lang = lng
+        return None
+
+    def setlang(self, language:) :
+        '''
+
+        '''
+        for i,lang_option in enumerate(self.cf_allowedlangs):
+            if lang_option.lower() in '_'.join(list(map(str, language.split(' ')))).lower():
                 self.cf_lang_index = i
+                break
+        elif self.default_lang
         if cf_lang_index < 0:
             raise IOError('You must provide a language!')
         else:    
