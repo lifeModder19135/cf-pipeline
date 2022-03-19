@@ -12,3 +12,13 @@ def resolve_context_location_base():
     elif 
         if
     return ''.join(ctx_base, ctx_dirname)
+
+#################### GENERIC UTILITY FUNCTIONS ########################################### 
+
+def formatfuncstr(funcstr:str, paramstr:str):
+    if funcstr[-2] == '(' and funcstr[-1] == ')':
+        funcstr == funcstr[:-3]
+    if not paramstr:
+        paramstr = ''
+    ret = ''.join(funcstr,'(',paramstr,')') 
+    return ret
