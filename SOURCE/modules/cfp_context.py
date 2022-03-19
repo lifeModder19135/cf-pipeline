@@ -6,7 +6,7 @@ from enum import Enum
 from shutil import which
 from shlex import split, join
 from pathlib import Path
-from ..__lib__.libcfp_metautils import *
+from cfpipeline.__lib__ import libcfapi_utils
 
 #          ^                                                                Legend:
 #          ^                                              ~_ (as a prefix)   =====   conditional attribute       
@@ -798,15 +798,15 @@ class CfpShellBasedTestContext(CfpShellContext):
         self.__lang = lng
         return None
 
-    def setlang(self, language:) :
+    def setlang(self, language:LanguageChoice) :
         '''
-
+        Believe it or not, this one sets the lang
         '''
         for i,lang_option in enumerate(self.cf_allowedlangs):
             if lang_option.lower() in '_'.join(list(map(str, language.split(' ')))).lower():
                 self.cf_lang_index = i
                 break
-        elif self.default_lang
+        elif self.default_lang:
         if cf_lang_index < 0:
             raise IOError('You must provide a language!')
         else:    
