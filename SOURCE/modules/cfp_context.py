@@ -1,12 +1,12 @@
 import os, click, invoke, subprocess
 from types import NoneType
 from dataclasses import dataclass
-from .cfp_errors import CfpInitializationError, CfpUserInputError
+from .cfp_errors import CfpInitializationError, CfpUserInputError, CfpOverwriteNotAllowedError
 from enum import Enum
-from shutil import which
-from shlex import split, join
+# from shutil import which
+# from shlex import split, join
 from pathlib import Path
-from cfpipeline.__lib__ import libcfapi_utils
+from ..lib import libcfapi_utils
 
 #          ^                                                                Legend:
 #          ^                                              ~_ (as a prefix)   =====   conditional attribute       
@@ -181,9 +181,9 @@ class ResultResolutionMode(Enum):
     # TODO:
 
     # Resolver should return result in the func return statement.
-    RETURN_STATEMENT = "return {}".format(args[2])
-    INSTANCE_PROPERTY = "{}({})".format(args[2], args[3])
-    ENV_DICT = "self.putenv({},{})".format(args[2], args[3])
+    RETURN_STATEMENT = '"return {}".format(args[2])'
+    INSTANCE_PROPERTY = '"{}({})".format(args[2], args[3])'
+    ENV_DICT = '"self.putenv({},{})".format(args[2], args[3])'
 
     def Resolver(self)->bool:
         exec(self.value)
@@ -661,10 +661,14 @@ class Context:
         return self.__environ_dict
 
     @env_dict.setter
-    def env_dict(self, ed: dict):
-        if len(self.__environ_dict) == 0
-            self.__environ_dict = 
-        self.__environ_dict
+    def env_dict(self, ed: dict, overwrite: bool=False) -> None:
+        if self.__environ_dict:
+            if len(self.__environ_dict) == 0:
+                self.__environ_dict = ed
+            elif overwrite == True:
+                self.__environ_dict = ed
+            elif overwrite == False
+                raise CfpOverwriteNotAllowedError
                    
     def putenv(k, v):
         env_dict.update({k: v})
