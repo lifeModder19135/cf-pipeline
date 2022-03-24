@@ -20,3 +20,5 @@ cfpipeline.egg-info/
 ### Files
 **/reqs.txt
 .todo
+*.code-workspace
+.idea/

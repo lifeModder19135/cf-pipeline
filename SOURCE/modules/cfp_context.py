@@ -1,11 +1,12 @@
 import os, click, invoke, subprocess
+from types import NoneType
 from dataclasses import dataclass
-from .cfp_errors import CfpInitializationError, CfpUserInputError
+from .cfp_errors import CfpInitializationError, CfpUserInputError, CfpOverwriteNotAllowedError
 from enum import Enum
-from shutil import which
-from shlex import split, join
+# from shutil import which
+# from shlex import split, join
 from pathlib import Path
-from ..__lib__.libcfp_metautils import *
+from ..lib import libcfapi_utils
 
 #          ^                                                                Legend:
 #          ^                                              ~_ (as a prefix)   =====   conditional attribute       
@@ -104,6 +105,7 @@ from ..__lib__.libcfp_metautils import *
 #           - The definition of CFP_INPUTFILE_FMT_2 is as follows (obviously without the #s):
 #
 # --------8<------------------------------------------------------------------------------>8--------------
+#
 #  | <--START OF PAGE -- STARTS ON NEXT LINE
 #   !DOCTYPE cfp-fileio-datadoc
 #   # Comments like this can occupy any line AFTER the doctype definition
@@ -149,6 +151,7 @@ from ..__lib__.libcfp_metautils import *
 #           .git:
 #               .username = 'str'
 #               .email
+
 ########                                                                                         ########
 ###########################################  ~~~~ ENUMS ~~~~  ###########################################
 ########                                                                                         ########
@@ -178,9 +181,9 @@ class ResultResolutionMode(Enum):
     # TODO:
 
     # Resolver should return result in the func return statement.
-    RETURN_STATEMENT = "return {}".format(args[2])
-    INSTANCE_PROPERTY = "{}({})".format(args[2], args[3])
-    ENV_DICT = "self.putenv({},{})".format(args[2], args[3])
+    RETURN_STATEMENT = '"return {}".format(args[2])'
+    INSTANCE_PROPERTY = '"{}({})".format(args[2], args[3])'
+    ENV_DICT = '"self.putenv({},{})".format(args[2], args[3])'
 
     def Resolver(self)->bool:
         exec(self.value)
@@ -204,8 +207,20 @@ class InputType(Enum):
     """
     # TODO:
 
-    INFILE = ''
-    INSTREAM = ''
+    INFILE = 0
+    INSTREAM = 1
+    INPIPE = 2
+
+class OutputType(Enum):
+    """
+    properties:
+        Enum ([type]): [description]
+    """
+    # TODO:
+
+    OUTFILE = 3
+    OUTSTREAM = 4
+    OUTPIPE = 5
 
 class FileType(Enum):
     """
@@ -266,7 +281,7 @@ class InputCommandString(str):
     def to_cmd_objs(self):
         pass 
 
-class Program(pathlib.Path):
+class Program(Path):
     """
     properties:
         [type]: [description]
@@ -454,21 +469,22 @@ class InputHandler(IOHandlerBase):
     def input_type(self,type_str: str)->bool:
         self.__inp_t = type_str    
 
-    def __init__(self, itype: str, file=None, *args, **kwargs):
+    def __init__(self, itype: str, *args, **kwargs):
         super().__init__(args, kwargs)
         self.input_type(itype)
 
 
 class InputFileHandler(InputHandler):
 
-    def __init__(self):
-        super().__init__( itype, file=None, *args, **kwargs)
+    def __init__(self, itype, *args, file, **kwargs):
+        super().__init__( itype, *args, file=file, **kwargs)
 
 class OutputHandler(IOHandlerBase):
     """
     Description: Active container which implements an interface for controlling what happens to, and what is affected by, the output of a runner in a context.
     """
     # TODO:
+    #   - add implementation
 
     pass
     
@@ -480,7 +496,10 @@ class OutputHandler(IOHandlerBase):
 @dataclass
 class BaseRunner:
     """
-    This class should be a relative of EVERY runner defined in the application. It defines only logic that must be present for all runners, and therefore lays out the minimal contract for this abstraction.
+    Description: This class should be a relative of EVERY runner defined in the application. It defines only logic that must be present for all runners, and therefore lays out the minimal contract for this abstraction.
+    Properties:
+        infile->pathlib.Path of the input file for this runner
+
     """
     # TODO:
 
@@ -550,7 +569,7 @@ class BaseRunner:
             handler = IOHandler(handler_args)
         return handler
 
-class CfpRunner:
+class CfpRunner(BaseRunner):
     """
     This is a highly dynamic class which is responsible for nearly all cfp runner types. If the init method 
     is called directly, it will raise an error, but the various runner-type-getters, e.g. get_new_*_runner(), call init after setting a class property. After this is set, the runner will build itself according to its value.
@@ -642,10 +661,14 @@ class Context:
         return self.__environ_dict
 
     @env_dict.setter
-    def env_dict(self, ed: dict):
-        if len(self.__environ_dict) == 0
-            self.__environ_dict = 
-        self.__environ_dict
+    def env_dict(self, ed: dict, overwrite: bool=False) -> None:
+        if self.__environ_dict:
+            if len(self.__environ_dict) == 0:
+                self.__environ_dict = ed
+            elif overwrite == True:
+                self.__environ_dict = ed
+            elif overwrite == False
+                raise CfpOverwriteNotAllowedError
                    
     def putenv(k, v):
         env_dict.update({k: v})
@@ -756,7 +779,12 @@ class CfpShellBasedTestContext(CfpShellContext):
     
     @property
     def solutions_testrunner(self): 
-        return self.__cfp_runner
+        if type(self.__cfp_runner) is NoneType:
+            return None
+        elif type(self.__cfp_runner) is CfpRunner:
+            return self.__cfp_runner
+        else:
+            raise TypeError
 
     @solutions_testrunner.setter
     def solutions_testrunner(self, rnr): 
@@ -774,15 +802,15 @@ class CfpShellBasedTestContext(CfpShellContext):
         self.__lang = lng
         return None
 
-    def setlang(self, language:) :
+    def setlang(self, language:LanguageChoice) :
         '''
-
+        Believe it or not, this one sets the lang
         '''
         for i,lang_option in enumerate(self.cf_allowedlangs):
             if lang_option.lower() in '_'.join(list(map(str, language.split(' ')))).lower():
                 self.cf_lang_index = i
                 break
-        elif self.default_lang
+        elif self.default_lang:
         if cf_lang_index < 0:
             raise IOError('You must provide a language!')
         else:    
