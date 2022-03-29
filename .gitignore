@@ -13,6 +13,7 @@
 ### Directories
 __pycache__/
 .vscode/
+.idea/
 venv3.10/
 build/
 cfpipeline.egg-info/
@@ -20,3 +21,4 @@ cfpipeline.egg-info/
 ### Files
 **/reqs.txt
 .todo
+*.code-workspace
