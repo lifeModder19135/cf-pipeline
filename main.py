@@ -1,5 +1,5 @@
 import click 
-from cfp_abstract
+from SOURCE.modules import cfp_context, cfp_config
 
 @click.Group()
 def callcfpcommand(Version:bool=False):
@@ -23,4 +23,4 @@ def callcfpcommand(Version:bool=False):
     else:
         raise ValueError
     
-
+@
