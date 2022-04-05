@@ -11,6 +11,7 @@
 #############################
 
 ### Directories
+OLD_*/
 __pycache__/
 .vscode/
 .idea/
@@ -22,3 +23,4 @@ cfpipeline.egg-info/
 **/reqs.txt
 .todo
 *.code-workspace
+OLD_*
