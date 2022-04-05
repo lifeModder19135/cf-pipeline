@@ -1,8 +1,8 @@
 
-from re import T
 import click, json
 from enum import Enum
 from .libcfapi_utils import formatfuncstr
+from SOURCE.modules import cfp_errors
 
 
 
@@ -20,7 +20,7 @@ class ParamTypes(Enum):
     RESOLVE = 99
 
 class CpApiTuples(Enum):
-    '''
+    """
     Description: Enum hybrid class that exposes an interface to the various "A-list" competitive progrsmming sites, via their apis if available, and if not, via any means necessary. 
     Value:
         Type: tuple[4]
@@ -34,14 +34,14 @@ class CpApiTuples(Enum):
                 Description: Dict[argname: argvalue] -- any arguments specific to a certain type of request. Must be kwargs as the surrounding type is dict. If none are needed, just include an empty dictionary '{}' for this value. NOTE: These are NOT arguments that are guaranteed to be included in a request method. Whether or not they are is of no consequence here. It is for any argument that is not a parameter of every CpApiRequest.
                 PossibleValues: 
                     'format_params': list -- In some situations, you will need part or all of a CpApiTuples.value string to be decided by a variable which defined in the destination api class. If you try to do this with e.g. ''.format(var_from_api_class), you will get an undefined error. This arg provides a workaround, for the sake of making this workflow as flexible as possible. Any of the strings nested inside a CpApiTuples.value (except for the id, which must NOT be dynamic in  nature) can include one or more sets of braces '{}' WITHOUT a Pythonic format method (i.e. fstring, str.format, etc. if you have the value here, it should be formatted by python using one of these methods. If this is the case, it will be expanded before our parser ever sees it.) If the '{}' is contained in a regular, unformatted string, then the parser will look for this param. If it is not set, the {} will be taken as a literal. If it is defined and has one or more unused values, the first unused value will be substituted. So, assuming this made a valid CpApiTuples.value, if you have ('99','mary {}', '{}', '{} {}',{format_params:['had_word','a_word','little_word','lamb_word']}), and the tuple is sent to MyApiImpl, its constructor will recieve the equivalent of ('99', 'mary {}', '{}', '{} {}') 
-    '''
+    """
 
 #   TODO:
 #       - update last parameter of each value tuple with the 'url_path' (the part after the '/')
 #           - so far, only codeforces is correct
 
     CODEFORCES = ('00', 'codeforces', 0, '/api/{}', 'GET', {'format_params': []})
-    CODECHEF = ('01', 'codechef', 0, '/')
+    CODECHEF = ('01', 'codechef', 0, '/') 
     TOPCODER = ('02', 'topcoder', 0, '/')
     LEETCODE = ('03', 'leetcode', 0, '/')
     PROJECT_EULER = ('04', '', '')
@@ -54,11 +54,11 @@ class CpApiTuples(Enum):
 
 class Api(object):
 
-    '''
+    """
     Description: Enum hybrid class that exposes an interface to the various "A-list" competitive progrsmming sites, via their apis if available, and if not, via any means necessary. 
     Values:
-        * 
-    '''
+        
+    """
 
 #   TODO:
 #       - update last parameter of each value tuple with the 'url_path' (the part after the '/')
@@ -76,9 +76,9 @@ class Api(object):
     
 
 class CodeforcesApiMethodValues(Enum):
-    '''
+    """
     A comprehensive listing of all Codeforces api Methods supported by the program at a time.
-    '''
+    """
     BLOGENTRY_COMMENTS = 'blogEntry.comments'
     BLOGENTRY_VIEW = 'blogEntry.view'
     CONTEST_HACKS = 'contest.hacks'
@@ -97,6 +97,130 @@ class CodeforcesApiMethodValues(Enum):
     USER_STATUS = 'user.status'
     
 class ParamType(click.ParamType):
+    """
+    abstraction class used primarily as a container that holds the data type and related info for a function or method parameter
+    """
+
+    def __init__(self):
+        __def_lowered_hintchoices_DO_NOT_CHANGE = [
+            'str',
+            'string',
+            's',
+            'st',
+            'int',
+            'integer',
+            'i',
+            'float',
+            'floatingpoint',
+            'floating point',
+            'floating-point',
+            'floating_point',
+            'f',
+            'fl',
+            'fp',
+            'f-p',
+            'f_p',
+            'f p',
+            'double',
+            'doubleprecisionint'
+            'double precision int'
+            'double-precision-int'
+            'double_precision_int'
+            'byte',
+            'list',
+            'ls',
+            'll',
+            'tuple',
+            'tup',
+            'tt',
+            'set',
+            'ss',
+            'dict',
+            'dictionary',
+            'dd'
+        ]
+        self.user_hints_to_constructors_map = {}
+
+    def __map_hint_to_func(self, hint:str, func:str):
+        if type(hint) is not str or type(func) is not str:
+            raise cfp_errors.CfpValueError()
+        else:
+            self.user_hints_to_functions_map[hint] = func
+        
+    def __add_hints_to_funcmap(self, *kv_tuples:tuple):
+        for kvt in kv_tuples:
+            if type(kvt) != tuple:
+                raise cfp_errors.CfpTypeError
+            elif kvt.count() != 2:
+                raise cfp_errors.CfpValueError
+            else:
+                self.__flag_BOTH_STRINGS = True
+                for i in kvt:
+                    if type(i) != str:
+                        self.__flag_BOTH_STRINGS = False
+                else:
+                    if self.__flag_BOTH_STRINGS == True:
+                        # At this point we can be sure that kvt is a tuple containing exactly 2 string values
+                        self.__map_hint_to_func(kvt[0], kvt[1])
+
+        if not hint or not func:
+            raise cfp_errors.CfpValueError()
+
+    @property
+    def user_hints_to_constructor_functions_map(self):
+
+        return self.__hints_funcs_map
+
+    @user_hints_to_constructor_functions_map.setter
+    def user_hints_to_constructor_functions_map(self, val):
+        """
+        Accepts either atuple containing a hint (str) and constructor ref (str, the name of the type's constructor), or else a list of these tuples
+        """
+        if not self.__hints_funcs_map:
+            self.__hints_funcs_map = {}
+        temp = self.user_hints_to_constructor_functions_map()
+        if temp == None:
+            temp = {}
+        if type(val) == tuple:
+            self.__hints_funcs_map = {}
+            try:
+                self.__add_hints_to_funcmap(val)
+            except(e):
+                if temp != {}:
+                    self.__hints_funcs_map = temp
+                    raise e
+        elif type(val) == list:
+            for i in val:
+                try:
+                    self.__add_hints_to_funcmap(i)
+                except(e):
+                    if temp != {}:
+                        self.__hints_funcs_map
+                        raise e
+
+    @property
+    def default_normalized_typehint_choices(self):
+        """
+        Setter is intentionally left out. This should be changed from inside the source code for any reason. If you are trying to change the values, then you may be getting this property confused with the 'normalized_typehint_choices' property which is meant to be added to and / or changed when needed (but has its own stipulations). This property is just an immutable list used as the initial values for that one.
+        """
+        return self.__def_lowered_hintchoices_DO_NOT_CHANGE
+
+    @property
+    def normalized_typehint_choices(self):
+        """
+        Setter is intentionally left out. This should be changed from inside the source code for any reason. If you are trying to change the values, then you may be getting this property confused with the 'normalized_typehint_choices' property which is meant to be added to and / or changed when needed (but has its own stipulations). This property is just an immutable list used as the initial values for that one.
+        """
+        return self.__lowered_hintchoices
+
+    @normalized_typehint_choices.setter
+    def normalized_typehint_choices(self, *args):
+        hintlist = self.default_normalized_typehint_choices()
+        for arg in args:
+            if type(arg) == list:
+                for item in arg:
+                    hintlist.append(str(item))
+
+
 
     def check_typehint(typehint:str)->ParamTypes:
         x = typehint.lower() 
@@ -122,25 +246,43 @@ class ParamType(click.ParamType):
         elif x == 'object' or x == 'obj' or x == 'object_subtype':
             res = ParamTypes.OBJECT_SUBTYPE
         else:
-            raise ValueError('''Type not directly supported. If you feel there has been a mistake, and you are SURE that the api is expecting the type you've provided, then try running the as_value() method instead''')
+            raise ValueError("""Type not directly supported. If you feel there has been a mistake, and you are SURE that the api is expecting the type you've provided, then try running the as_value() method instead""")
         return res
     
-    def resolve(self, pt_choices:list=None, default=None):
-        '''
+    def __resolve_for_params(self, *params:str, pt_choices:list=None, default=None):
+        """
         Used to figure out the ParamType. This method is (and/or always should be called by any ParamType parse) called any time. 
-        '''        
+        """
+        pass
+
+    def __resolve_for_paramlist(self, params:list, pt_choices:list=None, default=None):
+        """
+        Used to figure out the ParamType. This method is (and/or always should be called by any ParamType parse) called any time. 
+        """
+        pass
+
+    def __resolve_for_paramdict(self, params:dict, pt_choices:list=None, default=None):
+        """
+        Used to figure out the ParamType. This method is (and/or always should be called by any ParamType parse) called any time. 
+        """
+        pass
     
+    def resolve_for(*args, **kwargs):
+        """Front end for the other 'resolve...' methods"""
+        pass
+
     def set_type(self, typehint:str=None):
         if typehint is not None:
             self.type = self.check_type(typehint)
+
     def __init__(self):
         self
         pass
 
 class APIMethodParameter(object):
-    '''
+    """
     This is the class used to define a parameter for an api method. When a method object is defined, any parameters that this method takes will be declared as type api_method_parameter. It does not hold the value, it just checks that the value passes all of the specified constraints. 
-    '''
+    """
 # REDO REDO REDO!!
     @property
     def name(self):
@@ -183,7 +325,7 @@ class APIMethodParameter(object):
         self.__t_acc = ta
 
     def __init__(self, name, def_val:object=None, required:bool=False, param_type:ParamTypes='obj', types_accepted:dict=None):
-        '''
+        """
         params:
             default_value: str <- Optional
                 the value to which the parameter will be set if no value arg is given. 
@@ -195,7 +337,7 @@ class APIMethodParameter(object):
             parameter_type: 
                 
             typehint set to obj as a catchall, as every type in python3 is a subtype of object (except object, which also works.) 
-        '''
+        """
         self.name(name)
         self.require(required)
         self.default_value(def_val)
@@ -217,28 +359,27 @@ class APIMethodParameter(object):
                 
             
 class ReturnType(json.JSONEncoder):
-    '''
+    """
     Return type of an ApiMethod object.
-    '''
+    """
     def __init__(self):
         pass
     
-class ReturnObject(object):
-        pass
-
+class ResponseObject(object):
+        
     def __init__(self,input):
         super.__init__()    
             
 class ApiMethod(object):
-    '''
+    """
     A callable api method specified in an api. 
-    '''
+    """
     @property
     def parentapi(self):
-        '''
+        """
         For now it is hard-wired as Codeforces. Eventually, platform will support other comp. coding apis.
         This property is only in place for that eventuality, at which time the value will be added as a configuration option. The getter and setter defined here will obviously need altered as well. 
-        '''
+        """
         return 'codeforces.com/api/'
     
     @parentapi.setter
@@ -260,9 +401,9 @@ class ApiMethod(object):
 
     @params_list.setter
     def params_list(self, args):
-        '''
+        """
         sets parameters for an a
-        '''
+        """
         self._p_list = {}
         if len(args[1:-1]) == 0:
             pass
@@ -302,7 +443,7 @@ class ApiMethod(object):
         pass
     
     def __init__(self, params:list=None, paramstr:str=None)->ParamTypes:
-        '''Needs exactly one of the two args. accepts a string or a list of  parameter'''
+        """Needs exactly one of the two args. accepts a string or a list of  parameter"""
         pass
 
     def is_member_of(self, api):
@@ -312,19 +453,19 @@ class ApiMethod(object):
 
 
 class CodeforcesApiMethod(ApiMethod):
-    '''
+    """
     Abstraction for a Codeforces Api method.
-    '''
+    """
 
 #   TODO:
 #       - implement call_string property / method. Currently set to \"pass\" below        
 
     @property
     def parentapi(self):
-        '''
+        """
         For now it is hard-wired as Codeforces. Eventually, platform will support other comp. coding apis.
         This property is only in place for that eventuality, at which time the value will be added as a configuration option. The getter and setter defined here will obviously need altered as well. 
-        '''
+        """
         return 'codeforces.com/api/'
     
     @parentapi.setter
@@ -344,6 +485,6 @@ class CodeforcesApiMethod(ApiMethod):
     def run_query():
         pass
     
-    def __init__(self,*params:ApiMethodParameters)->ParamTypes:
+    def __init__(self,*params:ApiMethodParameter)->ParamTypes:
         pass
     
