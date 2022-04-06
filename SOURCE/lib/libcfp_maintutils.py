@@ -1,17 +1,41 @@
 import configparser
 import os
+from typing import Any
 from SOURCE.lib.libcf_api import libcfapi_constants as apic, libcfapi_utils as apiu
 from pathlib import Path
 from SOURCE.modules.cfp_errors import CfpInitializationError
 
 
+class OptionChoice(str):
+    """
+    Type for an arg or kwarg string in a python function where the acceptable values are limited to just a few. This holds the chosen value. It also contains an OptionsAllowedList. The chosen value must be validated against the list when it is being set.
+    """
+    @property
+    def chosen_value(self):
+        return self.__chosen_val
 
+    @chosen_value.setter
+    def chosen_value(self, val) -> Any:
+        if val in self.__choices:
+            self.__chosen_val = val
+        else:
+            raise ValueError
 
-class Option(str):
+    @property
+    def choices_available(self):
+        return self.__choices
+
+    @choices_available.setter
+    def choices_available(self, vals:list) -> list:
+        self.__choices = vals
+
+class OptionsAllowedList(list):
     # ::TAGS:: |:Trend:|:beat:|:melon:|:moth:| 
     """
-    Type for a kwarg string in a python functions t
+    Container for allowed values for an option
     """
+    def __init__(self, *args, fromlist:list=None):
+        super.__init__(args,fromlist)
     
 class TagLocker(dict):
     """
@@ -20,7 +44,6 @@ class TagLocker(dict):
     def __init__(self):
         super().__init__()
     
-
 class Location:
     """
     represents a location in a python package, module, or script 
@@ -88,7 +111,7 @@ class Location:
     def filename(self):
         return self.__filename_
 
-    @v.setter
+    @filename.setter
     def filename(self,val):
         self.__filename_ = val
 
@@ -152,32 +175,37 @@ class MetaUtils(object):
         return False
         
     @classmethod
-    def install_create_home_dir():
+    def install_create_home_dir(ctx_base):
+        # TODO: finish me!
+        #cfp_config.get_value("\CFP_CONTEXT_INSTALLATION_DIRECTORY")
         start_dir = os.cwd()
         if ctx_base is not None:
-            self.ctx_parent_entry = os.scandir(apic.CFP_CTX)
+            ctx_parent_entry = os.scandir(apic.CFP_CONTEXT_DIRECTORY_BASE)
         if os.is_dir(ctx_base): 
             os.chdir(ctx_base)
-        else
+        else:
             pass
-        
+
+    @classmethod    
     def cf_config_tool(self,action=None):
         """
         TODO: Implement or delete; currently this is just half of an idea that I've long since forgotten.
-            check config module; it may still be needed, as 'action' IS used there.
+        Check config module; it may still be needed, as 'action' IS used there.
         """
         configpath = ''
         if action == None:
             return configpath
 
 class CtxPathResolver:
-    
+    """
+    Utility class for retrieving the location of the context directory.
+    """    
     @property
     def ctx_dirpath(self):
         return self._ctx_dirpath
     
     @ctx_dirpath.setter
-    def ctx_dirpath(path: Path):
+    def ctx_dirpath(self, path: Path):
         self._ctx_dirpath = path  
         
     def __init__(self, path:Path=None):

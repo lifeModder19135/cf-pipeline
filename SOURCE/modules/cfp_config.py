@@ -1,29 +1,61 @@
+from dataclasses import dataclass
 import os, typing
 from ..lib import libcfapi_utils
-<<<<<<< Updated upstream
-from .cfp_errors import CfpInitializationError, CfpUserInputError, CfpOverwriteNotAllowedError
-=======
 from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError
->>>>>>> Stashed changes
 from enum import Enum
 
 class AppConfigurationOptions(Enum):
-    '''
+    """
     Allowed config options. The names correspond to the options allowed as l_values in the conffile. the values are stringified representations
-    '''
-<<<<<<< Updated upstream
-class Section:
-=======
+    """
+@dataclass
 class ConfFileSection:
->>>>>>> Stashed changes
-    pass
+    
+    @property
+    def name(self) -> str:
+        return self.__name_
+
+    @name.setter
+    def name(self, val) -> None:
+        self.__name_ = val
+
+    @property
+    def description(self) -> str:
+        return self.__descr
+
+    @description.setter
+    def description(self, val) -> None:
+        self.__descr = val
+
+    @property
+    def keys_vals_dict(self) -> str:
+        return self.__config_kvs
+
+    @keys_vals_dict.setter
+    def keys_vals_dict(self, action:str, kvdict:dict) -> None:
+        input_bad = False
+        if type(kvdict) == dict:
+            for k,v in kvdict.items():
+                if type(k) != str or type(v) != str:
+                    input_bad = True
+            if input_bad == False:
+                if action == "overwrite":
+                    self.__config_kvs = kvdict
+                elif action == "update":
+                    for k,v in kvdict.items():
+                        for key in self.__config_kvs.keys():
+                            if k == key:
+                                self.__config_kvs[key] = v
+                                kvdict.pop(k)
+                    self.__config_kvs.update(kvdict)
+                else:
+                    raise CfpUserInputError
 
 class ConfigFile(object):
 
-
     @property
-    def sections(self) -> 'list[Section]':
-        '''This is a list of strings containing the names of all the sections of the config.'''
+    def sections(self) -> 'list[ConfFileSection]':
+        """This is a list of ConfFileSection objects, or possibly strings (still undecided), containing the names of all the sections of the config."""
         if not self.__sectslist_:
             self.__sectslist_ = []
         return self.__sectslist_
@@ -35,14 +67,10 @@ class ConfigFile(object):
             self.__sectslist_ = []
         if action == 'update':
             for a in args:
-<<<<<<< Updated upstream
-                self.__sectslist_.append(a)
-=======
                 if type(a) == ConfFileSection:
                     self.__sectslist_.append(a)
                 else:
                     raise CfpTypeError()
->>>>>>> Stashed changes
         elif action == 'overwrite':
             self.__sectslist_ = []
             for a in args:
@@ -50,13 +78,8 @@ class ConfigFile(object):
         elif action == 'empty':
             self.__sectslist_ = []
         elif action == 'refresh':
-            self.__get_sections_from_conffile()
+            self.__secnames = self.__get_section_names_from_conffile()
 
-<<<<<<< Updated upstream
-    def __get_sections_from_conffile(self):
-        _filelocation = '/'.join(self.location_path(),self.filename())
-        with open(_filelocation, 'r')    
-=======
     @property
     def location_dirpath(self) -> str:
         return self.__locdirpath
@@ -73,48 +96,28 @@ class ConfigFile(object):
     def filename(self, fname) -> None:
         self.__file_name = fname
 
-    def __get_sections_from_conffile(self):
+    def __get_section_names_from_conffile(self) -> "list[tuple]":
+        sects_ls = []
         _filelocation = '/'.join(self.location_path(),self.filename())
-        with open(_filelocation, 'r') as cfgfile:
-            for line in cfgfile:
-                if str(line).isspace:
-                    continue
-        
+        with open(_filelocation, 'r') as file:
+            for i,line in enumerate(file):
+                cleanln = line.lstrip().rstrip()
+                if cleanln.startswith("[[") and cleanln.endswith("]]"):
+                    sectup = (i,cleanln[2:-2])
+                    sects_ls.append(sectup)
+        return sects_ls
 
-    def __parse_conffile(self):
->>>>>>> Stashed changes
 
 class AppConfiguration(typing.dict):
-    '''
-    dict with config option names and values
-    '''
+    """
+    dict with config section names and inner dictionaries containing config opptions and values
+    """
     # TODO:
+    #    - needs logic to check inner dicts and set values to class properties
+    #    - need to define properties
 
-    def __init__(self, conf_dict:dict=None, iter:typing.Iterable=None, **kvpairs):
-        if conf_dict == None and iter == None:
+    def __init__(self, conf_dict:dict=None, **kvpairs):
+        if conf_dict == None:
             super().__init__(**kvpairs)
         else:
-            if conf_dict:
-                if iter:
-                    raise CfpInitializationError
-                else:
-                    for k,v in conf_dict:
-                        pass
-                        # TODO: ^^
-            if iter:
-<<<<<<< Updated upstream
-                if type(iter) == list:
-
-
-            super().__init__(conf_or_iter, **kvpairs)
-=======
-                if type(iter) == list or type(iter) == tuple:
-                    for node in iter:
-                        if type(node) != list and type(node) != tuple:
-                            raise CfpTypeError()
-
-            super().__init__(conf_dict, iter, **kvpairs)
->>>>>>> Stashed changes
-
-    def __init__(self, **kvpairs):
-        super().__init__(**kvpairs)
+            super().__init__(conf_dict, **kvpairs)

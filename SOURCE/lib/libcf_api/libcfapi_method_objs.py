@@ -5,7 +5,6 @@ from .libcfapi_utils import formatfuncstr
 from SOURCE.modules import cfp_errors
 
 
-
 class ParamTypes(Enum):
     STRING = 0
     INT = 1
@@ -162,9 +161,8 @@ class ParamType(click.ParamType):
                     if self.__flag_BOTH_STRINGS == True:
                         # At this point we can be sure that kvt is a tuple containing exactly 2 string values
                         self.__map_hint_to_func(kvt[0], kvt[1])
-
-        if not hint or not func:
-            raise cfp_errors.CfpValueError()
+                    else:
+                        raise cfp_errors.CfpTypeError
 
     @property
     def user_hints_to_constructor_functions_map(self):
@@ -174,7 +172,7 @@ class ParamType(click.ParamType):
     @user_hints_to_constructor_functions_map.setter
     def user_hints_to_constructor_functions_map(self, val):
         """
-        Accepts either atuple containing a hint (str) and constructor ref (str, the name of the type's constructor), or else a list of these tuples
+        Accepts either a tuple containing a hint (str) and constructor ref (str, the name of the type's constructor), or else a list of these tuples
         """
         if not self.__hints_funcs_map:
             self.__hints_funcs_map = {}
@@ -185,7 +183,7 @@ class ParamType(click.ParamType):
             self.__hints_funcs_map = {}
             try:
                 self.__add_hints_to_funcmap(val)
-            except(e):
+            except BaseException as e:
                 if temp != {}:
                     self.__hints_funcs_map = temp
                     raise e
@@ -279,7 +277,7 @@ class ParamType(click.ParamType):
         self
         pass
 
-class APIMethodParameter(object):
+class ApiMethodParameter(object):
     """
     This is the class used to define a parameter for an api method. When a method object is defined, any parameters that this method takes will be declared as type api_method_parameter. It does not hold the value, it just checks that the value passes all of the specified constraints. 
     """
@@ -354,7 +352,7 @@ class APIMethodParameter(object):
                     except NameError:
                         print("something went wrong while trying to execute {}".format(_exec_st))
                         return 1
-                    if not formatfuncstr_result:
+                    if not self.formatfuncstr_result:
                         raise ValueError
                 
             
