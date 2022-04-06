@@ -31,13 +31,13 @@ jobs:
     # Then run your tests!
     # CircleCI will report the results back to your VCS provider.
     steps:
+      - checkout
       - run:
           name: Change POV
           command: pushd .. && ls -la || sudo ls -la
       - run:
           name: Regain Perspective
-          command: (ls -la || sudo ls -la) >> /home/circleci/project/RESOURCES/
-      - checkout
+          command: (ls -la || sudo ls -la) >> /home/circleci/project/RESOURCES/log/circ_ci.log
       - python/install-packages:
           pkg-manager: pip
           # app-dir: ~/project/package-directory/  # If you're requirements.txt isn't in the root directory.

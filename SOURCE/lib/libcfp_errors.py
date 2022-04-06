@@ -1,17 +1,16 @@
 
-
 class CfpError(Exception):
     def __init__(self, *msgs, t_str=None, callback_error_type=None):
         self._type = t_str 
         print('Cf-Pipeline: Error: {f_type}: '.format(f_type=self._type))
-        self.print_messages(msgs):
+        self.__print_messages(msgs)
         if callback_error_type.isinstance(Exception):
             callback_error_type.__init__()
         else:
             super.__init__()
             
-     @property
-     def type(self):
+    @property
+    def type(self):
         return self.__type
         
     @type.setter
@@ -19,7 +18,7 @@ class CfpError(Exception):
         self.__type = t_str
      
         
-    def print_messages(*msgs):
+    def __print_messages(*msgs):
         for m in msgs:
             print(m)
         return True
@@ -31,7 +30,7 @@ class CfpSetupError(CfpError):
             
 class CfpCtxDirectoryMissingError(CfpError, OSError):
 
-    self.default_msg = '''One or more of the context directories used by cf_pipeline is missing, or else the application is misconfigured.
+    __default_msg = '''One or more of the context directories used by cf_pipeline is missing, or else the application is misconfigured.
                             
         Cf_pipeline comes with a built-in tool for finding out where the program expects these directories to be located.
                                        
@@ -45,9 +44,12 @@ class CfpCtxDirectoryMissingError(CfpError, OSError):
                                        
         Check your configuration, making needed changes, and restart the application'''
 
-     def __init__(self, , msgs, callback_error_type=None):
+    def __init__(self, msgs, callback_error_type=None):
         cet = callback_error_type
-        super.__init__(msgs, t_str='Path error', callback_error_type=cet 
+        if not msgs:
+            super.__init__(self.__default_msg, t_str='Path error', callback_error_type=cet)
+        else:
+            super.__init__(msgs, t_str='Path error', callback_error_type=cet)
         
         
         

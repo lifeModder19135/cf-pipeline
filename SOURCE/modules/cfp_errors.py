@@ -25,6 +25,13 @@ class CfpTypeError(TypeError):
     def __init__(self, *args, **kwargs):
         super().__init__( *args, **kwargs)
 
+class CfpValueError(ValueError):
+    """
+    Just a custom fascade for ValueErrors
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
+
 class CfpOverwriteNotAllowedError(CfpInitializationError):
     """
     Called when a setter tries to overwrite a property that has already been set and does not allow overwrites in the current context.
