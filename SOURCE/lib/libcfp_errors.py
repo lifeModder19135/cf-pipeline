@@ -30,7 +30,7 @@ class CfpSetupError(CfpError):
             
 class CfpCtxDirectoryMissingError(CfpError, OSError):
 
-    __default_msg = '''One or more of the context directories used by cf_pipeline is missing, or else the application is misconfigured.
+    __default_msg = """One or more of the context directories used by cf_pipeline is missing, or else the application is misconfigured.
                             
         Cf_pipeline comes with a built-in tool for finding out where the program expects these directories to be located.
                                        
@@ -42,7 +42,7 @@ class CfpCtxDirectoryMissingError(CfpError, OSError):
                                        
         Alternatively, you can rebuild the app, but be aware that any previous configurations will likely be lost.
                                        
-        Check your configuration, making needed changes, and restart the application'''
+        Check your configuration, making needed changes, and restart the application"""
 
     def __init__(self, msgs, callback_error_type=None):
         cet = callback_error_type
