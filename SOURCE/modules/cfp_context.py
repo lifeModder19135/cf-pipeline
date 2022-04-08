@@ -228,17 +228,21 @@ class FileType(Enum):
         Enum ([type]): [description]
     """
     # TODO:
-
-    PLAINTEXT_FILE = 0
+    PLAINTEXT_FILE = 00,
     INTS_ONLY_TEXT_FILE = 1
+    BINARY_FILE_GENERIC = 2
     # For more info about FILE_FMT_N, see section 'IO File Formats' at the top of this module
-    CFP_INPUTFILE_FMT_1 = 2
-    CFP_INPUTFILE_FMT_2 = 3
-    SOURCE_FILE_GENERIC = 4
-    SOURCE_FILE_PY2 = 5
-    SOURCE_FILE_PY3 = 6
-    SOURCE_FILE_C = 7
-    SOURCE_FILE_CPP = 8
+    CFP_INPUTFILE_FMT_1 = 3
+    CFP_INPUTFILE_FMT_2 = 4
+    CFP_OUTPUTFILE = 5
+    CFP_DIFF_FILE = 6
+    SOURCE_FILE_GENERIC = 7
+    SOURCE_FILE_PY2 = 8
+    SOURCE_FILE_PY3 = 9
+    SOURCE_FILE_C = 10
+    SOURCE_FILE_CPP = 11
+    SOURCE_FILE_JAVA = 12
+    DIRECTORY = 13
 
 
 class LanguageChoice(Enum):
@@ -363,7 +367,7 @@ class CfpFile:
 
     @property
     def getContent(self):
-        if self.get_filetype() == 'unknown':
+        if self.__f_type() == 'unknown':
             
         
     def from_scratch(self, header):
