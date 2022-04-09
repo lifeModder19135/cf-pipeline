@@ -31,11 +31,38 @@ class CfpValueError(ValueError):
     """
     def __init__(self, *args, **kwargs):
         super().__init__( *args, **kwargs)
-
-class CfpOverwriteNotAllowedError(CfpInitializationError):
+        
+class CfpPermissionDeniedError(PermissionError):
     """
-    Called when a setter tries to overwrite a property that has already been set and does not allow overwrites in the current context.
-    Best Practice: when writing a setter for a collection/Iterable type property that holds multiple values, an overwriting call may be an attempt to update, append, etc. In this case include an extra kwarg of form 'overwrite:bool = False' and raise this error unless it is explicitly set to true. This way, the user still has the option to overwrite, but the afforementioned mishap is eliminated.
+    Fascade for PermissionErrors. If a bit of code will occasionally raise PermissionErrors, wrap it in a try loop and rais this in a subsequent 'except PermissionError:' loop
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
+
+class CfpRuntimeError(RuntimeError):
+    """
+    Fascade for RuntimeErrors.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
+
+class CfpOverwriteNotAllowedError(CfpRuntimeError):
+    """
+    Called when a process doesn't return within the predetermined time limit.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
+        
+class CfpNotExecutableError(CfpValueError):
+    """
+    Called when a method expects an executable program but gets something else.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
+
+class CfpTimeoutError(CfpRuntimeError):
+    """
+    Called when a method expects an executable program but gets something else.
     """
     def __init__(self, *args, **kwargs):
         super().__init__( *args, **kwargs)
