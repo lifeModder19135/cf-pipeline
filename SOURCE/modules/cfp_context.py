@@ -1,7 +1,10 @@
 import os, click, invoke, subprocess, fileinput, shutil
+import sys
 from types import NoneType
 from dataclasses import dataclass
-from .cfp_errors import CfpInitializationError, CfpUserInputError, CfpOverwriteNotAllowedError
+
+from matplotlib.pyplot import close
+from .cfp_errors import CfpInitializationError, CfpNotExecutableError, CfpPermissionDeniedError, CfpRuntimeError, CfpTimeoutError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpValueError
 from enum import Enum
 # from shutil import which
 from shlex import split, join, whitespace_split
@@ -406,9 +409,79 @@ class Program(Path):
     properties: None
     """
     # TODO:
+    
+    @property
+    def operating_system(self) -> str:
+        return self.__op_sys
+    
+    
+    @operating_system.setter
+    def operating_system(self, o_s:str=None) -> None:
+        if o_s is None:
+            self.__op_sys = sys.platform
+        else:
+            self.__op_sys = o_s
+    
+    @property
+    def invoked_by(self):
+        return self.__caller
+    
+    @invoked_by.setter
+    def invoked_by(self, user:str=None):
+        if user is None:
+            self.__caller = os.path.expandvars('$USER')
+        elif type(user) == str:
+            self.__caller = user
+        else:
+            raise CfpTypeError()
+            
+    @property
+    def fullpath(self) -> str:
+        return self.__full_path
+    
+    @fullpath.setter
+    def fullpath(self, val:str) -> None:
+        self.__full_path = val
 
-    def __init__(input_src):
-        super().__init__(input_src)
+    def __init__(self, name_or_path:str):
+        p = super().__init__(name_or_path)
+        if not p.exists:
+            self.fullpath(shutil.which(p))
+            if self.fullpath() == None:
+                raise CfpNotExecutableError
+            try:
+                o_p = open(p)
+            except PermissionError:
+                raise CfpPermissionDeniedError
+            self.fullpath(name_or_path)
+            
+    def run(self,shell_errors_fail:bool=False):
+        """
+        Description: A very simple builtin runner that runs the program without args and returns the output. No option for pipes, etc.
+        Raises:
+            CfpPermissionDeniedError: User doesn't have permissions required to run the specified program
+            CfpTimeoutError: Process did not return within the allotted time
+            CfpRuntimeError: Catchall for any other runtime errors
+        Returns:
+            str: process output
+        """
+        try:
+            r_p = subprocess.run(self.fullpath, capture_output=True)
+        except PermissionError:
+            raise CfpPermissionDeniedError
+        except subprocess.TimeoutExpired:
+            raise CfpTimeoutError
+        except subprocess.SubprocessError:
+            raise CfpRuntimeError
+        else:
+            if str(r_p.returncode) != '0':
+                if shell_errors_fail == True:
+                    print(str('Cfp Runtime Exception: process returned with status ', r_p.returncode, ' and message ', r_p.stderr))
+                    raise CfpRuntimeError
+                else:
+                    print(str('Process returned with status ', r_p.returncode, ' and message ', r_p.stderr))
+            else:
+                return str(r_p.stdout)
 
 class CmdArg(str):
     """
@@ -500,6 +573,59 @@ class Task:
     
     def __init__(self):
         pass
+              
+class ShellProgram(Program):
+    """
+    Description: A program that starts a command shell when run. e.g. bash, cmd, etc.  
+    Propertiess:
+        name: a string version of the program name. Often the last part of the path.
+        launchpath: the path to the launch prog. Usually 
+    Methods:
+        run: start the program via the launchpath
+    """
+    @property
+    def name(self):
+        return self.__namestr
+    
+    @name.setter
+    def name(self, arg):
+        self.__namestr = arg
+        
+    @property
+    def launchpath(self):
+        return self.__launch_path
+    
+    @launchpath.setter
+    def launchpath(self, lp: Path):
+        self.__launch_path = lp
+        
+    @property
+    def command_concat(self):
+        """
+        This string is used to concat the command strings. Expects values such as '&&'.
+        """
+        return self.__cmd_concat
+    
+    @command_concat.setter
+    def command_concat(self, val):
+        self.__cmd_concat = str(val)
+        
+    def __init__(self, name:str, concat:str, altpath:Path=None):
+        self.name(name)
+        self.command_concat(concat)
+        self.launchpath(altpath)
+        super().__init__()
+        
+    def run_task(self, task:Task):
+        if self.launchpath is not None:
+            callstr = str(self.launchpath(), ' ', task.as_string(self.command_concat()))
+        else:
+            callstr = str(self.path, ' ', task.as_string(self.command_concat()))
+        output = subprocess.run(callstr)
+    
+    def run_task_via_progpath_call(self, task:Task):
+        callstr = str(self.path, ' ', task.as_string(self.command_concat()))
+        sub = subprocess.run(callstr)
 
 class Job:
     """
@@ -509,8 +635,22 @@ class Job:
     # TODO:
 
     TOP_LEVEL:bool = False
-    aliases: "list[str]" = None
-    content: "list[Task]" = None
+    
+    @property
+    def aliases(self) -> "list[str]":
+        return self.__aliases
+    
+    @aliases.setter
+    def aliases(self, vals:"list[str]") -> None:
+        self.__aliases = vals    
+    
+    @property
+    def content(self) -> "tuple[ShellProgram,Task]":
+        return self.__content
+    
+    @content.setter
+    def content(self, tup) -> None:
+        self.__content = tup  
     
     def __init__(self, cmd_ls: "list[Task]", *aliases):
         if len(cmd_ls) <= 0:
@@ -520,8 +660,6 @@ class Job:
     
     def to_string(self):
         pass
-              
-
 
 ########                                                                                         ########
 ##########################################  ~~~~ RUNNERS ~~~~  ##########################################
@@ -573,9 +711,9 @@ class BaseRunner:
         self.__cmd_list = clist
 
     def __init__(self, in_from=None, out_to=None, infile=None, cmd=None):
-        self.infrom = in_from 
-        self.outto = out_to
-        self.infile = infile
+        self.infrom(in_from) 
+        self.outto(out_to)
+        self.infile(infile) 
         if self.infile and self.infrom:
             raise CfpUserInputError("You cannot specify values for both input and infile")
         elif self.infile:
@@ -667,7 +805,7 @@ class CfpRunner(BaseRunner):
 @dataclass
 class Context:
     """
-    Base for all contexts.
+    Description: Base for all contexts. 
     """
     # TODO:
         # Add __enter__() & __exit__() methods to each context subtype
@@ -733,8 +871,26 @@ class CfpShellContext(Context):
     This is a context for running commands in a shell such as bash or zsh. The bash process is run on top of a Python process with its own environment that is kept seperate from the process environment by default, but whose variables can be accessed in the same way as process envvars at context runtime.    """
     # TODO:
 
-    shellchoice: str = ''
-    cmds: list = []
+
+    @property
+    def shellchoice(self) -> str:
+        return self.__shell_choice
+
+    @shellchoice.setter
+    def shellchoice(self, choice=None) -> None:  
+        self.__shell_choice = choice
+
+    @property
+    def current_shell(self) -> ShellProgram:  
+        return self.__current_shell
+
+    @current_shell.setter
+    def current_shell(self, curr=None) -> None:  
+        self.__current_shell = curr
+
+    @property
+    def cmds(self) -> list:
+        return self.__cmd_list
         
     def __init__(self, cmds, runner: CfpRunner, shell_env: str, **envvars):
         """
