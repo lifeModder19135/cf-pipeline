@@ -2,14 +2,13 @@ import os, click, invoke, subprocess, fileinput, shutil
 import sys
 from types import NoneType
 from dataclasses import dataclass
-
-from matplotlib.pyplot import close
 from .cfp_errors import CfpInitializationError, CfpNotExecutableError, CfpPermissionDeniedError, CfpRuntimeError, CfpTimeoutError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpValueError
 from enum import Enum
-# from shutil import which
-from shlex import split, join, whitespace_split
+from shutil import which
+from shlex import shlex, split, join, whitespace_split
 from pathlib import Path
 from ..lib import libcfapi_utils
+from .cfp_context import CfpFile
 
 #          ^                                                                Legend:
 #          ^                                              ~_ (as a prefix)   =====   conditional attribute       
@@ -356,9 +355,41 @@ class InputFileHandler(InputHandler):
     """
 
     Description: IOHandler for an input file
-    """
-    def __init__(self, itype, *args, file, **kwargs):
-        super().__init__( itype, *args, file=file, **kwargs)
+    """    
+    #TODO: 
+    #   Add methods: load_file, handle
+    #   Add property: handle_action:
+    
+    @property
+    def current_file(self) -> CfpFile:
+        """The current_file property."""
+        return self.__f_curr
+    
+    @current_file.setter
+    def current_file(self, value:CfpFile) -> None:
+        self.__f_curr = value
+    
+    @property
+    def files_previously_handled(self) -> "list[CfpFile]":
+        """The files_previously_handled property."""
+        return self.__previous_files
+    
+    @files_previously_handled.setter
+    def files_previously_handled(self, value:"list[CfpFile]"=None) -> None:
+        self.__previous_files = value
+    
+    @property
+    def files_on_deck(self) -> "list[CfpFile]":
+        """The files_on_deck property."""
+        return self.__files_on_deck
+    
+    @files_on_deck.setter
+    def files_on_deck(self, value) -> None:
+        self.__files_on_deck = value
+    
+    def __init__(self, file:CfpFile=None, *args, **kwargs):
+        super().__init__(InputType.INFILE, *args, **kwargs)
+        
 
 class OutputHandler(IOHandlerBase):
     """
@@ -371,7 +402,7 @@ class OutputHandler(IOHandlerBase):
     
 
 ########                                                                                         ########
-########################################  ~~~~ RUNNER SUBS ~~~~  ########################################
+########################################  ~~~~ RUNNER_SUBS ~~~~  ########################################
 ########                                                                                         ########     
 
 class InputCommandString(str):
@@ -629,6 +660,7 @@ class ShellProgram(Program):
 
 class Job:
     """
+    Description: Abstraction for a job of the format 'run specified list of commands using specified program' assigned to a runner
     Params:
             top_level -- constant -- boolean -- if true, this Job is meant for running lower level jobs. If false, it is a lower_level itself, and is for running Task lists
     """
@@ -650,17 +682,31 @@ class Job:
     
     @content.setter
     def content(self, tup) -> None:
-        self.__content = tup  
+        if type(tup) == tuple and len(tup) == 2: 
+            if type(tuple[1]) is Task:
+                self.__content = tup  
+            else:
+                raise CfpTypeError
+        else: 
+            raise CfpTypeError
     
-    def __init__(self, cmd_ls: "list[Task]", *aliases):
+    def __init__(self, *cmd_ls:Task, aliases:list):
         if len(cmd_ls) <= 0:
-            raise CfpUserInputError('Command_Line objects must always contain at least one Command_string.')
+            raise CfpUserInputError('Job objects must always contain at least one Task.')
         else:
             self.content = cmd_ls
     
     def to_string(self):
-        pass
-
+        try:
+            progpath = which(str(self.content[0]))
+            cmd_str = ' '.join(list(self.self.content[1]))
+            return progpath + cmd_str
+        except TypeError:
+            raise CfpTypeError
+        except BaseException as e:
+            print("invoked by ", str(e))
+            raise CfpRuntimeError
+        
 ########                                                                                         ########
 ##########################################  ~~~~ RUNNERS ~~~~  ##########################################
 ########                                                                                         ########
@@ -669,9 +715,15 @@ class Job:
 class BaseRunner:
     """
     Description: This class should be a relative of EVERY runner defined in the application. It defines only logic that must be present for all runners, and therefore lays out the minimal contract for this abstraction.
-    Properties:
-        infile->pathlib.Path of the input file for this runner
 
+    Properties:
+        infile: pathlib.Path
+            path to the input file for this runner
+        infrom:
+            InputHandler
+        outto:
+            OutputHandler
+        job:
     """
     # TODO:
 
@@ -688,7 +740,7 @@ class BaseRunner:
         return self.__in_from
 
     @infrom.setter
-    def infrom(self, arg)->None:
+    def infrom(self, arg)-> None:
         self.__in_from = arg
 
     @property
@@ -699,15 +751,15 @@ class BaseRunner:
             raise TypeError
 
     @outto.setter
-    def outto(self, dest)->None:
+    def outto(self, dest)-> None:
         self.__out_to = dest
 
     @property
-    def job(self, arg)->None:
+    def job(self, arg)-> Job:
         return self.__cmd_list
 
     @job.setter
-    def job(self, clist)->None:
+    def job(self, clist)-> None:
         self.__cmd_list = clist
 
     def __init__(self, in_from=None, out_to=None, infile=None, cmd=None):
@@ -723,45 +775,97 @@ class BaseRunner:
             else:
                 raise CfpUserInputError("If included, value for infile must be a valid path")        
              
-    def InitializeIOHandler(self, **handler_args):
+    def InitializeIOHandler(self, *handler_args, **handler_kwargs):
         """
         Description: creates and returns an IOHandler with 
-        Args: [
-            handler_args: 
-        ]
-        Raises: [
-            CfpUserInputError : [Raised if the data given to the instance is invalid]
-            IOError: [Called as a parent of the first Error]
-            CfpInitializationError: [Raised if a system error is caught upon init of the link]
-        ]
+        Args:
+            handler_args: tuple
+            handler_kwargs: tuple
+
+        Raises:
+            CfpUserInputError: Raised if the data given to the instance is invalid
+            IOError: Called as a parent of the first Error
+            CfpInitializationError: Raised if a system error is caught upon init of the link
+
         Returns:
-            IOHandler: [This class is responsible for the IO of its Runner. May be InputIOHandler or OutputIOHandler]
+            IOHandler: This class is responsible for the IO of its Runner. May be InputIOHandler or OutputIOHandler
         """
-        if self.infile:
-            handler = IOHandlerBase(handler_args)
+        if self.infile():
+            handler = IOHandlerBase(self.infile(), handler_args)
         return handler
 
 class CfpRunner(BaseRunner):
     """
-    This is a highly dynamic class which is responsible for nearly all cfp runner types. If the init method 
-    is called directly, it will raise an error, but the various runner-type-getters, e.g. get_new_*_runner(), call init after setting a class property. After this is set, the runner will build itself according to its value.
+    Description: This is a highly dynamic class which is responsible for nearly all cfp runner types. If the init method is called directly, it will raise an error, but the various runner-type-getters, e.g. get_new_*_runner(), call init after setting a class property. After this is set, the runner will build itself according to its value.
+    
+    Properties:
+      runtype_old: 
     """
-    # TODO:
+    # TODO: 
     
     DEFAULT_INPUT_SRC = 'subprocess.STDIN'
     DEFAULT_OUTPUT_SRC = 'subprocess.STDOUT'
-    runtype = None
-    frompipe: bool = False
-    topipe: bool = False
-    argstring: str = ''
-    
-    def __init__(self):
-        if self.runtype is None:
+    __r_type_old = ''
+
+    @property
+    def frompipe(self) -> bool:
+        return self.__frompipe
+
+    @frompipe.setter
+    def frompipe(self, frm: bool) -> None:
+        self.__frompipe = frm
+
+    @property
+    def topipe(self) -> bool:
+        return self.__topipe
+
+    @topipe.setter
+    def topipe(self, to_pipe:bool) -> None:
+        self.__topipe = to_pipe
+
+    @property
+    def argstring(self) -> CmdArgstring :
+        return self.__argstring
+
+    @argstring.setter
+    def argstring(self, arg_str:Any) -> None :
+        try:
+            if type(arg_str) == CmdArgstring:
+                self.__argstring = arg_str
+            elif type(arg_str) == CmdArglist:
+                cal = ''
+                for a in arg_str:
+                    cal = cal + str(a) + ' '
+                self.__argstring = rstrip(str(cal))
+                # above: cal should be a string already, but it is re-stringified just in case...
+            elif type(arg_str) == CmdArg:
+                # this should work every time, because CmdArg type is a subtype of str, but it excepts TypeErrors regardless
+                self.__argstring = CmdArgString(str(arg_str))
+            elif type(arg_str) == str:
+                self.__argstring = CmdArgString(arg_str)
+            else:
+                hailmary = CmdArgString(arg_str)
+                if type(hailmary) == CmdArgString:
+                    self.__argstring = hailmary
+                else:
+                    raise TypeError
+        except TypeError:
+            raise CfpTypeError
+        except RuntimeError:
+            exc = str(type(e))
+            print('Runtime Error: ', exc, ' raised by the back end application.')
+            raise CfpRuntimeError
+        except BaseException as e:
+            exc = str(type(e))
+            print('Compiletime Error: ', exc, ' raised by the back end application.')
+            raise CfpRuntimeError
+    def __init__(self, runtype:RunType):
+        if not self.runtype():
             raise CfpInitializationError("You cannot invoke this __init__() method directly. Try using one of the @classmethods defined by this class to get a new instance.")
-        elif self.runtype == RunType.SUBPROCESS:
-            self.frompipe = False
-            self.topipe = False
-        elif self.runtype == RunType.SUBPROCESS_LEGACY:
+        elif self.runtype() == RunType.SUBPROCESS:
+            self.frompipe(False)
+            self.topipe(False)
+        elif self.runtype() == RunType.SUBPROCESS_LEGACY:
             self.strategy = 'subprocess_check_output'      
             
     def configure(self):
@@ -769,22 +873,22 @@ class CfpRunner(BaseRunner):
     
     def get_new_subprocess_runner(self, legacy:bool=False):
         """
-        What it says. It returns a fresh instance of CfpRunner with the Runtype set to SUBPROCESS.   
+        Description: What it says. It returns a fresh instance of CfpRunner with the Runtype set to SUBPROCESS.   
         """
         if legacy == True:
             self.setRuntype(RunType.SUBPROCESS_LEGACY)
         else:
-            self.setRuntype(RunType.SUBPROCESS)             
+            self.setRuntype(RunType.SUBPROCESS)
         self.__init__()
 
     @property
-    def runtype(self)->RunType:
+    def runtype(self)-> RunType:
         return self.__invoc_type
 
     @runtype.setter
-    def runtype(self, rt: RunType)->bool:
+    def runtype(self, rt: RunType)-> bool:
         try:
-            if self.__invoc_type and self.__invoc_type is not None:
+            if self.__r_type:
                 self.__r_type_old = self.__r_type
             self.__r_type = rt
         except BaseException as e:
@@ -813,7 +917,11 @@ class Context:
             # Both methods should come after __init__() at the end of the class.
                 # If __init__() is not already the last method, move it.
 
-
+    def __enter__(self):
+        pass
+    
+    def __exit__(self):
+       pass    
 
     @property
     def namespace(self)->str:
@@ -859,7 +967,7 @@ class Context:
         print.format('CURRENT CONTEXT:' )
         print.format('        Instance of Type:   {} Context', self.ctx_type)
         print.format('    Ctx Namespace Prefix:   {}_')
-        print.format('   Ctx Inner Environment: \{')
+        print.format('    Ctx Inner Environment: {')
         for k,v in self.env_dict().items():
             if type(v) == str:
                 print(f'              {k}: {v}')
@@ -868,12 +976,17 @@ class Context:
 
 class CfpShellContext(Context):
     """
-    This is a context for running commands in a shell such as bash or zsh. The bash process is run on top of a Python process with its own environment that is kept seperate from the process environment by default, but whose variables can be accessed in the same way as process envvars at context runtime.    """
+    Description: This is a context for running commands in a shell such as bash or zsh. The bash process is run on top of a Python process with its own environment that is kept seperate from the process environment by default, but whose variables can be accessed in the same way as process envvars at context runtime.    """
     # TODO:
 
+    def __enter__(self):
+       pass
+   
+    def __exit__(self):
+      pass    
 
     @property
-    def shellchoice(self) -> str:
+    def shellchoice(self) -> ShellProgram:
         return self.__shell_choice
 
     @shellchoice.setter
@@ -887,14 +1000,10 @@ class CfpShellContext(Context):
     @current_shell.setter
     def current_shell(self, curr=None) -> None:  
         self.__current_shell = curr
-
-    @property
-    def cmds(self) -> list:
-        return self.__cmd_list
         
     def __init__(self, cmds, runner: CfpRunner, shell_env: str, **envvars):
         """
-        Init calls parent init (sets namespace, ctx_type) and updates virtual_environment. Sets `cmds_fmt` to a 2d list where each outer element represents a command, itself represented by the inner list, with cmd[0] being the command and the rest of the inner list is its args. 
+        Description: Init calls parent init (sets namespace, ctx_type) and updates virtual_environment. Sets `cmds_fmt` to a 2d list where each outer element represents a command, itself represented by the inner list, with cmd[0] being the command and the rest of the inner list is its args. 
         """
         super().__init__('shell_ctx','shell')
         
@@ -903,7 +1012,7 @@ class CfpShellContext(Context):
     
     def check_for_preferred_shell(self, shellpref:str):
         """
-        runs which command with shellname as argument. If cmd returns empty, self.shellpref_avail is set to False and this func returns False. otherwise,it is set to True, and func returns the path which the os uses to execute it, usually "$PREFIX/bin/shellname".
+        Description: runs which command with shellname as argument. If cmd returns empty, self.shellpref_avail is set to False and this func returns False. otherwise,it is set to True, and func returns the path which the os uses to execute it, usually "$PREFIX/bin/shellname".
         """
         sh_path = shutil.which(shellpref)
         if sh_path is not None:
@@ -916,7 +1025,7 @@ class CfpShellContext(Context):
         
     def __run_jobs_with_runner(self, job_runner: CfpRunner, shellpath: str):
         """
-        simply runs cmd using self.shellpref. self.shellpref_avail must be True. DO NOT SET IT YOURSELF! To set it, you must first run the check_for_preferred_shell() func above. If it is False, then the shell isn't installed on the current system. In this case 
+        Description: simply runs cmd using self.shellpref. self.shellpref_avail must be True. DO NOT SET IT YOURSELF! To set it, you must first run the check_for_preferred_shell() func above. If it is False, then the shell isn't installed on the current system. In this case 
         """
         pass       
 
@@ -927,7 +1036,9 @@ class CfpShellContext(Context):
                 if type(cmd) == list:
                     self.cmds_fmt.append(cmd)
                 elif type(cmd) == str:
-                    self.cmds_fmt.append(whitespace_split(cmd))   
+                    spl = shlex(cmd)
+                    spl.whitespace_split = True
+                    self.cmds_fmt.append(list(spl))   
 
     def __prep_commands_str(self, cmd_str:str, shellpath):
         cmds_ls = cmd_str.split('&&')
@@ -935,15 +1046,19 @@ class CfpShellContext(Context):
                 
 class DynamicStrRunnerContext(Context): 
     """
-    Sets up the runner based on the value of ctx_type in the parent. Uses concept known as reflection in Java via running eval(runner_str) where runner str is based on ctx_type. This lets us dynamically build a string and then run that string as python3 code. e.g. say ctx_type is "subprocess". The resulting runner_str would be "subprocess.run(cmd)". 
+    Description: Sets up the runner based on the value of ctx_type in the parent. Uses concept known as reflection in Java via running eval(runner_str) where runner str is based on ctx_type. This lets us dynamically build a string and then run that string as python3 code. e.g. say ctx_type is "subprocess". The resulting runner_str would be "subprocess.run(cmd)". 
     """
     # TODO:
 
-    pass
+    def __enter__(self):
+       pass
+   
+    def __exit__(self):
+       pass    
     
 class CfpShellBasedTestContext(CfpShellContext):
     """
-    Context for testing potential Codeforces solutions in a shell context
+    Description: Context for testing potential Codeforces solutions in a shell context
     """
 #   TODO:
 #       - fix_me!
@@ -951,49 +1066,70 @@ class CfpShellBasedTestContext(CfpShellContext):
 #           - needs only one
 #           - allowedlangs needs moved to enum 
 
-    cf_allowedlangs = ['C#mono',
-                        'D_DMD32',
-                        'Go',
-                        'Haskell',
-                        'Java8',
-                        'Java11',
-                        'Kotlin1.4',
-                        'Kotlin1.5',
-                        'Ocaml',
-                        'Delphi',
-                        'Free Pascal',
-                        'PascalABC.NET',
-                        'Perl',
-                        'PHP',
-                        'Python2',
-                        'Python3',
-                        'Pypy2',
-                        'Pypy3',
-                        'Ruby',
-                        'Rust',
-                        'Scala',
-                        'JavaScriptV8',
-                        'nodejs'
-                       ]
-    
+    # cf_allowedlangs = ['C#mono',
+                        # 'D_DMD32',
+                        # 'Go',
+                        # 'Haskell',
+                        # 'Java8',
+                        # 'Java11',
+                        # 'Kotlin1.4',
+                        # 'Kotlin1.5',
+                        # 'Ocaml',
+                        # 'Delphi',
+                        # 'Free Pascal',
+                        # 'PascalABC.NET',
+                        # 'Perl',
+                        # 'PHP',
+                        # 'Python2',
+                        # 'Python3',
+                        # 'Pypy2',
+                        # 'Pypy3',
+                        # 'Ruby',
+                        # 'Rust',
+                        # 'Scala',
+                        # 'JavaScriptV8',
+                        # 'nodejs'
+                    #    ]
+    # 
     @property
     def solutions_testrunner(self): 
-        if type(self.__cfp_runner) is NoneType:
+        if not self.__cfp_runner:
             return None
-        elif type(self.__cfp_runner) is CfpRunner:
+        elif issubclass(type(rnr), BaseRunner) or isinstance(type(rnr), BaseRunner):
             return self.__cfp_runner
         else:
             raise TypeError
 
     @solutions_testrunner.setter
-    def solutions_testrunner(self, rnr): 
-        self.__cfp_runner = rnr
+    def solutions_testrunner(self, rnr):
+        if issubclass(type(rnr), BaseRunner) or isinstance(type(rnr), BaseRunner):
+            self.__cfp_runner = rnr
+        else:
+            raise CfpTypeError
     
     # represents the chosen language's index in the cf_allowedlangs list 
-    cf_lang_index = -1
+    @property
+    def cf_lang_index(self)-> int:
+        if not self.__lang_ndx:
+            self.__lang_ndx = -1
+        return self.__lang_ndx:
+
+    @cf_lang_index.setter
+    def cf_lang_index(self, num: int):
+        if type(num) is int:
+            self.__lang_ndx = num
+        else:
+            try:
+                self.__lang_ndx = int(num)
+            except TypeError:
+                raise CfpTypeError
+            except ValueError:
+                raise CfpValueError
+            except BaseException as e:
+                
 
     @property
-    def lang(self)->str:
+    def lang(self)-> str:
         return self.__lang
 
     @lang.setter
@@ -1003,7 +1139,7 @@ class CfpShellBasedTestContext(CfpShellContext):
 
     def setlang(self, language:LanguageChoice) :
         """
-        Believe it or not, this one sets the lang
+        Description: Believe it or not, this one sets the lang
         """
         for i,lang_option in enumerate(self.cf_allowedlangs):
             if lang_option.lower() in '_'.join(list(map(str, language.split(' ')))).lower():
