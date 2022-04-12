@@ -1090,7 +1090,7 @@ class CfpShellBasedTestContext(CfpShellContext):
                         # 'JavaScriptV8',
                         # 'nodejs'
                     #    ]
-    # 
+    
     @property
     def solutions_testrunner(self): 
         if not self.__cfp_runner:
@@ -1112,7 +1112,7 @@ class CfpShellBasedTestContext(CfpShellContext):
     def cf_lang_index(self)-> int:
         if not self.__lang_ndx:
             self.__lang_ndx = -1
-        return self.__lang_ndx:
+        return self.__lang_ndx
 
     @cf_lang_index.setter
     def cf_lang_index(self, num: int):
@@ -1126,7 +1126,8 @@ class CfpShellBasedTestContext(CfpShellContext):
             except ValueError:
                 raise CfpValueError
             except BaseException as e:
-                
+                print('raised by {}'.format(e))
+                raise RuntimeError
 
     @property
     def lang(self)-> str:
