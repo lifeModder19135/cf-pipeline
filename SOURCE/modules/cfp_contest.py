@@ -1,30 +1,181 @@
+from enum import Enum
+
+class ContestType(Enum):
+    CF = 0
+    IOI = 1
+    ICPC =  2 
+
+class Phase(Enum):
+    BEFORE = 0
+    CODING = 1
+    PENDING_SYSTEM_TEST = 2
+    SYSTEM_TEST = 3
+    FINISHED = 4
+
 class Contest:
-    contest_id: int = -1
-    name: string = ''  # Localized.
-    contest_type: string = ''  # Enum: CF, IOI, ICPC. Scoring system used for the contest.
-    phase: string = ''  # Enum: BEFORE, CODING, PENDING_SYSTEM_TEST, SYSTEM_TEST, FINISHED.
-    frozen: bool # If true, then the ranklist for the contest is frozen and shows only submissions, created before freeze.
+    """
+    """
+    
+    @property
+    def contest_id(self)->str:
+        return self.__contest_id
+    
+    @contest_id.setter
+    def contest_id(self, cid: str)->None:
+        self.__contest_id = cid
+
+    @property
+    def name(self)->str:
+        return self.__name
+
+    @name.setter
+    def name(self, name: str)->None:
+        self.__name = name
+
+    @property
+    def contest_type(self)->str:
+        return self.__contest_type
+
+    @contest_type.setter
+    def contest_type(self, ct: str)->None:
+        self.__contest_type = ct
+        
+    @property
+    def phase(self) -> Phase:
+        return self.__phase
+
+    @phase.setter
+    def phase(self, phase:str) -> None:
+        self.__phase = phase
+
+    @property
+    def frozen(self) -> bool:
+        return self.__is_frozen
+
+    @frozen.setter
+    def frozen(self, isfrozen:bool) -> None:
+        self.__is_frozen = isfrozen
+
+    @property
+    def duration_seconds(self) -> str:
+        return self.__duration_seconds
+
+    @duration_seconds.setter
+    def duration_seconds(self, dur: str) -> None:
+        self.__duration_seconds = dur
+        
+    @property
+    def start_time_seconds(self) -> int:
+        return self.__start_time_seconds
+
+    @start_time_seconds.setter
+    def start_time_seconds(self, st_sec:int) -> None:
+        self.__start_time_seconds = st_sec
+
+    @property
+    def relative_time_seconds(self) -> int:
+        return self.__relative_time_seconds
+
+    @relative_time_seconds.setter
+    def relative_time_seconds(self, rt_seconds:int) -> None:
+        self.__relative_time_seconds = rt_seconds
+
+    @property
+    def prepared_by(self)->str:
+        return self.__prepared_by
+    
+
+    @prepared_by.setter
+    def prepared_by(self, prep: str)->None:
+        self.__prepared_by = prep
+
+    @property
+    def website_url(self) -> str:
+        return self.__website_url
+
+    @website_url.setter
+    def website_url(self, url: str) -> None:
+        self.__website_url = url
+
+    @property
+    def description(self) -> str:
+        return self.__description
+
+    @description.setter
+    def description(self, desc: str) -> None:
+        self.__description = desc
+        
+    @property
+    def difficulty(self) -> str:
+        return self.__difficulty
+
+    @difficulty.setter
+    def difficulty(self, diff:str) -> None:
+        self.__difficulty = diff
+
+    @property
+    def kind(self) -> bool:
+        return self.__kind
+
+    @kind.setter
+    def kind(self, k:str) -> None:
+        self.__kind = k
+
+    @property
+    def icpc_region(self) -> str:
+        return self.__icpc_region
+
+    @duration_seconds.setter
+    def icpc_region(self, ir: str) -> None:
+        self.__icpc_region = ir
+        
+    @property
+    def country(self) -> int:
+        return self.__country
+
+    @country.setter
+    def country(self, ctry:str) -> None:
+        self.__country = ctry
+
+    @property
+    def city(self) -> int:
+        return self.__city
+
+    @city.setter
+    def city(self, city:int) -> None:
+        self.__city = city
+
+    @property
+    def season(self) -> str:
+        return self.__season
+
+    @season.setter
+    def season(self, season:str) -> None:
+        self.__season = season
+
+    contest_type: str = ''  # Enum: CF, IOI, ICPC. Scoring system used for the contest.
+    phase: str = ''  # Enum: BEFORE, CODING, PENDING_SYSTEM_TEST, SYSTEM_TEST, FINISHED.
+    frozen: bool =False # If true, then the ranklist for the contest is frozen and shows only submissions, created before freeze.
     durationSeconds: int = -1 # Duration of the contest in seconds.
     startTimeSeconds: int = -1 # Can be absent. Contest start time in unix format.
     relativeTimeSeconds: int = -1 # Can be absent. Number of seconds, passed after the start of the contest. Can be negative.
-    preparedBy: string = ''  # Can be absent. Handle of the user, how created the contest.
-    websiteUrl: string = ''  # Can be absent. URL for contest-related website.
-    description: string = ''  # Localized. Can be absent.
+    preparedBy: str = ''  # Can be absent. Handle of the user, how created the contest.
+    websiteUrl: str = ''  # Can be absent. URL for contest-related website.
+    description: str = ''  # Localized. Can be absent.
     difficulty: int = -1 # Can be absent. From 1 to 5. Larger number means more difficult problems.
-    kind: string = ''  # Localized. Can be absent. Human-readable type of the contest from the following categories: Official ICPC Contest, Official School Contest, Opencup Contest, School/University/City/Region Championship, Training Camp Contest, Official International Personal Contest, Training Contest.
-    icpcRegion: string = ''  # Localized. Can be absent. Name of the Region for official ICPC contests.
-    country: string = ''  # Localized. Can be absent.
-    city: string = ''  # Localized. Can be absent.
-    season: string = ''  # Can be absent.
+    kind: str = ''  # Localized. Can be absent. Human-readable type of the contest from the following categories: Official ICPC Contest, Official School Contest, Opencup Contest, School/University/City/Region Championship, Training Camp Contest, Official International Personal Contest, Training Contest.
+    icpcRegion: str = ''  # Localized. Can be absent. Name of the Region for official ICPC contests.
+    country: str = ''  # Localized. Can be absent.
+    city: str = ''  # Localized. Can be absent.
+    season: str = ''  # Can be absent.
 
-
-    def __init__(self,contest_id: int, name: string,
-                contest_type: string, phase: string,
+    def __init__(self,contest_id: int, name: str,
+                contest_type: str, phase: str,
                 frozen: bool, durationSeconds: int,
-                startTimeSeconds: int, relativeTimeSeconds: int,preparedBy: string, websiteUrl: string,
-                description: string, difficulty: int,
-                kind: string, icpcRegion: string,
-                country: string, city: string, season: string
+                startTimeSeconds: int, relativeTimeSeconds: int,preparedBy: str, websiteUrl: str,
+                description: str, difficulty: int,
+                kind: str, icpcRegion: str,
+                country: str, city: str, season: str
     ):
         self.contest_id = contest_id
         self.name = name
@@ -45,19 +196,19 @@ class Contest:
         self.season =  season                         
 
 # contest_id: int = -1
-# name: string = ''  # Localized.
-# contest_type: string = ''  # Enum: CF, IOI, ICPC. Scoring system used for the contest.
-# phase: string = ''  # Enum: BEFORE, CODING, PENDING_SYSTEM_TEST, SYSTEM_TEST, FINISHED.
+# name: str = ''  # Localized.
+# contest_type: str = ''  # Enum: CF, IOI, ICPC. Scoring system used for the contest.
+# phase: str = ''  # Enum: BEFORE, CODING, PENDING_SYSTEM_TEST, SYSTEM_TEST, FINISHED.
 # frozen: bool # If true, then the ranklist for the contest is frozen and shows only submissions, created before freeze.
 # durationSeconds: int = -1 # Duration of the contest in seconds.
 # startTimeSeconds: int = -1 # Can be absent. Contest start time in unix format.
 # relativeTimeSeconds: int = -1 # Can be absent. Number of seconds, passed after the start of the contest. Can be negative.
-# preparedBy: string = ''  # Can be absent. Handle of the user, how created the contest.
-# websiteUrl: string = ''  # Can be absent. URL for contest-related website.
-# description: string = ''  # Localized. Can be absent.
+# preparedBy: str = ''  # Can be absent. Handle of the user, how created the contest.
+# websiteUrl: str = ''  # Can be absent. URL for contest-related website.
+# description: str = ''  # Localized. Can be absent.
 # difficulty: int = -1 # Can be absent. From 1 to 5. Larger number means more difficult problems.
-# kind: string = ''  # Localized. Can be absent. Human-readable type of the contest from the following categories: Official ICPC Contest, Official School Contest, Opencup Contest, School/University/City/Region Championship, Training Camp Contest, Official International Personal Contest, Training Contest.
-# icpcRegion: string = ''  # Localized. Can be absent. Name of the Region for official ICPC contests.
-# country: string = ''  # Localized. Can be absent.
-# city: string = ''  # Localized. Can be absent.
-# season: string = ''  # Can be absent.
+# kind: str = ''  # Localized. Can be absent. Human-readable type of the contest from the following categories: Official ICPC Contest, Official School Contest, Opencup Contest, School/University/City/Region Championship, Training Camp Contest, Official International Personal Contest, Training Contest.
+# icpcRegion: str = ''  # Localized. Can be absent. Name of the Region for official ICPC contests.
+# country: str = ''  # Localized. Can be absent.
+# city: str = ''  # Localized. Can be absent.
+# season: str = ''  # Can be absent.
