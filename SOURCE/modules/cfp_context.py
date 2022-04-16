@@ -278,6 +278,10 @@ class LanguageChoice(Enum):
     JS_V8 = 'JavaScriptV8',
     NODE_JS = 'nodejs'
 
+    def __init__(self):
+        super.__init__()
+        
+
 ########                                                                                         ########
 ########################################  ~~~~ IO_HANDLERS ~~~~  ########################################
 ########                                                                                         ########    
@@ -962,7 +966,7 @@ class Context:
     
     def get_info(self,outputFmt:str):
         """
-        TODO: make sure this is tested with a populated env_dict. Need to create a 
+        TODO: make sure this is tested with a populated env_dict.
         """
         print.format('CURRENT CONTEXT:' )
         print.format('        Instance of Type:   {} Context', self.ctx_type)
@@ -976,7 +980,8 @@ class Context:
 
 class CfpShellContext(Context):
     """
-    Description: This is a context for running commands in a shell such as bash or zsh. The bash process is run on top of a Python process with its own environment that is kept seperate from the process environment by default, but whose variables can be accessed in the same way as process envvars at context runtime.    """
+    Description: This is a context for running commands in a shell such as bash or zsh. The bash process is run on top of a Python process with its own environment that is kept seperate from the process environment by default, but whose variables can be accessed in the same way as process envvars at context runtime.    
+    """
     # TODO:
 
     def __enter__(self):
@@ -1006,7 +1011,6 @@ class CfpShellContext(Context):
         Description: Init calls parent init (sets namespace, ctx_type) and updates virtual_environment. Sets `cmds_fmt` to a 2d list where each outer element represents a command, itself represented by the inner list, with cmd[0] being the command and the rest of the inner list is its args. 
         """
         super().__init__('shell_ctx','shell')
-        
         self.env_dict.update(envvars)
         self.shellpath = self.check_for_preferred_shell(self.shellchoice, resolve_mode="returnstatement")
     
@@ -1066,30 +1070,30 @@ class CfpShellBasedTestContext(CfpShellContext):
 #           - needs only one
 #           - allowedlangs needs moved to enum 
 
-    # cf_allowedlangs = ['C#mono',
-                        # 'D_DMD32',
-                        # 'Go',
-                        # 'Haskell',
-                        # 'Java8',
-                        # 'Java11',
-                        # 'Kotlin1.4',
-                        # 'Kotlin1.5',
-                        # 'Ocaml',
-                        # 'Delphi',
-                        # 'Free Pascal',
-                        # 'PascalABC.NET',
-                        # 'Perl',
-                        # 'PHP',
-                        # 'Python2',
-                        # 'Python3',
-                        # 'Pypy2',
-                        # 'Pypy3',
-                        # 'Ruby',
-                        # 'Rust',
-                        # 'Scala',
-                        # 'JavaScriptV8',
-                        # 'nodejs'
-                    #    ]
+    cf_allowedlangs = ['C#mono',
+                        'D_DMD32',
+                        'Go',
+                        'Haskell',
+                        'Java8',
+                        'Java11',
+                        'Kotlin1.4',
+                        'Kotlin1.5',
+                        'Ocaml',
+                        'Delphi',
+                        'Free Pascal',
+                        'PascalABC.NET',
+                        'Perl',
+                        'PHP',
+                        'Python2',
+                        'Python3',
+                        'Pypy2',
+                        'Pypy3',
+                        'Ruby',
+                        'Rust',
+                        'Scala',
+                        'JavaScriptV8',
+                        'nodejs'
+                       ]
     
     @property
     def solutions_testrunner(self): 
@@ -1110,8 +1114,13 @@ class CfpShellBasedTestContext(CfpShellContext):
     # represents the chosen language's index in the cf_allowedlangs list 
     @property
     def cf_lang_index(self)-> int:
+        lc = LanguageChoice()
         if not self.__lang_ndx:
             self.__lang_ndx = -1
+        elif type(self.__lang_ndx) != int:
+            raise CfpTypeError
+        elif self.__lang_index >= len(lc):
+            raise CfpValueError()
         return self.__lang_ndx
 
     @cf_lang_index.setter
@@ -1138,7 +1147,7 @@ class CfpShellBasedTestContext(CfpShellContext):
         self.__lang = lng
         return None
 
-    def setlang(self, language:LanguageChoice) :
+    def setlang(self, language:LanguageChoice):
         """
         Description: Believe it or not, this one sets the lang
         """
@@ -1152,6 +1161,8 @@ class CfpShellBasedTestContext(CfpShellContext):
             else:    
                 lang = self.cf_allowedlangs[language]
                 self.putenv('solutionlanguage', lang)
+
+
 
     def __init__(self, cmds, rnnr: CfpRunner, shell_env: str, language: str, **envvars: any):
         super().__init__(cmds, rnnr,  envvars)
