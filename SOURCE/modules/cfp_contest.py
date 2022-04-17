@@ -18,6 +18,7 @@ class Contest:
     
     @property
     def contest_id(self)->str:
+        """Enum: CF, IOI, ICPC. Scoring system used for the contest."""
         return self.__contest_id
     
     @contest_id.setter
@@ -34,6 +35,7 @@ class Contest:
 
     @property
     def contest_type(self)->str:
+        """Enum: CF, IOI, ICPC. Scoring system used for the contest."""
         return self.__contest_type
 
     @contest_type.setter
@@ -42,6 +44,7 @@ class Contest:
         
     @property
     def phase(self) -> Phase:
+        """ Enum: BEFORE, CODING, PENDING_SYSTEM_TEST, SYSTEM_TEST, FINISHED."""
         return self.__phase
 
     @phase.setter
@@ -50,6 +53,7 @@ class Contest:
 
     @property
     def frozen(self) -> bool:
+        """If true, then the ranklist for the contest is frozen and shows only submissions, created before freeze."""
         return self.__is_frozen
 
     @frozen.setter
@@ -58,6 +62,7 @@ class Contest:
 
     @property
     def duration_seconds(self) -> str:
+         """Duration of the contest in seconds."""
         return self.__duration_seconds
 
     @duration_seconds.setter
@@ -66,6 +71,7 @@ class Contest:
         
     @property
     def start_time_seconds(self) -> int:
+        """Can be absent. Contest start time in unix format."""
         return self.__start_time_seconds
 
     @start_time_seconds.setter
@@ -74,6 +80,7 @@ class Contest:
 
     @property
     def relative_time_seconds(self) -> int:
+        """Can be absent. Number of seconds, passed after the start of the contest. Can be negative."""
         return self.__relative_time_seconds
 
     @relative_time_seconds.setter
@@ -82,6 +89,7 @@ class Contest:
 
     @property
     def prepared_by(self)->str:
+        """Can be absent. Handle of the user, who created the contest."""
         return self.__prepared_by
     
 
@@ -91,6 +99,7 @@ class Contest:
 
     @property
     def website_url(self) -> str:
+        """Can be absent. URL for contest-related website."""
         return self.__website_url
 
     @website_url.setter
@@ -99,6 +108,7 @@ class Contest:
 
     @property
     def description(self) -> str:
+        """Localized. Can be absent."""
         return self.__description
 
     @description.setter
@@ -106,15 +116,23 @@ class Contest:
         self.__description = desc
         
     @property
-    def difficulty(self) -> str:
+    def difficulty(self) -> int:
+        """Can be absent. From 1 to 5. Larger number means more difficult problems."""
         return self.__difficulty
 
     @difficulty.setter
-    def difficulty(self, diff:str) -> None:
-        self.__difficulty = diff
+    def difficulty(self, diff:int) -> None:
+        if diff >= 1 and diff <= 5:
+            self.__difficulty = diff
+        elif not diff: 
+            if not self.__difficulty
+                self.__difficulty = -1
+        else:
+            raise CfpValueError
 
     @property
     def kind(self) -> bool:
+        """Localized. Can be absent. Human-readable type of the contest from the following categories: Official ICPC Contest, Official School Contest, Opencup Contest, School/University/City/Region Championship, Training Camp Contest, Official International Personal Contest, Training Contest."""
         return self.__kind
 
     @kind.setter
@@ -123,6 +141,7 @@ class Contest:
 
     @property
     def icpc_region(self) -> str:
+        """# Localized. Can be absent. Name of the Region for official ICPC contests."""
         return self.__icpc_region
 
     @duration_seconds.setter
@@ -131,6 +150,7 @@ class Contest:
         
     @property
     def country(self) -> int:
+        """Localized. Can be absent."""
         return self.__country
 
     @country.setter
@@ -139,6 +159,7 @@ class Contest:
 
     @property
     def city(self) -> int:
+        """Localized. Can be absent."""
         return self.__city
 
     @city.setter
@@ -147,19 +168,20 @@ class Contest:
 
     @property
     def season(self) -> str:
+        """Can be absent."""
         return self.__season
 
     @season.setter
     def season(self, season:str) -> None:
         self.__season = season
 
-    contest_type: str = ''  # Enum: CF, IOI, ICPC. Scoring system used for the contest.
+    contest_type: str = ''  
     phase: str = ''  # Enum: BEFORE, CODING, PENDING_SYSTEM_TEST, SYSTEM_TEST, FINISHED.
     frozen: bool =False # If true, then the ranklist for the contest is frozen and shows only submissions, created before freeze.
     durationSeconds: int = -1 # Duration of the contest in seconds.
     startTimeSeconds: int = -1 # Can be absent. Contest start time in unix format.
     relativeTimeSeconds: int = -1 # Can be absent. Number of seconds, passed after the start of the contest. Can be negative.
-    preparedBy: str = ''  # Can be absent. Handle of the user, how created the contest.
+    preparedBy: str = ''  # Can be absent. Handle of the user, who created the contest.
     websiteUrl: str = ''  # Can be absent. URL for contest-related website.
     description: str = ''  # Localized. Can be absent.
     difficulty: int = -1 # Can be absent. From 1 to 5. Larger number means more difficult problems.
