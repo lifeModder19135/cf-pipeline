@@ -1,14 +1,18 @@
 import os, click, invoke, subprocess, fileinput, shutil
 import sys
 from types import NoneType
+from typing import Any
 from dataclasses import dataclass
+
+from tomlkit import string
 from .cfp_errors import CfpInitializationError, CfpNotExecutableError, CfpPermissionDeniedError, CfpRuntimeError, CfpTimeoutError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpValueError
 from enum import Enum
 from shutil import which
-from shlex import shlex, split, join, whitespace_split
+from shlex import shlex, split, join
 from pathlib import Path
 from ..lib import libcfapi_utils
-from .cfp_context import CfpFile
+from . import cfp_context as this
+
 
 #          ^                                                                Legend:
 #          ^                                              ~_ (as a prefix)   =====   conditional attribute       
@@ -365,25 +369,25 @@ class InputFileHandler(InputHandler):
     #   Add property: handle_action:
     
     @property
-    def current_file(self) -> CfpFile:
+    def current_file(self) -> "this.CfpFile":
         """The current_file property."""
         return self.__f_curr
     
     @current_file.setter
-    def current_file(self, value:CfpFile) -> None:
+    def current_file(self, value:"this.CfpFile") -> None:
         self.__f_curr = value
     
     @property
-    def files_previously_handled(self) -> "list[CfpFile]":
+    def files_previously_handled(self) -> "list[this.CfpFile]":
         """The files_previously_handled property."""
         return self.__previous_files
     
     @files_previously_handled.setter
-    def files_previously_handled(self, value:"list[CfpFile]"=None) -> None:
+    def files_previously_handled(self, value:"list[this.CfpFile]"=None) -> None:
         self.__previous_files = value
     
     @property
-    def files_on_deck(self) -> "list[CfpFile]":
+    def files_on_deck(self) -> "list[this.CfpFile]":
         """The files_on_deck property."""
         return self.__files_on_deck
     
@@ -391,7 +395,7 @@ class InputFileHandler(InputHandler):
     def files_on_deck(self, value) -> None:
         self.__files_on_deck = value
     
-    def __init__(self, file:CfpFile=None, *args, **kwargs):
+    def __init__(self, file:"this.CfpFile"=None, *args, **kwargs):
         super().__init__(InputType.INFILE, *args, **kwargs)
         
 
@@ -438,15 +442,20 @@ class InputCommandString(str):
         """
         pass 
 
+
 class Program(Path):
     """
-    Description: Represents a computer program
-    properties: None
+    Description: Represents a running instance of a computer program.
+    properties: 
+        operating_system (str): The os on which the program is running
+        invoked_by (str): The username of the account that the program was executed under.
+        fullpath (str): full path to the program's executable file.
     """
     # TODO:
     
     @property
     def operating_system(self) -> str:
+        """The os on which the program is running."""
         return self.__op_sys
     
     
@@ -458,25 +467,31 @@ class Program(Path):
             self.__op_sys = o_s
     
     @property
-    def invoked_by(self):
+    def invoked_by(self)-> str:
+        """The username of the account that the program was executed under"""
         return self.__caller
     
     @invoked_by.setter
-    def invoked_by(self, user:str=None):
+    def invoked_by(self, user:str=None)-> None:
         if user is None:
-            self.__caller = os.path.expandvars('$USER')
+            self.__caller = str(os.path.expandvars('$USER'))
         elif type(user) == str:
             self.__caller = user
         else:
             raise CfpTypeError()
             
     @property
-    def fullpath(self) -> str:
+    def fullpath(self)-> Path:
         return self.__full_path
     
     @fullpath.setter
-    def fullpath(self, val:str) -> None:
-        self.__full_path = val
+    def fullpath(self, val:str)-> None:
+        if type(val) is str:
+            self.__full_path = Path(val)
+        elif type(val) is Path:
+            self.__full_path = val
+        else:
+            raise CfpTypeError
 
     def __init__(self, name_or_path:str):
         p = super().__init__(name_or_path)
@@ -528,25 +543,106 @@ class CmdArg(str):
     def __init__(input_src):
         super().__init__(input_src)
 
-class CmdArgstring(str):    
+class CmdArgString(str):    
     """
     properties:
         [type]: [description]
     """
     # TODO:
 
-    def __init__(input):
-        super().__init__(input)
+    def __init__(input,*args):
+        super().__init__(args)
 
-class CmdArglist(str):
+class CmdArgList:
     """
     properties:
-        [type]: [description]
+        args: the actual arguments list. Type is list[CmdArg]
     """
     # TODO:
 
-    def __init__(input_src):
-        super().__init__(input_src)
+    @property
+    def args(self)-> "list[CmdArg]":
+        return self.__args
+
+    @args.setter
+    def args(self,*args)-> None:
+        a_ls = []
+        for arg in args:
+            if type(arg) is CmdArg:
+                a_ls.append(arg)
+            elif type(arg) is str or type(arg) is int:
+                a_ls.append(CmdArg(str(arg)))
+            elif type(arg) is list or type(arg) is tuple:
+                for i in arg:
+                    a_ls.append(CmdArg(str(i)))
+        self.__args = a_ls
+
+    @property
+    def args_count(self)-> int:
+        if not self.__args():
+            return 0
+        else:
+            return len(self.__args)
+
+    def to_argstring(self):
+        a_str = ''
+        for a in self.args:
+            if a_str == '':
+                a_str = a
+            else:
+                a_str = a_str + ' ' + a
+        else:
+            if a_str == '':
+                return None
+            else:
+                return a_str.lstrip().rstrip()
+
+    def __addlist(self, ls: list):
+        if type(ls) is not list:
+            raise CfpTypeError
+        else:
+            for i in ls:
+                self.__args.append(CmdArg(i))
+
+    def __addtuple(self, tup:tuple):
+        if type(tup) is not tuple:
+            raise CfpTypeError
+        else:
+            for i in tup:
+                self.__args.append(CmdArg(str(i)))            
+
+    def __addint(self, i:int):
+        if type(i) is not int:
+            raise CfpTypeError
+        else:
+            self.__args.append(CmdArg(str(i)))
+
+    def __addstring(self, s:str):
+        if type(s) is not str and type(s) is not string:
+            raise CfpTypeError
+        else:
+            self.__args.append(CmdArg(str(s)))
+
+    def __addcmdarg(self, a:CmdArg):
+        if type(a) is not CmdArg:
+            raise CfpTypeError
+        else:
+            self.__args.append(a)
+
+    def __init__(self, *input):
+        for i in input:
+            if type(i) is CmdArg:
+                self.__addcmdarg(i)
+            if type(i) is list:
+                self.__addlist(i)
+            elif type(i) is tuple:
+                self.__addtuple(i)
+            elif type(i) is int:
+                self.__addint(i)
+            elif type(i) is str or type(i) is string:
+                self.__addstring(i)
+            else:
+                raise CfpTypeError
 
 class Command:
     """
@@ -828,19 +924,19 @@ class CfpRunner(BaseRunner):
         self.__topipe = to_pipe
 
     @property
-    def argstring(self) -> CmdArgstring :
+    def argstring(self) -> CmdArgString :
         return self.__argstring
 
     @argstring.setter
     def argstring(self, arg_str:Any) -> None :
         try:
-            if type(arg_str) == CmdArgstring:
+            if type(arg_str) == CmdArgString:
                 self.__argstring = arg_str
             elif type(arg_str) == CmdArglist:
                 cal = ''
                 for a in arg_str:
                     cal = cal + str(a) + ' '
-                self.__argstring = rstrip(str(cal))
+                self.__argstring = CmdArgString(str(cal).rstrip())
                 # above: cal should be a string already, but it is re-stringified just in case...
             elif type(arg_str) == CmdArg:
                 # this should work every time, because CmdArg type is a subtype of str, but it excepts TypeErrors regardless
@@ -1099,7 +1195,7 @@ class CfpShellBasedTestContext(CfpShellContext):
     def solutions_testrunner(self): 
         if not self.__cfp_runner:
             return None
-        elif issubclass(type(rnr), BaseRunner) or isinstance(type(rnr), BaseRunner):
+        elif issubclass(type(self.__cfp_runner), BaseRunner) or isinstance(type(self.__cfp_runner), BaseRunner):
             return self.__cfp_runner
         else:
             raise TypeError
