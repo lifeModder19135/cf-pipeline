@@ -6,8 +6,17 @@ class CfpInitializationError(RuntimeError):
     def __init__(self, *args, **kwargs):
         super().__init__( *args, **kwargs)
 
-class CfpUserInputError(IOError):
-    """Catch-all for anything caused by invalid user input."""
+class CfpIOError(IOError):
+    """
+    Wrapper class for IOError
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
+
+class CfpUserInputError(CfpIOError):
+    """
+    Catch-all for anything caused by invalid user input.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__( *args, **kwargs)
 
@@ -52,7 +61,7 @@ class CfpOverwriteNotAllowedError(CfpRuntimeError):
     """
     def __init__(self, *args, **kwargs):
         super().__init__( *args, **kwargs)
-        
+
 class CfpNotExecutableError(CfpValueError):
     """
     Called when a method expects an executable program but gets something else.

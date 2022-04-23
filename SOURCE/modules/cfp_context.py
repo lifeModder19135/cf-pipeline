@@ -1,3 +1,4 @@
+import encodings
 import os, click, invoke, subprocess, fileinput, shutil
 import sys
 from types import NoneType
@@ -5,12 +6,12 @@ from typing import Any
 from dataclasses import dataclass
 
 from tomlkit import string
-from .cfp_errors import CfpInitializationError, CfpNotExecutableError, CfpPermissionDeniedError, CfpRuntimeError, CfpTimeoutError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpValueError
+from .cfp_errors import CfpIOError, CfpInitializationError, CfpNotExecutableError, CfpPermissionDeniedError, CfpRuntimeError, CfpTimeoutError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpValueError
 from enum import Enum
 from shutil import which
 from shlex import shlex, split, join
 from pathlib import Path
-from ..lib import libcfapi_utils
+from ..lib.libcf_api import libcfapi_utils
 from . import cfp_context as this
 
 
@@ -85,7 +86,7 @@ from . import cfp_context as this
 #           - in this section, when you see 'line N' used, the comment lines are skipped when counting 
 #       * end with a blank line
 #       * be otherwise made up of _specifiers_ (spec.) and _sections_, which are themselves made up
-#*         of specifiers and nested sections a.k.a. subsections. 
+#*        of specifiers and nested sections a.k.a. subsections. 
 #           - Sections: 
 #               - a section is defined by including `section_name:` at the current nessting level on its owm
 #                 line, just like the 'Sections:' line onr nesting level above this line
@@ -157,6 +158,26 @@ from . import cfp_context as this
 #           .git:
 #               .username = 'str'
 #               .email
+#
+# --------8<------------------------------------------------------------------------------>8--------------
+# Below is the default layout for the 
+# --------8<------------------------------------------------------------------------------>8--------------
+# :::4:::31:::81::95
+# :: USER_HOME_DIR            :: "$HOME"                                        :: homedir    :: "/"    
+# :: CFP_CTX_DIR              :: "~home~/.local/"                               :: ctxdir     :: "/"
+# :: CFP_TEMPLATES_DIR        :: "~home~/data/templates/"                       :: tempdir    :: "/"
+# :: CFP_INPUTFILE_TEXT_FMT_1 :: "tempdir/input_01~ext~"                        :: inp1       :: ""
+# :: CFP_INPUTFILE_TEXT_FMT_2 :: "tempdir/input_02~ext~"                        :: inp2       :: ""
+# :: CFP_OUTPUTFILE           :: "tempdir/output_01~ext~"                       :: out1       :: ""
+# :: CFP_DIFF_FILE            :: "tempdir/diff_01~ext~"                         :: exp1       :: ""
+# :: CFP_EXPECTED_FILE        :: "tempdir/expected_01~ext~"                     :: exp1       :: ""
+#
+#
+#
+#
+#
+#
+#
 
 ########                                                                                         ########
 ###########################################  ~~~~ ENUMS ~~~~  ###########################################
@@ -206,6 +227,7 @@ class IOType(Enum):
 
     INPUT = 0
     OUTPUT = 1
+    SOURCE = 2
 
 class InputType(Enum):
     """
@@ -216,7 +238,8 @@ class InputType(Enum):
 
     INFILE = 0
     INSTREAM = 1
-    INPIPE = 2
+    INSTRING = 2
+    INPIPE = 3
 
 class OutputType(Enum):
     """
@@ -225,9 +248,9 @@ class OutputType(Enum):
     """
     # TODO:
 
-    OUTFILE = 3
-    OUTSTREAM = 4
-    OUTPIPE = 5
+    OUTFILE = 0
+    OUTSTREAM = 1
+    OUTPIPE = 2
 
 class FileType(Enum):
     """
@@ -239,17 +262,18 @@ class FileType(Enum):
     INTS_ONLY_TEXT_FILE = 1
     BINARY_FILE_GENERIC = 2
     # For more info about FILE_FMT_N, see section 'IO File Formats' at the top of this module
-    CFP_INPUTFILE_FMT_1 = 3
-    CFP_INPUTFILE_FMT_2 = 4
-    CFP_OUTPUTFILE = 5
-    CFP_DIFF_FILE = 6
-    SOURCE_FILE_GENERIC = 7
-    SOURCE_FILE_PY2 = 8
-    SOURCE_FILE_PY3 = 9
-    SOURCE_FILE_C = 10
-    SOURCE_FILE_CPP = 11
-    SOURCE_FILE_JAVA = 12
-    DIRECTORY = 13
+    CFP_INPUTFILE_TEXT_FMT_1 = 3
+    CFP_INPUTFILE_TEXT_FMT_2 = 4
+    CFP_INPUTFILE_BINARY = 5
+    CFP_OUTPUTFILE = 6
+    CFP_DIFF_FILE = 7
+    SOURCE_FILE_GENERIC = 8
+    SOURCE_FILE_PY2 = 9
+    SOURCE_FILE_PY3 = 10
+    SOURCE_FILE_C = 11
+    SOURCE_FILE_CPP = 12
+    SOURCE_FILE_JAVA = 13
+    DIRECTORY = 14
 
 
 class LanguageChoice(Enum):
@@ -284,7 +308,16 @@ class LanguageChoice(Enum):
 
     def __init__(self):
         super.__init__()
-        
+
+class Openability(Enum):
+    """For a file, represents whether or not it can be opened, and usually, the reason."""
+    OPENABLE = 0
+    NO_FILE = 1
+    NOT_OPENABLE = 2
+    PROGRAM_NOT_EXECUTABLE = 3
+    INSUFFICIENT_PERMISSIONS = 4
+    FILETYPE_NOT_SUPPORTED = 5
+    NOT_OPENABLE_REASON_UNKNOWN = 6
 
 ########                                                                                         ########
 ########################################  ~~~~ IO_HANDLERS ~~~~  ########################################
@@ -297,37 +330,43 @@ class IOHandlerBase:
     """
     # TODO:
 
-    handler_args = []
-    
-    def __init__(self, *args, **kwargs):
-        if args or kwargs:
-            for a in args:
-                self.handler_args.append(str(a))
-            for k,v in kwargs:
-                st = f'{k}={v}'
-                self.handler_args.append(st)
-        return self
-    
-    
-    def set_io_type(self, io_type: str):
-        """
-        io_type is either input or output, otherwise throw error.
-        """
-        if io_type == 'i' or io_type == 'in' or io_type == 'input':    
-            self.io_type = 'I'
-        elif io_type == 'o' or io_type == 'out' or io_type == 'output':
-            self.io_type = 'O'
-        else:
-            raise CfpUserInputError(f'Invalid value given for parameter {io_type}')
-        return True
-    
+    @property
+    def handler_args(self):
+        if not self.__hndlr_args:    
+            self.__hndlr_args = []
+        return self.__hndlr_args
+
+    @handler_args.setter
+    def handler_args(self, ls:list):
+        self.__hndlr_args = ls
+
     @property
     def io_type(self)->IOType:
         return self.__io_t
 
     @io_type.setter
     def io_type(self, iotype: IOType)->None:
+        """
+        Sets io_type from IOType Enum object. io_type is either INPUT, SOURCE, or OUTPUT, otherwise throw error.
+        """
         self.__io_t = iotype
+
+    @io_type.setter
+    def io_type_fromstring(self, io_type:IOType):
+        """
+        Sets io_type from string. io_type is either input, source, or output, otherwise throw error.
+        """
+        if io_type.lower() == 'i' or io_type.lower() == 'in' or io_type.lower() == 'input':    
+            self.__io_t = IOType.INPUT
+        elif io_type == 'o' or io_type == 'out' or io_type == 'output':
+            self.__io_t = IOType.OUTPUT
+        elif io_type.lower() is 's' or io_type.lower() is 'src':
+            self.__io_t = IOType.SOURCE
+        elif len(io_type) >= 3 and io_type.lower() in 'source':
+            self.__io_t = IOType.SOURCE 
+        else:
+            raise CfpValueError from CfpUserInputError(f'Invalid value given for parameter {io_type}')
+        return True
 
     def __init__(self, *args, **kwargs):
         if not args and not kwargs:
@@ -338,7 +377,7 @@ class IOHandlerBase:
                 st = f'{k}={v}'
                 self.handler_args.append(st)
         return self
-    
+
 class InputHandler(IOHandlerBase):
     """
     Note: Must be run with ContextManager
@@ -361,7 +400,6 @@ class InputHandler(IOHandlerBase):
 
 class InputFileHandler(InputHandler):
     """
-
     Description: IOHandler for an input file
     """    
     #TODO: 
@@ -394,10 +432,15 @@ class InputFileHandler(InputHandler):
     @files_on_deck.setter
     def files_on_deck(self, value) -> None:
         self.__files_on_deck = value
-    
+
+    def get_content_from_current(self, format:FileType=FileType.CFP_INPUTFILE_TEXT_FMT_1) -> "this.CfpFile":
+        with open(self.current_file) as curr:
+            lines = []
+            for line in curr:
+                lines.append(line)
+
     def __init__(self, file:"this.CfpFile"=None, *args, **kwargs):
-        super().__init__(InputType.INFILE, *args, **kwargs)
-        
+        super().__init__(InputType.INFILE, *args, **kwargs)        
 
 class OutputHandler(IOHandlerBase):
     """
@@ -406,8 +449,13 @@ class OutputHandler(IOHandlerBase):
     # TODO:
     #   - add implementation
 
-    pass
-    
+    def to_file(self, fullpath, encoding:str="UTF-8")-> None:
+        try:
+           ofile = open(fullpath, "w", encoding=encoding)
+        except IOError:
+            raise CfpUserInputError from CfpIOError
+        except BaseException as e:
+            raise CfpRuntimeError from e
 
 ########                                                                                         ########
 ########################################  ~~~~ RUNNER_SUBS ~~~~  ########################################
@@ -420,25 +468,26 @@ class InputCommandString(str):
         shell_lang: see method docstring
     """
     # TODO:
-    
+
     @property
-    def shell_lang(self):
+    def primary_shellchoice(self):
         """
         Description: This is the shell that this object's shellscript code should be evaluated with
         Returns: The shell_lang property's current value
         Defaults to: Bash 
         """
         if not self.__flavor:
-            self.__flavor = 'Bash'
+            self.__pref_rnr_sh = 'Bash'
         return self.__flavor
     
-    @shell_lang.setter
-    def shell_lang(self,sh):
-        self.__flavor = sh
+    @primary_shellchoice.setter
+    def primary_shellchoice(self,sh):
+        self.__rnr_sh = sh
 
     def to_cmd_objs(self):
         """
-        Description: This method converts the method to a list of Command objects 
+        Description: This method converts the method to a list of Command objects.
+        Returns: 
         """
         pass 
 
@@ -533,15 +582,30 @@ class Program(Path):
             else:
                 return str(r_p.stdout)
 
+
 class CmdArg(str):
+
     """
     properties:
         [type]: [description]
     """
     # TODO:
 
-    def __init__(input_src):
+    def __init__(self, input_src):
         super().__init__(input_src)
+
+    def as_str(self):
+        try:
+            return str(self)
+        except BaseException as e:
+            raise CfpRuntimeError from e
+
+    def as_int(self):
+        try:
+            return int(self)
+        except BaseException as e:
+            raise CfpRuntimeError from e
+
 
 class CmdArgString(str):    
     """
@@ -550,7 +614,7 @@ class CmdArgString(str):
     """
     # TODO:
 
-    def __init__(input,*args):
+    def __init__(self, *args):
         super().__init__(args)
 
 class CmdArgList:
@@ -568,7 +632,7 @@ class CmdArgList:
     def args(self,*args)-> None:
         a_ls = []
         for arg in args:
-            if type(arg) is CmdArg:
+            if type(arg) is CmdArg():
                 a_ls.append(arg)
             elif type(arg) is str or type(arg) is int:
                 a_ls.append(CmdArg(str(arg)))
@@ -651,11 +715,36 @@ class Command:
     """
     # TODO:
 
-    exe: str = None
-    args: list = None
+    @property
+    def executable(self)-> Program:
+        return self._exec
+
+    @executable.setter
+    def executable(self, prog:Program)-> str:
+        self.__exec = prog
+
+    @property
+    def args(self)-> list:
+        return self.__args
     
-    def __init__(self):
-        pass
+    @args.setter
+    def args(self, *args)-> None:
+        try:
+            arg_ls = []
+            for arg in args:
+                arg_ls.append(arg)
+            self.__args = arg_ls
+        except TypeError:
+            raise CfpTypeError
+        except ValueError:
+            raise CfpValueError
+        except BaseException as e:
+            raise CfpRuntimeError from e
+
+    def __init__(self, exe:Program, *args):
+        self.executable(exe)
+        self.args(args)
+
 
 @dataclass
 class CfpFile:
@@ -664,32 +753,70 @@ class CfpFile:
     """    
     # TODO:
 
-    handler:IOHandlerBase
-    location: Path = None
-    filetype: str = None
-    size_in_bytes: int = None
-    isOpenable: bool = None
-    
+    @property
+    def handler(self)-> IOHandlerBase:
+        return self.__handler
+
+    @handler.setter
+    def handler(self, handler)-> None:
+        self.__handler = handler
 
     @property
-    def filetype(self):
-        """
-        explicit params: n/a
-        input: self
-        output: string - file type of self
-        """
+    def location_path(self)-> Path:
+        if type(self.__loc) is Path:
+            return self.__loc
+        else:
+            raise CfpTypeError
+
+    @location_path.setter
+    def location_path(self, loc:Path)-> None:
+        if type(loc) is Path:
+            self.__loc = loc
+        else:
+            raise CfpTypeError
+
+    @property
+    def filetype(self)-> FileType:
         return self.__f_type
 
     @filetype.setter
-    def filetype(self, filetype):
-        self.__f_type = filetype
+    def filetype(self, ftype:FileType)-> None:
+        self.__f_type = ftype
 
     @property
-    def getContent(self):
-        if self.__f_type() == 'unknown':
-            pass
-            
-        
+    def size_in_bytes(self)-> int:
+        return self.__num_bytes
+
+    @size_in_bytes.setter
+    def size_in_bytes(self, bytes:int)-> None:
+        self.__num_bytes = bytes
+
+    @property
+    def is_openable(self,)-> bool:
+        if type(self.__can_open) is bool:
+            return self.__can_open
+        else:
+            raise CfpTypeError
+    
+    @is_openable.setter
+    def is_openable(self,o:bool)-> None:
+        if type(o) is bool:
+            self.__can_open = o
+        else:
+            raise CfpTypeError
+
+    def content(self):
+        if self.__f_type() is FileType.CFP_INPUTFILE_TEXT_FMT_1:
+            lines_list = []
+            with open(self.location_path()) as c:
+                count = 0
+                for line in c:
+                    count = count + 1
+                    lines_list.append((int(count), str(line))) 
+
+    def get_template(self, loc):
+        pass
+
     def from_scratch(self, header):
         pass
         
@@ -818,12 +945,13 @@ class BaseRunner:
 
     Properties:
         infile: pathlib.Path
-            path to the input file for this runner
+            Path: path to the input file for this runner
         infrom:
-            InputHandler
+            InputHandler: The runner's input source 
         outto:
-            OutputHandler
+            OutputHandler: The runner's output source 
         job:
+            Job: The current job assigned to the runner
     """
     # TODO:
 
@@ -875,6 +1003,7 @@ class BaseRunner:
             else:
                 raise CfpUserInputError("If included, value for infile must be a valid path")        
              
+
     def InitializeIOHandler(self, *handler_args, **handler_kwargs):
         """
         Description: creates and returns an IOHandler with 
@@ -924,6 +1053,9 @@ class CfpRunner(BaseRunner):
         self.__topipe = to_pipe
 
     @property
+
+
+    @property
     def argstring(self) -> CmdArgString :
         return self.__argstring
 
@@ -932,7 +1064,7 @@ class CfpRunner(BaseRunner):
         try:
             if type(arg_str) == CmdArgString:
                 self.__argstring = arg_str
-            elif type(arg_str) == CmdArglist:
+            elif type(arg_str) == this.CmdArglist:
                 cal = ''
                 for a in arg_str:
                     cal = cal + str(a) + ' '
@@ -959,19 +1091,22 @@ class CfpRunner(BaseRunner):
             exc = str(type(e))
             print('Compiletime Error: ', exc, ' raised by the back end application.')
             raise CfpRuntimeError
-    def __init__(self, runtype:RunType):
+
+    def __init__(self, runtype:RunType, topipe:bool=False, frompipe:bool=False):
         if not self.runtype():
             raise CfpInitializationError("You cannot invoke this __init__() method directly. Try using one of the @classmethods defined by this class to get a new instance.")
         elif self.runtype() == RunType.SUBPROCESS:
-            self.frompipe(False)
-            self.topipe(False)
+            self.strategy = 'subprocess_run'
         elif self.runtype() == RunType.SUBPROCESS_LEGACY:
             self.strategy = 'subprocess_check_output'      
-            
+        self.frompipe(frompipe)
+        self.topipe(topipe)
+
     def configure(self):
         pass
     
-    def get_new_subprocess_runner(self, legacy:bool=False):
+    @classmethod
+    def subprocess_runner(self, legacy:bool=False):
         """
         Description: What it says. It returns a fresh instance of CfpRunner with the Runtype set to SUBPROCESS.   
         """
