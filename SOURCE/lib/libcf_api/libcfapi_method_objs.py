@@ -72,7 +72,16 @@ class Api(object):
         __urlsuffs__ = ['com', 'org', 'io', 'edu', 'net']
         self.__urlsuff__ = __urlsuffs__[ndx]
 
-    
+    @property
+    def endpoints(self):
+        return self.__endpoints_list
+
+    @endpoints.setter
+    def endpoints(self,*args, epls=None):
+        self.__endpoints_list = []
+        if type(epls) == None:
+            self.__endpoints_list = epls
+            
 
 class CodeforcesApiMethodValues(Enum):
     """
@@ -97,11 +106,11 @@ class CodeforcesApiMethodValues(Enum):
     
 class ParamType(click.ParamType):
     """
-    abstraction class used primarily as a container that holds the data type and related info for a function or method parameter
+    abstraction class used primarily as a container that holds the data type and related info for a parameter in an api method call
     """
 
     def __init__(self):
-        __def_lowered_hintchoices_DO_NOT_CHANGE = [
+        __default_lowered_hintchoices_DO_NOT_CHANGE = [
             'str',
             'string',
             's',
@@ -331,8 +340,7 @@ class ApiMethodParameter(object):
                 whether or not to fail if the parameter is not given.
             types_accepted: dict(ParamTypes:function,...) <- Optional
                 A dict specifying the types in which the parameter value(s) can be given. For any types accepted, a function must be provided to convert that type to the type needed. This is optional, and it is only for instances where you need a type not specified explicitly in param_type. Instead of using the OBJECT_SUBTYPE type, you can write a converter function which casts your type to one in ParamTypes.names, and give the type and converter in the dictionary. The converter needs to take the custom type as input and return 
-                the expected type as output. There may or may not be a few default converters below or in their own module. Depends on whether or not I get time...
-            parameter_type: 
+                the expected type as output. There may or may not be a few default converters below or in their own module. Depends on whether or not I get time... 
                 
             typehint set to obj as a catchall, as every type in python3 is a subtype of object (except object, which also works.) 
         """
