@@ -12,7 +12,7 @@ from shutil import which
 from shlex import shlex, split, join
 from pathlib import Path
 from ..lib.libcf_api import libcfapi_utils
-from . import cfp_context as this
+from . import cfp_context as this, cfp_config
 
 
 #          ^                                                                Legend:
@@ -194,15 +194,22 @@ class RunType(Enum):
 
     # 'asynchronous single-command runner using subprocess api'
     SUBPROCESS = {'description_string': 'subprocess_default', 
+                  'exec_string': 'subprocess.run(args)',
                   'topipe': False, 
                   'frompipe': False, 
                   'default_input_src': 'subprocess.STDIN', 
                   'default_output_src': 'subprocess.STDOUT'}
     # 'asynchronous pipe-exit command runner using subprocess api'
     SUBPROCESS_LEGACY = {'description_string': 'subprocess_legacy', 
-                         'exec_string': 'subprocess.check_output'}    
-    
-class ResultResolutionMode(Enum):
+                         'exec_string': 'subprocess.check_output(args)'}    
+    POPEN = {'description_string': 'popen', 
+             'exec_string': 'popen'}
+    OS_SYSTEM = {'description_string': 'os_system',
+                 'exec_string': 'os.system(args)'}
+    OS_SPAWN = {'description_string': 'os_spawn',
+                'exec_string': 'os.spawn(args)'}
+
+class ResolutionMode(Enum):
     """
     Description: This is meant to be a parameter for functions that configure one or more values that are persisted in the application after the function call finishes. It lets the caller specify how they want that value to be set /given. For example, the function could pass the value to its caller via return stmt, set a class variable, add a kv pair to env_dict, etc. To use, just add a kwarg of `arg: ResultResolutionMode = XXX` to func, where XXXX (the default) is one of the options below.
     """
@@ -318,6 +325,15 @@ class Openability(Enum):
     INSUFFICIENT_PERMISSIONS = 4
     FILETYPE_NOT_SUPPORTED = 5
     NOT_OPENABLE_REASON_UNKNOWN = 6
+
+class CmdJointString(Enum):
+    """
+    String used to join two command 
+    """
+    AND = 0
+    OR = 1
+    SEMICOLON = 2
+    PIPE = 3
 
 ########                                                                                         ########
 ########################################  ~~~~ IO_HANDLERS ~~~~  ########################################
@@ -909,9 +925,14 @@ class Job:
     
     @content.setter
     def content(self, tup) -> None:
-        if type(tup) == tuple and len(tup) == 2: 
-            if type(tuple[1]) is Task:
-                self.__content = tup  
+        """
+        Description: This is a collection of strings that can be concate
+        Params:
+        Returns:
+        """
+        if type(tup) == tuple and len(tup) == 3: 
+            if type(tup[0]) is ShellProgram and type(tup[1]) is Program and type(tuple[2]) is Task:
+                self.__content = ' '.join(tup[0],tup[1],tup[2])
             else:
                 raise CfpTypeError
         else: 
@@ -925,6 +946,7 @@ class Job:
     
     def to_string(self):
         try:
+            shell
             progpath = which(str(self.content[0]))
             cmd_str = ' '.join(list(self.self.content[1]))
             return progpath + cmd_str
@@ -1053,7 +1075,19 @@ class CfpRunner(BaseRunner):
         self.__topipe = to_pipe
 
     @property
+    def runtype(self)-> RunType:
+        return self.__r_type
 
+    @runtype.setter
+    def runtype(self, rt: RunType)-> bool:
+        try:
+            if self.__r_type:
+                self.__r_type_old = self.__r_type
+            self.__r_type = rt
+        except BaseException as e:
+            # TODO: add custom error handling
+            raise e
+        return True
 
     @property
     def argstring(self) -> CmdArgString :
@@ -1116,35 +1150,24 @@ class CfpRunner(BaseRunner):
             self.setRuntype(RunType.SUBPROCESS)
         self.__init__()
 
-    @property
-    def runtype(self)-> RunType:
-        return self.__invoc_type
-
-    @runtype.setter
-    def runtype(self, rt: RunType)-> bool:
+    def __subprocrun_rnr_run_cmdstring(task:Task, input):
         try:
-            if self.__r_type:
-                self.__r_type_old = self.__r_type
-            self.__r_type = rt
-        except BaseException as e:
-            # TODO: add custom error handling
-            raise e
-        return True
-
-    def __subprocrun_rnr_run_cmdstring(command_string, ):
-        try:
-            subprocess.run(command_string,)
+            runstr = ' '.join(shell,exec,args)
+            subprocess.run(str(runstr))
         except subprocess.SubprocessError:
             print('Something went wrong. Check input and "try" again.')
+        except BaseException as e:
+            raise CfpInitializationError from e
 
-########                                                                                         ########
+########                                                                                         #########
 ##########################################  ~~~~ CONTEXTS ~~~~  ##########################################
-########                                                                                         ########
+########                                                                                         #########
 
-@dataclass
 class Context:
     """
     Description: Base for all contexts. 
+
+    Scope: A cfp context is an entity made up of two parts, the physical and the abstract. The first is the abstraction. This is made up of   physical aspect. This is a folder that contains a cluster of data related to a specific task.   
     """
     # TODO:
         # Add __enter__() & __exit__() methods to each context subtype
@@ -1152,11 +1175,26 @@ class Context:
             # Both methods should come after __init__() at the end of the class.
                 # If __init__() is not already the last method, move it.
 
-    def __enter__(self):
+    def ctx_onopen_before_hook(self)-> None:
         pass
+
+    def ctx_onopen_after_hook(self)-> None:
+        pass
+
+    def ctx_onclose_before_hook(self)-> None:
+        pass
+
+    def ctx_onclose_after_hook(self)-> None:
+        pass
+
+    def __enter__(self):
+        self.ctx_onopen_before_hook()
+
+        self.ctx_onopen_after_hook()
     
     def __exit__(self):
-       pass    
+        self.ctx_onclose_before_hook()
+        self.ctx_onclose_before_hook()
 
     @property
     def namespace(self)->str:
@@ -1171,7 +1209,7 @@ class Context:
         return self.__ctx_t
 
     @ctx_type.setter
-    def ctx_type(self, ctxtype: str)->None:
+    def ctx_type(self, ctxtype: str)-> None:
         self.__ctx_t = ctxtype 
 
     @property
@@ -1179,7 +1217,7 @@ class Context:
         return self.__environ_dict
 
     @env_dict.setter
-    def env_dict(self, ed: dict, overwrite: bool=False) -> None:
+    def env_dict(self, ed:dict, overwrite:bool=False) -> None:
         if self.__environ_dict:
             if len(self.__environ_dict) == 0:
                 self.__environ_dict = ed
@@ -1187,7 +1225,9 @@ class Context:
                 self.__environ_dict = ed
             elif overwrite == False:
                 raise CfpOverwriteNotAllowedError
-                   
+        else:
+           self.__environ_dict = ed                    
+
     def putenv(self,k, v):
         self.env_dict().update({k: v})
         return True
@@ -1207,7 +1247,43 @@ class Context:
             if type(v) == str:
                 print(f'              {k}: {v}')
             else:
-                print(f'              {k}: {str(v)}')           
+                print(f'              {k}: {str(v)}')     
+
+    def __init__(self,type:str=cfp_config.default_ctx_type(), ns:str=None):
+        self.namespace(ns)
+        self.ctx_type(type)
+        self.contexttype
+
+    def __enter__(self):
+        self.ctx_onopen_before_hook()
+
+        self.ctx_onopen_after_hook()
+    
+    def __exit__(self):
+        self.ctx_onclose_before_hook()
+        self.ctx_onclose_before_hook()
+
+    def ctx_onopen_before_hook(self)-> None:
+        pass
+
+    def ctx_onopen_after_hook(self)-> None:
+        pass
+
+    def ctx_onclose_before_hook(self)-> None:
+        pass
+
+    def ctx_onclose_after_hook(self)-> None:
+        pass
+
+    def __enter__(self):
+        self.ctx_onopen_before_hook()
+
+        self.ctx_onopen_after_hook()
+    
+    def __exit__(self):
+        self.ctx_onclose_before_hook()
+        self.ctx_onclose_before_hook()
+        
 
 class CfpShellContext(Context):
     """
@@ -1216,10 +1292,10 @@ class CfpShellContext(Context):
     # TODO:
 
     def __enter__(self):
-       pass
+       super().__enter__()
    
     def __exit__(self):
-      pass    
+        super().__exit__()
 
     @property
     def shellchoice(self) -> ShellProgram:
@@ -1291,7 +1367,7 @@ class DynamicStrRunnerContext(Context):
     def __exit__(self):
        pass    
     
-class CfpShellBasedTestContext(CfpShellContext):
+class CfShellBasedTestContext(CfpShellContext):
     """
     Description: Context for testing potential Codeforces solutions in a shell context
     """
@@ -1345,7 +1421,6 @@ class CfpShellBasedTestContext(CfpShellContext):
     # represents the chosen language's index in the cf_allowedlangs list 
     @property
     def cf_lang_index(self)-> int:
-        lc = LanguageChoice()
         if not self.__lang_ndx:
             self.__lang_ndx = -1
         elif type(self.__lang_ndx) != int:
@@ -1355,7 +1430,7 @@ class CfpShellBasedTestContext(CfpShellContext):
         return self.__lang_ndx
 
     @cf_lang_index.setter
-    def cf_lang_index(self, num: int):
+    def cf_lang_index(self, num:int):
         if type(num) is int:
             self.__lang_ndx = num
         else:
@@ -1368,6 +1443,10 @@ class CfpShellBasedTestContext(CfpShellContext):
             except BaseException as e:
                 print('raised by {}'.format(e))
                 raise RuntimeError
+
+    @cf_lang_index.setter
+    def cf_lang_to_index(self, lc:LanguageChoice):
+        return self.cf_lang_index(lc.value)
 
     @property
     def lang(self)-> str:
@@ -1392,7 +1471,6 @@ class CfpShellBasedTestContext(CfpShellContext):
             else:    
                 lang = self.cf_allowedlangs[language]
                 self.putenv('solutionlanguage', lang)
-
 
 
     def __init__(self, cmds, rnnr: CfpRunner, shell_env: str, language: str, **envvars: any):
