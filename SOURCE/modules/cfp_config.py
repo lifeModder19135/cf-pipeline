@@ -1,13 +1,16 @@
+import collections
 from dataclasses import dataclass
 import os, typing
 from ..lib import libcfapi_utils
-from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError
+from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpValueError
 from enum import Enum
 
 class AppConfigurationOptions(Enum):
     """
     Allowed config options. The names correspond to the options allowed as l_values in the conffile. the values are stringified representations
     """
+    pass
+
 @dataclass
 class ConfFileSection:
     
@@ -52,10 +55,11 @@ class ConfFileSection:
                     raise CfpUserInputError
 
 class ConfigFile(object):
-
     @property
-    def sections(self) -> 'list[ConfFileSection]':
-        """This is a list of ConfFileSection objects, or possibly strings (still undecided), containing the names of all the sections of the config."""
+    def sections(self)-> 'list[ConfFileSection]':
+        """
+        This is a list of ConfFileSection objects, or possibly strings (still undecided), containing the names of all the sections of the config.
+        """
         if not self.__sectslist_:
             self.__sectslist_ = []
         return self.__sectslist_
@@ -102,13 +106,15 @@ class ConfigFile(object):
         with open(_filelocation, 'r') as file:
             for i,line in enumerate(file):
                 cleanln = line.lstrip().rstrip()
-                if cleanln.startswith("[[") and cleanln.endswith("]]"):
+                if cleanln.startswith("[[ ") and cleanln.endswith(" ]]"):
                     sectup = (i,cleanln[2:-2])
                     sects_ls.append(sectup)
         return sects_ls
 
+    def to_app_configuration():
+        pass
 
-class AppConfiguration(typing.dict):
+class AppConfiguration(collections.UserDict[str,dict]):
     """
     dict with config section names and inner dictionaries containing config opptions and values
     """
@@ -116,8 +122,23 @@ class AppConfiguration(typing.dict):
     #    - needs logic to check inner dicts and set values to class properties
     #    - need to define properties
 
-    def __init__(self, conf_dict:dict=None, **kvpairs):
+    def set_fromfile(filepath:str):
+        # try:
+        pass
+
+    def __init__(self, *kvpairs, conf_dict:dict[str,dict]=None):
         if conf_dict == None:
             super().__init__(**kvpairs)
         else:
             super().__init__(conf_dict, **kvpairs)
+        for k,v in self.data:
+            if type(k) is not str or type(v) is not dict:
+                raise CfpTypeError
+    
+    def get_value(self, key:str)-> tuple(str,str):
+        for k,v in self.items:
+            for k2,v2 in v:
+                if k2 == key:
+                    return tuple(str(k), str(k2), str(v2))
+        else:
+            raise CfpValueError
