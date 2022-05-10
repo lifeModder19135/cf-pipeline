@@ -191,7 +191,6 @@ class RunType(Enum):
         SUBPROCESS_LEGACY: Uses the subprocess module, but with methods from its legacy api.
     """
     # TODO:
-
     # 'asynchronous single-command runner using subprocess api'
     SUBPROCESS = {'description_string': 'subprocess_default', 
                   'exec_string': 'subprocess.run(args)',
@@ -214,7 +213,6 @@ class ResolutionMode(Enum):
     Description: This is meant to be a parameter for functions that configure one or more values that are persisted in the application after the function call finishes. It lets the caller specify how they want that value to be set /given. For example, the function could pass the value to its caller via return stmt, set a class variable, add a kv pair to env_dict, etc. To use, just add a kwarg of `arg: ResultResolutionMode = XXX` to func, where XXXX (the default) is one of the options below.
     """
     # TODO:
-
     # Resolver should return result in the func return statement.
     RETURN_STATEMENT = '"return {}".format(args[2])'
     INSTANCE_PROPERTY = '"{}({})".format(args[2], args[3])'
@@ -231,7 +229,6 @@ class IOType(Enum):
         OUTPUT: 1
     """
     # TODO:
-
     INPUT = 0
     OUTPUT = 1
     SOURCE = 2
@@ -242,7 +239,6 @@ class InputType(Enum):
         Enum ([type]): [description]
     """
     # TODO:
-
     INFILE = 0
     INSTREAM = 1
     INSTRING = 2
@@ -254,7 +250,6 @@ class OutputType(Enum):
         Enum ([type]): [description]
     """
     # TODO:
-
     OUTFILE = 0
     OUTSTREAM = 1
     OUTPIPE = 2
@@ -282,12 +277,19 @@ class FileType(Enum):
     SOURCE_FILE_JAVA = 13
     DIRECTORY = 14
 
+class LanguageType(Enum):
+    """
+    Description: Determines whether or not a source file needs to be compiled before being run. 
+    """
+    COMPILED = 0
+    INTERPRETED = 1
+    OTHER = 2
 
 class LanguageChoice(Enum):
     """
-    description: a collection of names of programming languages
-    properties:
-        `Language_name`: each represents a programming language, source code of which is accepted by one of the apis
+    Description: a collection of names of programming languages
+    Properties:
+        Language_name: each represents a programming language, source code of which is accepted by one of the apis
     """    
     C_SHARP_MONO = 'C#mono',
     D_DMD32 = 'D_DMD32',
@@ -317,7 +319,9 @@ class LanguageChoice(Enum):
         super.__init__()
 
 class Openability(Enum):
-    """For a file, represents whether or not it can be opened, and usually, the reason."""
+    """
+    For a file, represents whether or not it can be opened, and usually, the reason.
+    """
     OPENABLE = 0
     NO_FILE = 1
     NOT_OPENABLE = 2
@@ -372,7 +376,7 @@ class IOHandlerBase:
         """
         Sets io_type from string. io_type is either input, source, or output, otherwise throw error.
         """
-        if io_type.lower() == 'i' or io_type.lower() == 'in' or io_type.lower() == 'input':    
+        if io_type:    
             self.__io_t = IOType.INPUT
         elif io_type == 'o' or io_type == 'out' or io_type == 'output':
             self.__io_t = IOType.OUTPUT
@@ -384,11 +388,15 @@ class IOHandlerBase:
             raise CfpValueError from CfpUserInputError(f'Invalid value given for parameter {io_type}')
         return True
 
-    def __init__(self, *args, **kwargs):
-        if not args and not kwargs:
-            return self
+    def __init__(self, io_type:IOType, *args, **kwargs):
+        if type(io_type) is not IOType:
+            raise CfpTypeError
         else:
-            self.handler_args = args
+            self.io_type(io_type)
+        if not args and not kwargs:
+            self.handler_args([])
+        else:
+            self.handler_args(args)
             for k,v in kwargs:
                 st = f'{k}={v}'
                 self.handler_args.append(st)
@@ -456,7 +464,8 @@ class InputFileHandler(InputHandler):
                 lines.append(line)
 
     def __init__(self, file:"this.CfpFile"=None, *args, **kwargs):
-        super().__init__(InputType.INFILE, *args, **kwargs)        
+        super().__init__(IOType.INPUT, *args, **kwargs)
+        self.current_file(file)        
 
 class OutputHandler(IOHandlerBase):
     """
@@ -467,11 +476,14 @@ class OutputHandler(IOHandlerBase):
 
     def to_file(self, fullpath, encoding:str="UTF-8")-> None:
         try:
-           ofile = open(fullpath, "w", encoding=encoding)
+            ofile = open(fullpath, "w", encoding=encoding)
         except IOError:
             raise CfpUserInputError from CfpIOError
         except BaseException as e:
             raise CfpRuntimeError from e
+
+    def __init__(self, dest:"this.CfpFile"=None, encoding:str="Uencoding:str="UTF-8"TF-8", *args, **kwargs):
+        super().__init__(IOType.OUTPUT, *args, **kwargs)    
 
 ########                                                                                         ########
 ########################################  ~~~~ RUNNER_SUBS ~~~~  ########################################
@@ -1277,12 +1289,11 @@ class Context:
 
     def __enter__(self):
         self.ctx_onopen_before_hook()
-
         self.ctx_onopen_after_hook()
     
     def __exit__(self):
         self.ctx_onclose_before_hook()
-        self.ctx_onclose_before_hook()
+        self.ctx_onclose_after_hook()
         
 
 class CfpShellContext(Context):
@@ -1295,7 +1306,18 @@ class CfpShellContext(Context):
        super().__enter__()
    
     def __exit__(self):
-        super().__exit__()
+        super().__exit__() 
+
+    @property
+    def runner(self)-> CfpRunner:
+        if self.__runner.isinstance(CfpRunner) or self.__runner.issubclass(CfpRunner):
+            return self.__runner
+        else:
+            raise CfpValueError from CfpTypeError
+
+    @runner.setter
+    def runner(self, rnr:CfpRunner)-> None:
+        if 
 
     @property
     def shellchoice(self) -> ShellProgram:
