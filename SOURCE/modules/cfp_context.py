@@ -55,8 +55,92 @@ from . import cfp_context as this, cfp_config
 #
 # 
 #
+# -------8<------------------------------------------------------------------------------>8---------------
+#                      Abstractions:
+#
+# Context:
+#     
+#     Represents a shell context.  See the Diagram above for all object types contained within. Context also represents 
+#     the base content directory for the program (and with the same name.)
+#   
+# Environment:
 # 
-#FULL JOB BREAKDOWN:
+#     Contains program related variables.
+#
+# Runner:
+#
+#     Tool for running commands of various forms and types (String, ShellProgram, CommandString). 
+#
+# Keys:
+#
+#     Names of variables Contained in an Environment. References either a Null value or else stored information in said 
+#     Environment
+# 
+# Values:   
+#
+#     Information in an Environment which is referenced by a key.
+#
+# Input:
+#
+#     
+#
+# Output:
+#
+# Job:
+#
+#     Tool for running Tasks in a Context. Accepts input, usually in the form of Task objects
+#
+# corque_board: 
+# 
+# IOBuffer:
+# 
+# Shell:   
+#
+# Task:
+# 
+# DataStream:
+# 
+# CmdModule
+# 
+# CmdFollower
+# 
+# Separator
+# 
+# Command
+# 
+# CommandFollowerWrapper
+# 
+# Executable
+# 
+# Args
+#
+#  
+# 
+# -------8<------------------------------------------------------------------------------>8---------------
+#                      Class Descriptions:
+# Runtype:
+#
+# ResolutionMode:
+#
+# IOType:
+#
+# InputType:
+#
+# OutputType:
+# 
+# FileType:
+# 
+# LanguageType:
+# 
+# LanguageType:
+# 
+# 
+# 
+# 
+#  
+# 
+# -------8<------------------------------------------------------------------------------>8---------------
+# FULL JOB BREAKDOWN:
 # 
 #
 #   |
@@ -66,8 +150,8 @@ from . import cfp_context as this, cfp_config
 #   | 
 #  pwd && cd /dir/other; sudo cmd -v --list .. | /usr/bin/xargs -f 'oreos first' | tee -a filefile | wc && exec 'sh -c cmd'
 #
-#  ^^ ??? (Don't even remember adding it. Most likely a half-idea that I jotted down in the closest spot 
-#          available in the middle of doing something else)
+#  ^^ ??? 
+#        
 #
 # --------8<------------------------------------------------------------------------------>8--------------
 #
@@ -88,7 +172,7 @@ from . import cfp_context as this, cfp_config
 #       * be otherwise made up of _specifiers_ (spec.) and _sections_, which are themselves made up
 #*        of specifiers and nested sections a.k.a. subsections. 
 #           - Sections: 
-#               - a section is defined by including `section_name:` at the current nessting level on its owm
+#               - a section is defined by including `section_name:` at the current nessting level on its own
 #                 line, just like the 'Sections:' line onr nesting level above this line
 #               - every line that is meant to be contained in said section should be nested inside the #   
 #                 section. That is, it should all be further indented than the section by one or more 
@@ -175,8 +259,12 @@ from . import cfp_context as this, cfp_config
 #
 #
 #
+#--------------------------------------------------------------------
+#                          TODO
+#--------------------------------------------------------------------
 #
-#
+#       - Add implementation for InputCommandString class
+#       
 #
 
 ########                                                                                         ########
@@ -260,6 +348,7 @@ class FileType(Enum):
         Enum ([type]): [description]
     """
     # TODO:
+
     PLAINTEXT_FILE = 00,
     INTS_ONLY_TEXT_FILE = 1
     BINARY_FILE_GENERIC = 2
@@ -291,29 +380,29 @@ class LanguageChoice(Enum):
     Properties:
         Language_name: each represents a programming language, source code of which is accepted by one of the apis
     """    
-    C_SHARP_MONO = 'C#mono',
-    D_DMD32 = 'D_DMD32',
-    GO = 'Go',
-    HASKELL = 'Haskell',
-    JAVA_8 = 'Java8',
-    JAVA_11 = 'Java11',
-    KOTLIN_14 = 'Kotlin1.4',
-    KOTLIN_15 = 'Kotlin1.5',
-    OCAML = 'Ocaml',
-    DELPHI = 'Delphi',
-    FREE_PASCAL = 'Free Pascal',
-    PASCAL_ABC_DOT_NET = 'PascalABC.NET',
-    PERL = 'Perl',
-    PHP = 'PHP',
-    PYTHON_2 = 'Python2',
-    PYTHON_3 = 'Python3',
-    PYPY_2 = 'Pypy2',
-    PYPY_3 = 'Pypy3',
-    RUBY = 'Ruby',
-    RUST = 'Rust',
-    SCALA = 'Scala',
-    JS_V8 = 'JavaScriptV8',
-    NODE_JS = 'nodejs'
+    C_SHARP_MONO = 1,
+    D_DMD32 = 2,
+    GO = 3,
+    HASKELL = 4,
+    JAVA_8 = 5,
+    JAVA_11 = 6,
+    KOTLIN_14 = 7,
+    KOTLIN_15 = 8,
+    OCAML = 9,
+    DELPHI = 10,
+    FREE_PASCAL = 11,
+    PASCAL_ABC_DOT_NET = 12,
+    PERL = 13,
+    PHP = 14,
+    PYTHON_2 = 15,
+    PYTHON_3 = 16,
+    PYPY_2 = 17,
+    PYPY_3 = 18,
+    RUBY = 19,
+    RUST = 20,
+    SCALA = 21,
+    JS_V8 = 22,
+    NODE_JS = 23
 
     def __init__(self):
         super.__init__()
@@ -345,8 +434,9 @@ class CmdJointString(Enum):
 
 class IOHandlerBase:
     """
+    This class is just meant as a base class. It shouldnt be instantiated itself, but is meant to be innherited and the child classes used.
     properties:
-        [type]: [description]
+        handler_args: arguments passed to the handler
     """
     # TODO:
 
@@ -482,8 +572,8 @@ class OutputHandler(IOHandlerBase):
         except BaseException as e:
             raise CfpRuntimeError from e
 
-    def __init__(self, dest:"this.CfpFile"=None, encoding:str="Uencoding:str="UTF-8"TF-8", *args, **kwargs):
-        super().__init__(IOType.OUTPUT, *args, **kwargs)    
+    def __init__(self, *args, dest: "this.CfpFile" = None, encoding:str="UTF-8",  **kwargs)-> None:
+        super().__init__(IOType.OUTPUT, args, kwargs)    
 
 ########                                                                                         ########
 ########################################  ~~~~ RUNNER_SUBS ~~~~  ########################################
@@ -518,7 +608,6 @@ class InputCommandString(str):
         Returns: 
         """
         pass 
-
 
 class Program(Path):
     """
@@ -938,12 +1027,12 @@ class Job:
     @content.setter
     def content(self, tup) -> None:
         """
-        Description: This is a collection of strings that can be concate
+        Description: This is a collection of strings that can be concated to form a formatted string of arguments for a shell program. 
         Params:
         Returns:
         """
         if type(tup) == tuple and len(tup) == 3: 
-            if type(tup[0]) is ShellProgram and type(tup[1]) is Program and type(tuple[2]) is Task:
+            if type(tup[0]) is ShellProgram and type(tup[1]) is Program and type(tup[2]) is Task:
                 self.__content = ' '.join(tup[0],tup[1],tup[2])
             else:
                 raise CfpTypeError
@@ -958,9 +1047,8 @@ class Job:
     
     def to_string(self):
         try:
-            shell
             progpath = which(str(self.content[0]))
-            cmd_str = ' '.join(list(self.self.content[1]))
+            cmd_str = ' '.join(list(self.content[1]))
             return progpath + cmd_str
         except TypeError:
             raise CfpTypeError
@@ -1162,7 +1250,15 @@ class CfpRunner(BaseRunner):
             self.setRuntype(RunType.SUBPROCESS)
         self.__init__()
 
-    def __subprocrun_rnr_run_cmdstring(task:Task, input):
+    def __subprocrun_rnr_run_cmdstring(task:Task, inputStr=None,shell=None,exec=None,args=None):
+        '''
+        Takes in a Task and either a formed command string -inputStr- or else a ShellProgram - shell -, a Program - exec -, and a CmdArgList - args. The output will be the result of running the input with the Python subprocess.run() function. 
+
+        For example, if the input command is:
+            bash ls -a
+        you can pass either "bash ls -a" as a 
+
+        '''
         try:
             runstr = ' '.join(shell,exec,args)
             subprocess.run(str(runstr))
@@ -1317,7 +1413,9 @@ class CfpShellContext(Context):
 
     @runner.setter
     def runner(self, rnr:CfpRunner)-> None:
-        if 
+        if rnr.isinstance(CfpRunner) or rnr.issubclass(CfpRunner):
+            self.__runner = rnr
+        raise CfpInitializationError from CfpTypeError
 
     @property
     def shellchoice(self) -> ShellProgram:
