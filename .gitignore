@@ -11,12 +11,25 @@
 #############################
 
 ### Directories
+<<<<<<< HEAD
 __pycache__/
 .vscode/
+=======
+OLD_*/
+__pycache__/
+.vscode/
+.idea/
+>>>>>>> dev-master
 venv3.10/
 build/
 cfpipeline.egg-info/
 
 ### Files
 **/reqs.txt
+<<<<<<< HEAD
 .todo
+=======
+.todo
+*.code-workspace
+OLD_*
+>>>>>>> dev-master
