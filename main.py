@@ -22,5 +22,3 @@ def callcfpcommand(Version:bool=False):
         return '0'
     else:
         raise ValueError
-    
-@
