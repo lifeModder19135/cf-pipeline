@@ -2,11 +2,11 @@ from dataclasses import dataclass
 import os, typing
 from ..lib import libcfapi_utils
 from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError
-from enum import Enum
+from enum import Enum, Flag
 
 class AppConfigurationOptions(Enum):
     """
-    Allowed config options. The names correspond to the options allowed as l_values in the conffile. the values are stringified representations
+    Allowed config options. The dictionary keys correspond to the options allowed as l_values in the conffile. the values are stringified representations
     """
 @dataclass
 class ConfFileSection:
@@ -53,6 +53,13 @@ class ConfFileSection:
 
 class ConfigFile(object):
 
+    class Action(Flag):
+        """Represents possible actions that can be used on a ConfigFile.sections list"""
+        UPDATE = 1
+        OVERWRITE = 2
+        EMPTY = 3
+        REFRESH = 4
+
     @property
     def sections(self) -> 'list[ConfFileSection]':
         """This is a list of ConfFileSection objects, or possibly strings (still undecided), containing the names of all the sections of the config."""
@@ -62,6 +69,16 @@ class ConfigFile(object):
 
     @sections.setter
     def sections(self,action, *args)->None:
+        """"
+        Sets the sections list. 
+        The *args parameter is a list of 0 ar more ConfFileSection objects to append to the sections list.
+        The action parameter holds the action taken on the __sectslist_.
+        Possible actions are:
+          - update: append args to __sectslist_
+          - overwrite: clear __sectslist_ and then add args to the empty list
+          - empty: clear __sectslist_ and leave it empty: args are not used
+          - refresh: stillworking on it
+        """
         #TODO: finish me
         if not self.__sectslist_:
             self.__sectslist_ = []
@@ -79,6 +96,8 @@ class ConfigFile(object):
             self.__sectslist_ = []
         elif action == 'refresh':
             self.__secnames = self.__get_section_names_from_conffile()
+            for name in self.__secnames:
+                pass
 
     @property
     def location_dirpath(self) -> str:
