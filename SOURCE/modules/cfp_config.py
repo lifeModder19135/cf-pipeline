@@ -139,7 +139,8 @@ class ConfigFile(object):
                     size = len(k_eq_v)
                     if size >= 3:
                         if k_eq_v[2] == '=':
-                            
+                            # need to finish
+                            pass
 class AppConfiguration(typing.dict):
     """
     dict with config section names and inner dictionaries containing config opptions and values
