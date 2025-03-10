@@ -62,7 +62,7 @@ class ConfigFile(object):
 
     @property
     def sections(self) -> 'list[ConfFileSection]':
-        """This is a list of ConfFileSection objects, or possibly strings (still undecided), containing the names of all the sections of the config."""
+        """This is a list of ConfFileSection objects, containing the names of all the sections of the config."""
         if not self.__sectslist_:
             self.__sectslist_ = []
         return self.__sectslist_
@@ -119,14 +119,27 @@ class ConfigFile(object):
         sects_ls = []
         _filelocation = '/'.join(self.location_path(),self.filename())
         with open(_filelocation, 'r') as file:
-            for i,line in enumerate(file):
+            for i, line in enumerate(file):
                 cleanln = line.lstrip().rstrip()
                 if cleanln.startswith("[[") and cleanln.endswith("]]"):
                     sectup = (i,cleanln[2:-2])
                     sects_ls.append(sectup)
         return sects_ls
 
-
+    def __get_section_kvs_from_conffile(self) -> "list[tuple]":
+        __kv_dict = {}
+        _filelocation = '/'.join(self.location_path(),self.filename())
+        with open(_filelocation, 'r') as file:
+            for i, line in enumerate(file):
+                cleanln = line.lstrip().rstrip()
+                if cleanln.startswith("[[") and cleanln.endswith("]]"):
+                        pass
+                else:
+                    k_eq_v = cleanln.split()
+                    size = len(k_eq_v)
+                    if size >= 3:
+                        if k_eq_v[2] == '=':
+                            
 class AppConfiguration(typing.dict):
     """
     dict with config section names and inner dictionaries containing config opptions and values
