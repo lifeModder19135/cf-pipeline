@@ -124,6 +124,15 @@ class Location:
         self.__linenum_ = val
 
     def __p_init(self, pname:str, mname:str, fname:str, lnum:int, funcname:str=None, methodname:str=None):
+        """
+        params:
+            pname: package name
+            mname: module name
+            fname: file name
+            lnum: line number
+            funcname: function name
+            methodname: method name
+        """
         self.packagename(pname)
         self.__m_init__(mname, fname, lnum, funcname, methodname)
 
