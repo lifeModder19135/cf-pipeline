@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import os, typing
 from ..lib import libcfapi_utils
-from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError
+from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpConfigurationError
 from enum import Enum, Flag
 
 class AppConfigurationOptions(Enum):
@@ -135,12 +135,22 @@ class ConfigFile(object):
                 if cleanln.startswith("[[") and cleanln.endswith("]]"):
                         pass
                 else:
-                    k_eq_v = cleanln.split()
-                    size = len(k_eq_v)
+                    k_eq_v_list = cleanln.split()
+                    size = len(k_eq_v_list)
                     if size >= 3:
-                        if k_eq_v[2] == '=':
+                        if k_eq_v_list[1] == '=':
                             # need to finish
-                            pass
+                            key = k_eq_v_list[0]
+                            val_str = ''
+                            for word in k_eq_v_list:
+                                if word >= 2:
+                                    val_str = val_str + ' ' + word
+                        else:
+                            raise CfpConfigurationError('There is a formatting error in your config file. Note that all l_values need to be one word, and there must be a space on each side of the "=", so that each line looks like this: "oneword = one or more words"')
+                    else:
+                        pass        
+                            
+
 class AppConfiguration(typing.dict):
     """
     dict with config section names and inner dictionaries containing config opptions and values
