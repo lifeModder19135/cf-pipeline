@@ -13,6 +13,13 @@ class CfpIOError(IOError):
     def __init__(self, *args, **kwargs):
         super().__init__( *args, **kwargs)
 
+class CfpConfigurationError(CfpIOError):
+    """
+    Catch-all for any configuration errors.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
+
 class CfpUserInputError(CfpIOError):
     """
     Catch-all for anything caused by invalid user input.
