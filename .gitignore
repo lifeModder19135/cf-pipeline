@@ -18,6 +18,7 @@ __pycache__/
 venv3.10/
 build/
 cfpipeline.egg-info/
+venv/
 
 ### Files
 **/reqs.txt
