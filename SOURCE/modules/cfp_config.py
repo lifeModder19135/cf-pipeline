@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import os, typing
 from ..lib import libcfapi_utils
-from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpConfigurationError
+from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpConfigurationError, CfpMethodInputError
 from enum import Enum, Flag
 
 class AppConfigurationOptions(Enum):
@@ -148,7 +148,39 @@ class ConfigFile(object):
                         else:
                             raise CfpConfigurationError('There is a formatting error in your config file. Note that all l_values need to be one word, and there must be a space on each side of the "=", so that each line looks like this: "oneword = one or more words"')
                     else:
-                        pass        
+                        pass
+
+    def __write_dict_to_conf_file(self, input_dict:dict, filelocation='use_obj_attributes'):
+        """
+        Dict passed in must contain only section identifiers such as:
+                key = '[[section_name]]', value = 'SECTION'
+        or values in a section such as:
+                key = 'foo', value = 'bar'
+        all kvs between two sections will be written to the earlier section.
+        NOTE: first kv in dict MUST be a section identifier
+        """
+        if filelocation == 'use_obj_attributes':
+            filelocation = '/'.join(self.location_path(),self.filename())
+        elif type(filelocation) is not str or filelocation[0] != '/':
+            raise CfpMethodInputError('Invalid path to config file')
+        else:
+            if not os.path.exists(filelocation):
+                open(filelocation).close
+            input_dict[0].lstrip().rstrip()
+            if input_dict[0].startswith('[[') and input_dict[0].endswith(']]'): 
+                for k,v in input_dict:
+                    if k.startswith('[[') and k.endswith(']]') and v == 'SECTION':
+                        with open(filelocation) as f:
+                            f.write(k)
+                    else:
+                        with open(filelocation) as f:
+                            f.write('  ' + k + ' = ' + v)
+            else:
+                raise CfpMethodInputError('First kv in input dict must be a section identifier')
+    def __write_section_to_conf_file():
+        pass
+            
+        
                             
 
 class AppConfiguration(typing.dict):
