@@ -1,0 +1,1 @@
+CONFIG_FILE_LOCATION = 'RESOURCES/temporary_config_file.txt'
