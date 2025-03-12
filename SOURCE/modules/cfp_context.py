@@ -160,7 +160,7 @@ from . import cfp_context as this
 #               .email
 #
 # --------8<------------------------------------------------------------------------------>8--------------
-# Below is the default layout for the 
+# Below is the default layout for the context variables
 # --------8<------------------------------------------------------------------------------>8--------------
 # :::4:::31:::81::95
 # :: USER_HOME_DIR            :: "$HOME"                                        :: homedir    :: "/"    
