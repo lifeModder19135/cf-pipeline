@@ -52,17 +52,11 @@ class ConfFileSection:
                     raise CfpUserInputError
 
 
-    def __init__(self, name: str, description: str, keys_vals_dict: dict):
+    def __init__(self, name: str, description: str, keys_vals_dict: dict={}):
 
         self.name = name
         self.description = description
         self.keys_vals_dict = keys_vals_dict
-
-    def __init__(self, name: str, description: str):
-
-        self.name = name
-        self.description = description
-        self.keys_vals_dict = {}
 
 class ConfigFile(object):
 
