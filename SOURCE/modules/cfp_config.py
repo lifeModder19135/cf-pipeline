@@ -39,16 +39,16 @@ class ConfFileSection:
         return self.__config_kvs
 
     @keys_vals_dict.setter
-    def keys_vals_dict(self, action:str, kvdict:dict) -> None:
+    def keys_vals_dict(self, action: Action, kvdict:dict) -> None:
         input_bad = False
         if type(kvdict) == dict:
             for k,v in kvdict.items():
                 if type(k) != str or type(v) != str:
                     input_bad = True
             if input_bad == False:
-                if action == "overwrite":
+                if action == Action.OVERWRITE:
                     self.__config_kvs = kvdict
-                elif action == "update":
+                elif action == Action.UPDATE:
                     for k,v in kvdict.items():
                         for key in self.__config_kvs.keys():
                             if k == key:
