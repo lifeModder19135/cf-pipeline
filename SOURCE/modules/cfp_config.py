@@ -4,6 +4,13 @@ from ..lib import libcfapi_utils
 from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpConfigurationError, CfpMethodInputError
 from enum import Enum, Flag
 
+class Action(Flag):
+    """Represents possible actions that can be used on a ConfigFile.sections list"""
+    UPDATE = 1
+    OVERWRITE = 2
+    EMPTY = 3
+    REFRESH = 4
+
 class AppConfigurationOptions(Enum):
     """
     Allowed config options. The dictionary keys correspond to the options allowed as l_values in the conffile. the values are stringified representations
@@ -60,13 +67,6 @@ class ConfFileSection:
 
 class ConfigFile(object):
 
-    class Action(Flag):
-        """Represents possible actions that can be used on a ConfigFile.sections list"""
-        UPDATE = 1
-        OVERWRITE = 2
-        EMPTY = 3
-        REFRESH = 4
-
     @property
     def sections(self) -> 'list[ConfFileSection]':
         """This is a list of ConfFileSection objects, containing the names of all the sections of the config."""
@@ -78,7 +78,7 @@ class ConfigFile(object):
     def sections(self, action: str = 'update', args: list=None)->None:
         """"
         Sets the sections list. 
-        The *args parameter is a list of 0 ar more ConfFileSection objects to append to the sections list.
+        The args parameter is a list of 0 ar more ConfFileSection objects to append to the sections list.
         The action parameter holds the action taken on the __sectslist_.
         Possible actions are:
           - update: append args to __sectslist_
@@ -89,7 +89,7 @@ class ConfigFile(object):
         #TODO: finish me
         if not self.__sectslist_:
             self.__sectslist_ = []
-        if action == 'update':
+        if action == Action.UPDATE:
             for a in args:
                 if type(a) == ConfFileSection:
                     self.__sectslist_.append(a)
@@ -122,7 +122,7 @@ class ConfigFile(object):
     def filename(self, fname) -> None:
         self.__file_name = fname
 
-    def __init__(self, location_dirpath: str, filename: str, sects: list=[]):
+    def __init__(self, location_dirpath: str, filename: str, sects: list=[], action: Action =Action.UPDATE):
         self.sections(sects, 'update')
         self.filename(filename)
         self.location_dirpath(location_dirpath)
