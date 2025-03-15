@@ -95,13 +95,13 @@ class ConfigFile(object):
                     self.__sectslist_.append(a)
                 else:
                     raise CfpTypeError()
-        elif action == 'overwrite':
+        elif action == Action.OVERWRITE:
             self.__sectslist_ = []
             for a in args:
                 self.__sectslist_.append(a)
-        elif action == 'empty':
+        elif action == Action.EMPTY:
             self.__sectslist_ = []
-        elif action == 'refresh':
+        elif action == Action.REFRESH:
             self.__secnames = self.__get_section_names_from_conffile()
             for name in self.__secnames:
                 pass
