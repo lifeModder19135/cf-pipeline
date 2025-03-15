@@ -75,7 +75,7 @@ class ConfigFile(object):
         return self.__sectslist_
 
     @sections.setter
-    def sections(self, action, *args)->None:
+    def sections(self, action: str = 'update', args: list=None)->None:
         """"
         Sets the sections list. 
         The *args parameter is a list of 0 ar more ConfFileSection objects to append to the sections list.
@@ -123,7 +123,7 @@ class ConfigFile(object):
         self.__file_name = fname
 
     def __init__(self, location_dirpath: str, filename: str, sects: list=[]):
-        self.sections(sects)
+        self.sections(sects, 'update')
         self.filename(filename)
         self.location_dirpath(location_dirpath)
 
