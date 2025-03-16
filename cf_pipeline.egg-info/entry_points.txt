@@ -1,0 +1,2 @@
+[console_scripts]
+cfp = cfpipeline.main:callcfpcommand
