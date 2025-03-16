@@ -23,5 +23,5 @@ class cfp_url():
     Wrapper object for the named tuple returned by urllib parse function, which  takes in a url string and splits it into six sections: the protocol, net/host, params, path, attributes, and values
     """
     
-    def __init__():
-        parse.    
+    # def __init__():
+       

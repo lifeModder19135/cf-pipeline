@@ -1,11 +1,11 @@
 import encodings
 import os, click, invoke, subprocess, fileinput, shutil
 import sys
-from types import NoneType
+# from types import NoneType
 from typing import Any
 from dataclasses import dataclass
 
-from tomlkit import string
+# from tomlkit import string
 from .cfp_errors import CfpIOError, CfpInitializationError, CfpNotExecutableError, CfpPermissionDeniedError, CfpRuntimeError, CfpTimeoutError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpValueError
 from enum import Enum
 from shutil import which
@@ -306,8 +306,8 @@ class LanguageChoice(Enum):
     JS_V8 = 'JavaScriptV8',
     NODE_JS = 'nodejs'
 
-    def __init__(self):
-        super.__init__()
+    # def __init__(self):
+    #     super.__init__()
 
 class Openability(Enum):
     """For a file, represents whether or not it can be opened, and usually, the reason."""
