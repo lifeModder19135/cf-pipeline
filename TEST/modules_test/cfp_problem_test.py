@@ -1,1 +1,1 @@
-from ...SOURCE.modules import cfp_problem
+from SOURCE.modules import cfp_problem

@@ -1,4 +1,4 @@
-from ...SOURCE.modules.cfp_config import ConfFileSection, ConfigFile, Action
+from SOURCE.modules.cfp_config import ConfFileSection, ConfigFile, Action
 
 def create_conffilesection_test():
 

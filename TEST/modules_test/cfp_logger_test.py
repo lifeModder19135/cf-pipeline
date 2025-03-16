@@ -1,1 +1,1 @@
-from ...SOURCE.modules import cfp_logger
+from SOURCE.modules import cfp_logger

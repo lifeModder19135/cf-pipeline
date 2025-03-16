@@ -1,1 +1,1 @@
-from ...SOURCE.modules import cfp_errors
+from SOURCE.modules import cfp_errors

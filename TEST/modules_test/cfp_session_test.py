@@ -1,1 +1,1 @@
-from ...SOURCE.modules import cfp_session
+from SOURCE.modules import cfp_session

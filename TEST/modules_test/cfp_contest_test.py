@@ -1,1 +1,1 @@
-from ...SOURCE.modules import cfp_contest
+from SOURCE.modules import cfp_contest

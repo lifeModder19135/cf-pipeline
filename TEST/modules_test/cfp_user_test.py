@@ -1,1 +1,1 @@
-from ...SOURCE.modules import cfp_user
+from SOURCE.modules import cfp_user
