@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import os, typing
-from ..lib import libcfapi_utils
+from SOURCE.lib import libcfapi_utils
 from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpConfigurationError, CfpMethodInputError
 from enum import Enum, Flag
 
