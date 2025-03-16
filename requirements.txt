@@ -2,4 +2,3 @@ click>=8.1.8
 pytest>=8.3.5
 invoke>=2.2.0
 requests>=2.32.3
-pytest>=8.3.5
