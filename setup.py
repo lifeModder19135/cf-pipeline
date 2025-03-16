@@ -7,9 +7,9 @@ setup(
     package_dir = {'cfpipeline': 'SOURCE', 'cfp_commands': 'SOURCE/commands', 'cfp_abstract': 'SOURCE/modules'},
     install_requires = [
         'click',
-        'poetry',
         'invoke',
         'pytest',
-        'ward'
+        'requests'
     ],
-    entry_points = {'console_scripts': ['cfp=cfpipeline.main:callcfpcommand']
+    entry_points = {'console_scripts': ['cfp=cfpipeline.main:callcfpcommand']}
+)
