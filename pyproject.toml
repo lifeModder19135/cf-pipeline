@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cf-pipeline"
+version = "0.0.1"
+authors = [
+  { name="Nate Tolbert", email="ntolbertu85@gmail.com" },
+]
+description = "A comprehensive Python API for Competitive Programming sites like Codeforces"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+]
+
+[project.urls]
+Homepage = "https://github.com/lifemodder19135/cf-pipeline"
