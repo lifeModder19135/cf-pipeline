@@ -5,7 +5,7 @@ from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError,
 from enum import Enum, Flag
 
 class Action(Flag):
-    """Represents possible actions that can be used on a ConfigFile.sections list"""
+    """Represents possible actions that can be used on a ConfigFile.sections list and ConfFileSection.keys_values_dict"""
     UPDATE = 1
     OVERWRITE = 2
     EMPTY = 3
