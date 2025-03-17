@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import os, typing
-from SOURCE.lib import libcfapi_utils
+# from SOURCE.lib import libcfapi_utils
 from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpConfigurationError, CfpMethodInputError
 from enum import Enum, Flag
 
@@ -17,6 +17,9 @@ class AppConfigurationOptions(Enum):
     """
 @dataclass
 class ConfFileSection:
+
+    __name_=''
+    __config_kvs = {}
     
     @property
     def name(self) -> str:
@@ -39,31 +42,37 @@ class ConfFileSection:
         return self.__config_kvs
 
     @keys_vals_dict.setter
-    def keys_vals_dict(self, action: Action, kvdict:dict) -> None:
+    def keys_vals_dict(self, action_values_list) -> None:
+        """
+        The param passed into this function needs to be a list with exactly 2 items. The first must be an Action (see the Flag enum above). The second MUST be a dict containing the keys and values to either add to the list (Action.UPDATE) or replace the current list (Action.OVERWRITE)
+        """
         input_bad = False
-        if type(kvdict) == dict:
-            for k,v in kvdict.items():
-                if type(k) != str or type(v) != str:
-                    input_bad = True
-            if input_bad == False:
-                if action == Action.OVERWRITE:
-                    self.__config_kvs = kvdict
-                elif action == Action.UPDATE:
-                    for k,v in kvdict.items():
-                        for key in self.__config_kvs.keys():
-                            if k == key:
-                                self.__config_kvs[key] = v
-                                kvdict.pop(k)
-                    self.__config_kvs.update(kvdict)
+        if type(action_values_list) == list and len(action_values_list) == 2 and action_values_list[0] == Action.OVERWRITE and type(action_values_list[1]) == dict or type(action_values_list) == list and len(action_values_list) == 2 and action_values_list[0] == Action.UPDATE and type(action_values_list[1]) == dict or type(action_values_list) == list and action_values_list[0] == Action.EMPTY and len(action_values_list) == 1:
+                for k,v in action_values_list[1].items():
+                    if type(k) != str or type(v) != str:
+                        input_bad = True
+                if input_bad == False:
+                    if action_values_list[0] == Action.OVERWRITE:
+                        self.__config_kvs = action_values_list[1]
+                    elif action_values_list[0] == Action.UPDATE:
+                        for k,v in action_values_list[1].items():
+                            for key in self.__config_kvs.keys():
+                                if k == key:
+                                    self.__config_kvs[key] = v
+                                    action_values_list[1].pop(k)
+                        self.__config_kvs.update(action_values_list[1])
+                    elif action_values_list[0] == Action.EMPTY:
+                        self.__config_kvs = []   
                 else:
                     raise CfpUserInputError
-
+        else: 
+            raise CfpUserInputError
 
     def __init__(self, name: str, description: str, action: Action, keys_vals_dict: dict={}):
 
-        self.name(name)
-        self.description(description)
-        self.keys_vals_dict(action, keys_vals_dict)
+        self.name = name
+        self.description = description
+        self.keys_vals_dict = [action, keys_vals_dict]
 
 class ConfigFile(object):
 
@@ -76,7 +85,7 @@ class ConfigFile(object):
 
     @sections.setter
     def sections(self, action: str = 'update', args: list=None)->None:
-        """"
+        """
         Sets the sections list. 
         The args parameter is a list of 0 ar more ConfFileSection objects to append to the sections list.
         The action parameter holds the action taken on the __sectslist_.
@@ -98,7 +107,8 @@ class ConfigFile(object):
         elif action == Action.OVERWRITE:
             self.__sectslist_ = []
             for a in args:
-                self.__sectslist_.append(a)
+                if type(a) == ConfFileSection:
+                    self.__sectslist_.append(a)
         elif action == Action.EMPTY:
             self.__sectslist_ = []
         elif action == Action.REFRESH:
@@ -195,16 +205,16 @@ class ConfigFile(object):
         
                             
 
-class AppConfiguration(typing.dict):
-    """
-    dict with config section names and inner dictionaries containing config opptions and values
-    """
-    # TODO:
-    #    - needs logic to check inner dicts and set values to class properties
-    #    - need to define properties
+# class AppConfiguration(typing.__dict__):
+#     """
+#     dict with config section names and inner dictionaries containing config opptions and values
+#     """
+#     # TODO:
+#     #    - needs logic to check inner dicts and set values to class properties
+#     #    - need to define properties
 
-    def __init__(self, conf_dict:dict=None, **kvpairs):
-        if conf_dict == None:
-            super().__init__(**kvpairs)
-        else:
-            super().__init__(conf_dict, **kvpairs)
+#     def __init__(self, conf_dict:dict=None, **kvpairs):
+#         if conf_dict == None:
+#             super().__init__(**kvpairs)
+#         else:
+#             super().__init__(conf_dict, **kvpairs)
