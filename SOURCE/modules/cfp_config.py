@@ -48,23 +48,23 @@ class ConfFileSection:
         """
         input_bad = False
         if type(action_values_list) == list and len(action_values_list) == 2 and action_values_list[0] == Action.OVERWRITE and type(action_values_list[1]) == dict or type(action_values_list) == list and len(action_values_list) == 2 and action_values_list[0] == Action.UPDATE and type(action_values_list[1]) == dict or type(action_values_list) == list and action_values_list[0] == Action.EMPTY and len(action_values_list) == 1:
-                for k,v in action_values_list[1].items():
-                    if type(k) != str or type(v) != str:
-                        input_bad = True
-                if input_bad == False:
-                    if action_values_list[0] == Action.OVERWRITE:
-                        self.__config_kvs = action_values_list[1]
-                    elif action_values_list[0] == Action.UPDATE:
-                        for k,v in action_values_list[1].items():
-                            for key in self.__config_kvs.keys():
-                                if k == key:
-                                    self.__config_kvs[key] = v
-                                    action_values_list[1].pop(k)
-                        self.__config_kvs.update(action_values_list[1])
-                    elif action_values_list[0] == Action.EMPTY:
-                        self.__config_kvs = []   
-                else:
-                    raise CfpUserInputError
+            for k,v in action_values_list[1].items():
+                if type(k) != str or type(v) != str:
+                    input_bad = True
+            if input_bad == False:
+                if action_values_list[0] == Action.OVERWRITE:
+                    self.__config_kvs = action_values_list[1]
+                elif action_values_list[0] == Action.UPDATE:
+                    for k,v in action_values_list[1].items():
+                        for key in self.__config_kvs.keys():
+                            if k == key:
+                                self.__config_kvs[key] = v
+                                action_values_list[1].pop(k)
+                    self.__config_kvs.update(action_values_list[1])
+                elif action_values_list[0] == Action.EMPTY:
+                    self.__config_kvs = []   
+            else:
+                raise CfpUserInputError
         else: 
             raise CfpUserInputError
 
@@ -84,34 +84,37 @@ class ConfigFile(object):
         return self.__sectslist_
 
     @sections.setter
-    def sections(self, action: str = 'update', args: list=None)->None:
+    def sections(self, action_and_args: list)->None:
         """
         Sets the sections list. 
-        The args parameter is a list of 0 ar more ConfFileSection objects to append to the sections list.
-        The action parameter holds the action taken on the __sectslist_.
+        The paramater is a list with either 1 or 2 items.
+        the first item is of type Action. If it is Action.EMPTY, it will be the only item. 
+        Anything else will have a second item. This must be a list.
+        This is a list of 0 ar more ConfFileSection objects to append to the sections list.
+        The action item holds the action taken on the __sectslist_.
         Possible actions are:
           - update: append args to __sectslist_
           - overwrite: clear __sectslist_ and then add args to the empty list
           - empty: clear __sectslist_ and leave it empty: args are not used
-          - refresh: stillworking on it
+          - refresh: still working on it. Not yet available.
         """
         #TODO: finish me
         if not self.__sectslist_:
             self.__sectslist_ = []
-        if action == Action.UPDATE:
-            for a in args:
+        if action_and_args[0] == Action.UPDATE:
+            for a in action_and_args[1]:
                 if type(a) == ConfFileSection:
                     self.__sectslist_.append(a)
                 else:
                     raise CfpTypeError()
-        elif action == Action.OVERWRITE:
+        elif action_and_args[0] == Action.OVERWRITE:
             self.__sectslist_ = []
-            for a in args:
+            for a in action_and_args[1]:
                 if type(a) == ConfFileSection:
                     self.__sectslist_.append(a)
-        elif action == Action.EMPTY:
+        elif action_and_args[0] == Action.EMPTY:
             self.__sectslist_ = []
-        elif action == Action.REFRESH:
+        elif action_and_args[0] == Action.REFRESH:
             self.__secnames = self.__get_section_names_from_conffile()
             for name in self.__secnames:
                 pass
