@@ -118,6 +118,8 @@ class ConfigFile(object):
             self.__secnames = self.__get_section_names_from_conffile()
             for name in self.__secnames:
                 pass
+        else:
+            raise CfpUserInputError
 
     @property
     def location_dirpath(self) -> str:
