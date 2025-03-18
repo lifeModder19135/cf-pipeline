@@ -137,10 +137,10 @@ class ConfigFile(object):
     def filename(self, fname) -> None:
         self.__file_name = fname
 
-    def __init__(self, location_dirpath: str, filename: str, sects: list=[], action: Action =Action.UPDATE):
-        self.sections(sects, 'update')
-        self.filename(filename)
-        self.location_dirpath(location_dirpath)
+    def __init__(self, location_dirpath: str, filename: str, action_sects_list: list=[]):
+        self.sections = action_sects_list
+        self.filename = filename
+        self.location_dirpath = location_dirpath
 
     def __get_section_names_from_conffile(self) -> "list[tuple]":
         sects_ls = []
@@ -204,6 +204,7 @@ class ConfigFile(object):
                             f.write('  ' + k + ' = ' + v)
             else:
                 raise CfpMethodInputError('First kv in input dict must be a section identifier')
+
     def __write_section_to_conf_file():
         pass
             
