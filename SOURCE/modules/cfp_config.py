@@ -59,7 +59,7 @@ class ConfFileSection:
                         for key in self.__config_kvs.keys():
                             if k == key:
                                 self.__config_kvs[key] = v
-                                action_values_list[1].pop(k)
+                                # action_values_list[1].pop(k)
                     self.__config_kvs.update(action_values_list[1])
                 elif action_values_list[0] == Action.EMPTY:
                     self.__config_kvs = []   
@@ -75,6 +75,8 @@ class ConfFileSection:
         self.keys_vals_dict = [action, keys_vals_dict]
 
 class ConfigFile(object):
+
+    
 
     @property
     def sections(self) -> 'list[ConfFileSection]':
@@ -99,14 +101,17 @@ class ConfigFile(object):
           - refresh: still working on it. Not yet available.
         """
         #TODO: finish me
-        if not self.__sectslist_:
-            self.__sectslist_ = []
+        # if not self.__sectslist_:
+        #     self.__sectslist_ = []
         if action_and_args[0] == Action.UPDATE:
-            for a in action_and_args[1]:
-                if type(a) == ConfFileSection:
-                    self.__sectslist_.append(a)
-                else:
-                    raise CfpTypeError()
+            if type(action_and_args[1]) == list:
+                for a in action_and_args[1]:
+                    if type(a) == ConfFileSection:
+                        self.__sectslist_.append(a)
+                    else:
+                        raise CfpTypeError()
+            else:
+                raise CfpUserInputError
         elif action_and_args[0] == Action.OVERWRITE:
             self.__sectslist_ = []
             for a in action_and_args[1]:
