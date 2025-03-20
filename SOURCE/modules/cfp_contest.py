@@ -211,29 +211,29 @@ class Contest:
     def __init__(self,contest_id: int, name: str,
                 contest_type: str, phase: str,
                 frozen: bool, durationSeconds: int,
-                startTimeSeconds: int, relativeTimeSeconds: int,preparedBy: str, websiteUrl: str,
+                startTimeSeconds: int, relativeTimeSeconds: int,
+                preparedBy: str, websiteUrl: str,
                 description: str, difficulty: int,
                 kind: str, icpcRegion: str,
                 country: str, city: str, season: str
     ):
-        self.contest_id(contest_id)
-        self.name(name)
-        self.contest_type(contest_type)
-        self.phase(phase)
-        self.frozen(frozen)
-        self.duration_seconds(durationSeconds)
-        self.start_time_seconds(startTimeSeconds)
-        self.relative_time_seconds(relativeTimeSeconds)
-        self.prepared_by(preparedBy)
-        self.website_url(websiteUrl)
-        self.description(description)
-        self.difficulty(difficulty)
-        self.kind(kind)
-        self.icpc_region(icpcRegion)
-        self.country(country)
-        self.city(city)
-        self.season(season)                         
-
+        self.contest_id = contest_id
+        self.name = name
+        self.contest_type = contest_type
+        self.phase = phase
+        self.frozen = frozen
+        self.duration_seconds = durationSeconds
+        self.start_time_seconds = startTimeSeconds
+        self.relative_time_seconds = relativeTimeSeconds
+        self.prepared_by = preparedBy
+        self.website_url = websiteUrl
+        self.description = description
+        self.difficulty = difficulty
+        self.kind = kind
+        self.icpc_region = icpcRegion
+        self.country = country
+        self.city = city
+        self.season = season                        
 # contest_id: int = -1
 # name: str = ''  # Localized.
 # contest_type: str = ''  # Enum: CF, IOI, ICPC. Scoring system used for the contest.
