@@ -233,7 +233,9 @@ class Contest:
         self.icpc_region = icpcRegion
         self.country = country
         self.city = city
-        self.season = season                        
+        self.season = season 
+        
+                               
 # contest_id: int = -1
 # name: str = ''  # Localized.
 # contest_type: str = ''  # Enum: CF, IOI, ICPC. Scoring system used for the contest.
