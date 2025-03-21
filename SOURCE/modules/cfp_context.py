@@ -397,355 +397,6 @@ class InputHandler(IOHandlerBase):
         super().__init__(args, kwargs)
         self.input_type(itype)
 
-
-class InputFileHandler(InputHandler):
-    """
-    Description: IOHandler for an input file
-    """    
-    #TODO: 
-    #   Add methods: load_file, handle
-    #   Add property: handle_action:
-    
-    @property
-    def current_file(self) -> "this.CfpFile":
-        """The current_file property."""
-        return self.__f_curr
-    
-    @current_file.setter
-    def current_file(self, value:"this.CfpFile") -> None:
-        self.__f_curr = value
-    
-    @property
-    def files_previously_handled(self) -> "list[this.CfpFile]":
-        """The files_previously_handled property."""
-        return self.__previous_files
-    
-    @files_previously_handled.setter
-    def files_previously_handled(self, value:"list[this.CfpFile]"=None) -> None:
-        self.__previous_files = value
-    
-    @property
-    def files_on_deck(self) -> "list[this.CfpFile]":
-        """The files_on_deck property."""
-        return self.__files_on_deck
-    
-    @files_on_deck.setter
-    def files_on_deck(self, value) -> None:
-        self.__files_on_deck = value
-
-    def get_content_from_current(self, format:FileType=FileType.CFP_INPUTFILE_TEXT_FMT_1) -> "this.CfpFile":
-        with open(self.current_file) as curr:
-            lines = []
-            for line in curr:
-                lines.append(line)
-
-    def __init__(self, file:"this.CfpFile"=None, *args, **kwargs):
-        super().__init__(InputType.INFILE, *args, **kwargs)        
-
-class OutputHandler(IOHandlerBase):
-    """
-    Description: Active container which implements an interface for controlling what happens to, and what is affected by, the output of a runner in a context.
-    """
-    # TODO:
-    #   - add implementation
-
-    def to_file(self, fullpath, encoding:str="UTF-8")-> None:
-        try:
-           ofile = open(fullpath, "w", encoding=encoding)
-        except IOError:
-            raise CfpUserInputError from CfpIOError
-        except BaseException as e:
-            raise CfpRuntimeError from e
-
-########                                                                                         ########
-########################################  ~~~~ RUNNER_SUBS ~~~~  ########################################
-########                                                                                         ########     
-
-class InputCommandString(str):
-    """
-    description: represents a string containing one or more shell commands
-    properties:
-        shell_lang: see method docstring
-    """
-    # TODO:
-
-    @property
-    def primary_shellchoice(self):
-        """
-        Description: This is the shell that this object's shellscript code should be evaluated with
-        Returns: The shell_lang property's current value
-        Defaults to: Bash 
-        """
-        if not self.__flavor:
-            self.__pref_rnr_sh = 'Bash'
-        return self.__flavor
-    
-    @primary_shellchoice.setter
-    def primary_shellchoice(self,sh):
-        self.__rnr_sh = sh
-
-    def to_cmd_objs(self):
-        """
-        Description: This method converts the method to a list of Command objects.
-        Returns: 
-        """
-        pass 
-
-
-class Program(Path):
-    """
-    Description: Represents a running instance of a computer program.
-    properties: 
-        operating_system (str): The os on which the program is running
-        invoked_by (str): The username of the account that the program was executed under.
-        fullpath (str): full path to the program's executable file.
-    """
-    # TODO:
-    
-    @property
-    def operating_system(self) -> str:
-        """The os on which the program is running."""
-        return self.__op_sys
-    
-    
-    @operating_system.setter
-    def operating_system(self, o_s:str=None) -> None:
-        if o_s is None:
-            self.__op_sys = sys.platform
-        else:
-            self.__op_sys = o_s
-    
-    @property
-    def invoked_by(self)-> str:
-        """The username of the account that the program was executed under"""
-        return self.__caller
-    
-    @invoked_by.setter
-    def invoked_by(self, user:str=None)-> None:
-        if user is None:
-            self.__caller = str(os.path.expandvars('$USER'))
-        elif type(user) == str:
-            self.__caller = user
-        else:
-            raise CfpTypeError()
-            
-    @property
-    def fullpath(self)-> Path:
-        return self.__full_path
-    
-    @fullpath.setter
-    def fullpath(self, val:str)-> None:
-        if type(val) is str:
-            self.__full_path = Path(val)
-        elif type(val) is Path:
-            self.__full_path = val
-        else:
-            raise CfpTypeError
-
-    def __init__(self, name_or_path:str):
-        p = super().__init__(name_or_path)
-        if not p.exists:
-            self.fullpath(shutil.which(p))
-            if self.fullpath() == None:
-                raise CfpNotExecutableError
-            try:
-                o_p = open(p)
-            except PermissionError:
-                raise CfpPermissionDeniedError
-            self.fullpath(name_or_path)
-            
-    def run(self,shell_errors_fail:bool=False):
-        """
-        Description: A very simple builtin runner that runs the program without args and returns the output. No option for pipes, etc.
-        Raises:
-            CfpPermissionDeniedError: User doesn't have permissions required to run the specified program
-            CfpTimeoutError: Process did not return within the allotted time
-            CfpRuntimeError: Catchall for any other runtime errors
-        Returns:
-            str: process output
-        """
-        try:
-            r_p = subprocess.run(self.fullpath, capture_output=True)
-        except PermissionError:
-            raise CfpPermissionDeniedError
-        except subprocess.TimeoutExpired:
-            raise CfpTimeoutError
-        except subprocess.SubprocessError:
-            raise CfpRuntimeError
-        else:
-            if str(r_p.returncode) != '0':
-                if shell_errors_fail == True:
-                    print(str('Cfp Runtime Exception: process returned with status ', r_p.returncode, ' and message ', r_p.stderr))
-                    raise CfpRuntimeError
-                else:
-                    print(str('Process returned with status ', r_p.returncode, ' and message ', r_p.stderr))
-            else:
-                return str(r_p.stdout)
-
-
-class CmdArg(str):
-
-    """
-    properties:
-        [type]: [description]
-    """
-    # TODO:
-
-    def __init__(self, input_src):
-        super().__init__(input_src)
-
-    def as_str(self):
-        try:
-            return str(self)
-        except BaseException as e:
-            raise CfpRuntimeError from e
-
-    def as_int(self):
-        try:
-            return int(self)
-        except BaseException as e:
-            raise CfpRuntimeError from e
-
-
-class CmdArgString(str):    
-    """
-    properties:
-        [type]: [description]
-    """
-    # TODO:
-
-    def __init__(self, *args):
-        super().__init__(args)
-
-class CmdArgList:
-    """
-    properties:
-        args: the actual arguments list. Type is list[CmdArg]
-    """
-    # TODO:
-
-    @property
-    def args(self)-> "list[CmdArg]":
-        return self.__args
-
-    @args.setter
-    def args(self,*args)-> None:
-        a_ls = []
-        for arg in args:
-            if type(arg) is CmdArg():
-                a_ls.append(arg)
-            elif type(arg) is str or type(arg) is int:
-                a_ls.append(CmdArg(str(arg)))
-            elif type(arg) is list or type(arg) is tuple:
-                for i in arg:
-                    a_ls.append(CmdArg(str(i)))
-        self.__args = a_ls
-
-    @property
-    def args_count(self)-> int:
-        if not self.__args():
-            return 0
-        else:
-            return len(self.__args)
-
-    def to_argstring(self):
-        a_str = ''
-        for a in self.args:
-            if a_str == '':
-                a_str = a
-            else:
-                a_str = a_str + ' ' + a
-        else:
-            if a_str == '':
-                return None
-            else:
-                return a_str.lstrip().rstrip()
-
-    def __addlist(self, ls: list):
-        if type(ls) is not list:
-            raise CfpTypeError
-        else:
-            for i in ls:
-                self.__args.append(CmdArg(i))
-
-    def __addtuple(self, tup:tuple):
-        if type(tup) is not tuple:
-            raise CfpTypeError
-        else:
-            for i in tup:
-                self.__args.append(CmdArg(str(i)))            
-
-    def __addint(self, i:int):
-        if type(i) is not int:
-            raise CfpTypeError
-        else:
-            self.__args.append(CmdArg(str(i)))
-
-    def __addstring(self, s:str):
-        if type(s) is not str and type(s) is not string:
-            raise CfpTypeError
-        else:
-            self.__args.append(CmdArg(str(s)))
-
-    def __addcmdarg(self, a:CmdArg):
-        if type(a) is not CmdArg:
-            raise CfpTypeError
-        else:
-            self.__args.append(a)
-
-    def __init__(self, *input):
-        for i in input:
-            if type(i) is CmdArg:
-                self.__addcmdarg(i)
-            if type(i) is list:
-                self.__addlist(i)
-            elif type(i) is tuple:
-                self.__addtuple(i)
-            elif type(i) is int:
-                self.__addint(i)
-            elif type(i) is str or type(i) is string:
-                self.__addstring(i)
-            else:
-                raise CfpTypeError
-
-class Command:
-    """
-    properties:
-        [type]: [description]
-    """
-    # TODO:
-
-    @property
-    def executable(self)-> Program:
-        return self._exec
-
-    @executable.setter
-    def executable(self, prog:Program)-> str:
-        self.__exec = prog
-
-    @property
-    def args(self)-> list:
-        return self.__args
-    
-    @args.setter
-    def args(self, *args)-> None:
-        try:
-            arg_ls = []
-            for arg in args:
-                arg_ls.append(arg)
-            self.__args = arg_ls
-        except TypeError:
-            raise CfpTypeError
-        except ValueError:
-            raise CfpValueError
-        except BaseException as e:
-            raise CfpRuntimeError from e
-
-    def __init__(self, exe:Program, *args):
-        self.executable(exe)
-        self.args(args)
-
-
 @dataclass
 class CfpFile:
     """
@@ -821,13 +472,369 @@ class CfpFile:
         pass
         
 
+class InputFileHandler(InputHandler):
+    """
+    Description: IOHandler for an input file
+    """    
+    #TODO: 
+    #   Add methods: load_file, handle
+    #   Add property: handle_action:
+    
+    @property
+    def current_file(self) -> CfpFile:
+        """The current_file property."""
+        return self.__f_curr
+    
+    @current_file.setter
+    def current_file(self, value:CfpFile) -> None:
+        self.__f_curr = value
+    
+    @property
+    def files_previously_handled(self) -> list[CfpFile]:
+        """The files_previously_handled property."""
+        return self.__previous_files
+    
+    @files_previously_handled.setter
+    def files_previously_handled(self, value:"list[this.CfpFile]"=None) -> None:
+        self.__previous_files = value
+    
+    @property
+    def files_on_deck(self) -> list[CfpFile]:
+        """The files_on_deck property."""
+        return self.__files_on_deck
+    
+    @files_on_deck.setter
+    def files_on_deck(self, value) -> None:
+        self.__files_on_deck = value
+
+    def get_content_from_current(self, format:FileType=FileType.CFP_INPUTFILE_TEXT_FMT_1) -> CfpFile:
+        with open(self.current_file) as curr:
+            lines = []
+            for line in curr:
+                lines.append(line)
+
+    def __init__(self, file:CfpFile=None, *args, **kwargs):
+        super().__init__(InputType.INFILE, *args, **kwargs)        
+
+class OutputHandler(IOHandlerBase):
+    """
+    Description: Active container which implements an interface for controlling what happens to, and what is affected by, the output of a runner in a context.
+    """
+    # TODO:
+    #   - add implementation
+
+    def to_file(self, fullpath, encoding:str="UTF-8")-> None:
+        try:
+           ofile = open(fullpath, "w", encoding=encoding)
+        except IOError:
+            raise CfpUserInputError from CfpIOError
+        except BaseException as e:
+            raise CfpRuntimeError from e
+
+########                                                                                         ########
+########################################  ~~~~ RUNNER_SUBS ~~~~  ########################################
+########                                                                                         ########     
+
+class InputCommandString(str):
+    """
+    description: represents a string containing one or more shell commands
+    properties:
+        shell_lang: see method docstring
+    """
+    # TODO:
+
+    @property
+    def primary_shellchoice(self)->str:
+        """
+        Description: This is the shell that this object's shellscript code should be evaluated with
+        Returns: The shell_lang property's current value
+        Defaults to: Bash 
+        """
+        if not self.__flavor:
+            self.__pref_rnr_sh = 'Bash'
+        return self.__flavor
+    
+    @primary_shellchoice.setter
+    def primary_shellchoice(self,sh)->None:
+        self.__rnr_sh = sh
+
+    def to_cmd_objs(self):
+        """
+        Description: This method converts the method to a list of Command objects.
+        Returns: 
+        """
+        pass 
+
+
+class Program(Path):
+    """
+    Description: Represents a running instance of a computer program.
+    properties: 
+        operating_system (str): The os on which the program is running
+        invoked_by (str): The username of the account that the program was executed under.
+        fullpath (str): full path to the program's executable file.
+    """
+    # TODO:
+    
+    @property
+    def operating_system(self) -> str:
+        """The os on which the program is running."""
+        return self.__op_sys
+    
+    
+    @operating_system.setter
+    def operating_system(self, o_s:str=None) -> None:
+        if o_s is None:
+            self.__op_sys = sys.platform
+        else:
+            self.__op_sys = o_s
+    
+    @property
+    def invoked_by(self)-> str:
+        """The username of the account that the program was executed under"""
+        return self.__caller
+    
+    @invoked_by.setter
+    def invoked_by(self, user:str=None)-> None:
+        if user is None:
+            self.__caller = str(os.path.expandvars('$USER'))
+        elif type(user) == str:
+            self.__caller = user
+        else:
+            raise CfpTypeError()
+            
+    @property
+    def fullpath(self)-> Path:
+        return self.__full_path
+    
+    @fullpath.setter
+    def fullpath(self, val:str)-> None:
+        if type(val) is str:
+            self.__full_path = Path(val)
+        elif type(val) is Path:
+            self.__full_path = val
+        else:
+            raise CfpTypeError
+
+    def __init__(self, name_or_path:str):
+        p = super().__init__(name_or_path)
+        if not p.exists:
+            self.fullpath(shutil.which(p))
+            if self.fullpath() == None:
+                raise CfpNotExecutableError
+            try:
+                o_p = open(p)
+            except PermissionError:
+                raise CfpPermissionDeniedError
+            self.fullpath(name_or_path)
+            
+    def run(self,shell_errors_fail:bool=False)->str:
+        """
+        Description: A very simple builtin runner that runs the program without args and returns the output. No option for pipes, etc.
+        Raises:
+            CfpPermissionDeniedError: User doesn't have permissions required to run the specified program
+            CfpTimeoutError: Process did not return within the allotted time
+            CfpRuntimeError: Catchall for any other runtime errors
+        Returns:
+            str: process output
+        """
+        try:
+            r_p = subprocess.run(self.fullpath, capture_output=True)
+        except PermissionError:
+            raise CfpPermissionDeniedError
+        except subprocess.TimeoutExpired:
+            raise CfpTimeoutError
+        except subprocess.SubprocessError:
+            raise CfpRuntimeError
+        else:
+            if str(r_p.returncode) != '0':
+                if shell_errors_fail == True:
+                    print(str('Cfp Runtime Exception: process returned with status ', r_p.returncode, ' and message ', r_p.stderr))
+                    raise CfpRuntimeError
+                else:
+                    print(str('Process returned with status ', r_p.returncode, ' and message ', r_p.stderr))
+            else:
+                return str(r_p.stdout)
+
+
+class CmdArg(str):
+
+    """
+    properties:
+        [type]: [description]
+    """
+    # TODO:
+
+    def __init__(self, input_src):
+        super().__init__(input_src)
+
+    def as_str(self)->str:
+        try:
+            return str(self)
+        except BaseException as e:
+            raise CfpRuntimeError from e
+
+    def as_int(self)->int:
+        try:
+            return int(self)
+        except BaseException as e:
+            raise CfpRuntimeError from e
+
+
+class CmdArgString(str):    
+    """
+    properties:
+        [type]: [description]
+    """
+    # TODO:
+
+    def __init__(self, *args):
+        super().__init__(args)
+
+class CmdArgList:
+    """
+    properties:
+        args: the actual arguments list. Type is list[CmdArg]
+    """
+    # TODO:
+
+    @property
+    def args(self)-> list[CmdArg]:
+        return self.__args
+
+    @args.setter
+    def args(self,*args)-> None:
+        a_ls = []
+        for arg in args:
+            if type(arg) is CmdArg():
+                a_ls.append(arg)
+            elif type(arg) is str or type(arg) is int:
+                a_ls.append(CmdArg(str(arg)))
+            elif type(arg) is list or type(arg) is tuple:
+                for i in arg:
+                    a_ls.append(CmdArg(str(i)))
+        self.__args = a_ls
+
+    @property
+    def args_count(self)-> int:
+        if not self.__args():
+            return 0
+        else:
+            return len(self.__args)
+
+    def to_argstring(self)->str:
+        a_str = ''
+        for a in self.args:
+            if a_str == '':
+                a_str = a
+            else:
+                a_str = a_str + ' ' + a
+        else:
+            if a_str == '':
+                return None
+            else:
+                return a_str.lstrip().rstrip()
+
+    def __addlist(self, ls: list)->None:
+        if type(ls) is not list:
+            raise CfpTypeError
+        else:
+            for i in ls:
+                self.__args.append(CmdArg(i))
+
+    def __addtuple(self, tup:tuple)->None:
+        if type(tup) is not tuple:
+            raise CfpTypeError
+        else:
+            for i in tup:
+                self.__args.append(CmdArg(str(i)))            
+
+    def __addint(self, i:int)->None:
+        if type(i) is not int:
+            raise CfpTypeError
+        else:
+            self.__args.append(CmdArg(str(i)))
+
+    def __addstring(self, s:str)->None:
+        if type(s) is not str and type(s) is not str:
+            raise CfpTypeError
+        else:
+            self.__args.append(CmdArg(str(s)))
+
+    def __addcmdarg(self, a:CmdArg)->None:
+        if type(a) is not CmdArg:
+            raise CfpTypeError
+        else:
+            self.__args.append(a)
+
+    def __init__(self, *input):
+        for i in input:
+            if type(i) is CmdArg:
+                self.__addcmdarg(i)
+            if type(i) is list:
+                self.__addlist(i)
+            elif type(i) is tuple:
+                self.__addtuple(i)
+            elif type(i) is int:
+                self.__addint(i)
+            elif type(i) is str or type(i) is str:
+                self.__addstring(i)
+            else:
+                raise CfpTypeError
+
+class Command:
+    """
+    properties:
+        [type]: [description]
+    """
+    # TODO:
+
+    @property
+    def executable(self)-> Program:
+        return self._exec
+
+    @executable.setter
+    def executable(self, prog: Program)-> str:
+        self.__exec = prog
+
+    @property
+    def args(self)-> list:
+        return self.__args
+    
+    @args.setter
+    def args(self, *args)-> None:
+        try:
+            arg_ls = []
+            for arg in args:
+                arg_ls.append(arg)
+            self.__args = arg_ls
+        except TypeError:
+            raise CfpTypeError
+        except ValueError:
+            raise CfpValueError
+        except BaseException as e:
+            raise CfpRuntimeError from e
+
+    def __init__(self, exe:Program, *args):
+        self.executable(exe)
+        self.args(args)
+
+
+
+
 class Task:
     """
     Represents a group of one or more commands connected together via pipes / fifos. IMPORTANT: commands which are connected via `&&` , `||` , or `;` are not 
     """
     # TODO:
 
-    content:"list[Command]" = None
+    @property
+    def content(self)->list[Command]:
+        return self.__content
+    
+    @content.setter
+    def content(self, c: str)->None:
+        self.__content = c 
     
     def __init__(self):
         pass
@@ -842,30 +849,30 @@ class ShellProgram(Program):
         run: start the program via the launchpath
     """
     @property
-    def name(self):
+    def name(self)->str:
         return self.__namestr
     
     @name.setter
-    def name(self, arg):
+    def name(self, arg)->None:
         self.__namestr = arg
         
     @property
-    def launchpath(self):
+    def launchpath(self)->Path:
         return self.__launch_path
     
     @launchpath.setter
-    def launchpath(self, lp: Path):
+    def launchpath(self, lp: Path)->None:
         self.__launch_path = lp
         
     @property
-    def command_concat(self):
+    def command_concat(self)->str:
         """
         This string is used to concat the command strings. Expects values such as '&&'.
         """
         return self.__cmd_concat
     
     @command_concat.setter
-    def command_concat(self, val):
+    def command_concat(self, val)->None:
         self.__cmd_concat = str(val)
         
     def __init__(self, name:str, concat:str, altpath:Path=None):
@@ -874,14 +881,14 @@ class ShellProgram(Program):
         self.launchpath(altpath)
         super().__init__()
         
-    def run_task(self, task:Task):
+    def run_task(self, task:Task)->None:
         if self.launchpath is not None:
             callstr = str(self.launchpath(), ' ', task.as_string(self.command_concat()))
         else:
             callstr = str(self.path, ' ', task.as_string(self.command_concat()))
         output = subprocess.run(callstr)
     
-    def run_task_via_progpath_call(self, task:Task):
+    def run_task_via_progpath_call(self, task:Task)->None:
         callstr = str(self.path, ' ', task.as_string(self.command_concat()))
         sub = subprocess.run(callstr)
 
@@ -904,7 +911,7 @@ class Job:
         self.__aliases = vals    
     
     @property
-    def content(self) -> "tuple[ShellProgram,Task]":
+    def content(self) -> tuple[ShellProgram,Task]:
         return self.__content
     
     @content.setter
@@ -923,7 +930,7 @@ class Job:
         else:
             self.content = cmd_ls
     
-    def to_string(self):
+    def to_string(self)->str:
         try:
             progpath = which(str(self.content[0]))
             cmd_str = ' '.join(list(self.self.content[1]))
@@ -1004,7 +1011,7 @@ class BaseRunner:
                 raise CfpUserInputError("If included, value for infile must be a valid path")        
              
 
-    def InitializeIOHandler(self, *handler_args, **handler_kwargs):
+    def InitializeIOHandler(self, *handler_args, **handler_kwargs)->IOHandlerBase:
         """
         Description: creates and returns an IOHandler with 
         Args:
@@ -1022,6 +1029,7 @@ class BaseRunner:
         if self.infile():
             handler = IOHandlerBase(self.infile(), handler_args)
         return handler
+
 
 class CfpRunner(BaseRunner):
     """
@@ -1051,9 +1059,6 @@ class CfpRunner(BaseRunner):
     @topipe.setter
     def topipe(self, to_pipe:bool) -> None:
         self.__topipe = to_pipe
-
-    @property
-
 
     @property
     def argstring(self) -> CmdArgString :
@@ -1131,7 +1136,7 @@ class CfpRunner(BaseRunner):
             raise e
         return True
 
-    def __subprocrun_rnr_run_cmdstring(command_string, ):
+    def __subprocrun_rnr_run_cmdstring(command_string: str)->None:
         try:
             subprocess.run(command_string,)
         except subprocess.SubprocessError:
@@ -1188,14 +1193,14 @@ class Context:
             elif overwrite == False:
                 raise CfpOverwriteNotAllowedError
                    
-    def putenv(self,k, v):
+    def putenv(self,k, v)->bool:
         self.env_dict().update({k: v})
         return True
             
-    def getenv(self, key):
+    def getenv(self, key)->str:
         return self.env_dict[key]
     
-    def get_info(self,outputFmt:str):
+    def print_info(self,outputFmt:str)->None:
         """
         TODO: make sure this is tested with a populated env_dict.
         """
@@ -1255,7 +1260,7 @@ class CfpShellContext(Context):
         else:
             return False
 
-    def run_ctx(self,shellpath_clean):
+    def run_ctx(self, shellpath_clean):
         self.__run_jobs_with_runner(self.job_runner, shellpath_clean)        
         
     def __run_jobs_with_runner(self, job_runner: CfpRunner, shellpath: str):
