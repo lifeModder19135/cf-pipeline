@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 # from tomlkit import string
 from .cfp_errors import CfpIOError, CfpInitializationError, CfpNotExecutableError, CfpPermissionDeniedError, CfpRuntimeError, CfpTimeoutError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpValueError
-from enum import Enum
+from enum import Enum, Flag
 from shutil import which
 from shlex import shlex, split, join
 from pathlib import Path
@@ -183,7 +183,7 @@ from . import cfp_context as this
 ###########################################  ~~~~ ENUMS ~~~~  ###########################################
 ########                                                                                         ########
 
-class RunType(Enum):
+class RunType(Flag):
     """
     Description: RunType is an attribute of a runner which determines what happens when its run method is called.
     properties:
@@ -202,7 +202,7 @@ class RunType(Enum):
     SUBPROCESS_LEGACY = {'description_string': 'subprocess_legacy', 
                          'exec_string': 'subprocess.check_output'}    
     
-class ResultResolutionMode(Enum):
+class ResultResolutionMode(Flag):
     """
     Description: This is meant to be a parameter for functions that configure one or more values that are persisted in the application after the function call finishes. It lets the caller specify how they want that value to be set /given. For example, the function could pass the value to its caller via return stmt, set a class variable, add a kv pair to env_dict, etc. To use, just add a kwarg of `arg: ResultResolutionMode = XXX` to func, where XXXX (the default) is one of the options below.
     """
@@ -216,7 +216,7 @@ class ResultResolutionMode(Enum):
     def Resolver(self)->bool:
         exec(self.value)
 
-class IOType(Enum):
+class IOType(Flag):
     """
     Description: An Enum used for defining whether an IO object is to be used with input or output.
     Values: 
@@ -229,7 +229,7 @@ class IOType(Enum):
     OUTPUT = 1
     SOURCE = 2
 
-class InputType(Enum):
+class InputType(Flag):
     """
     properties:
         Enum ([type]): [description]
@@ -241,7 +241,7 @@ class InputType(Enum):
     INSTRING = 2
     INPIPE = 3
 
-class OutputType(Enum):
+class OutputType(Flag):
     """
     properties:
         Enum ([type]): [description]
@@ -252,7 +252,7 @@ class OutputType(Enum):
     OUTSTREAM = 1
     OUTPIPE = 2
 
-class FileType(Enum):
+class FileType(Flag):
     """
     properties:
         Enum ([type]): [description]
@@ -276,7 +276,7 @@ class FileType(Enum):
     DIRECTORY = 14
 
 
-class LanguageChoice(Enum):
+class LanguageChoice(Flag):
     """
     description: a collection of names of programming languages
     properties:
@@ -309,7 +309,7 @@ class LanguageChoice(Enum):
     # def __init__(self):
     #     super.__init__()
 
-class Openability(Enum):
+class Openability(Flag):
     """For a file, represents whether or not it can be opened, and usually, the reason."""
     OPENABLE = 0
     NO_FILE = 1
