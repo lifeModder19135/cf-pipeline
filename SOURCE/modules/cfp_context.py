@@ -331,13 +331,13 @@ class IOHandlerBase:
     # TODO:
 
     @property
-    def handler_args(self):
+    def handler_args(self)->list:
         if not self.__hndlr_args:    
             self.__hndlr_args = []
         return self.__hndlr_args
 
     @handler_args.setter
-    def handler_args(self, ls:list):
+    def handler_args(self, ls:list)->None:
         self.__hndlr_args = ls
 
     @property
@@ -352,7 +352,7 @@ class IOHandlerBase:
         self.__io_t = iotype
 
     @io_type.setter
-    def io_type_fromstring(self, io_type:IOType):
+    def io_type_fromstring(self, io_type:IOType)->None:
         """
         Sets io_type from string. io_type is either input, source, or output, otherwise throw error.
         """
@@ -386,12 +386,12 @@ class InputHandler(IOHandlerBase):
     # TODO:
 
     @property
-    def input_type(self):
+    def input_type(self)->InputType:
         return self.__inp_t
 
     @input_type.setter
-    def input_type(self,type_str: str)->bool:
-        self.__inp_t = type_str    
+    def input_type(self,type: InputType)->None:
+        self.__inp_t = type    
 
     def __init__(self, itype: str, *args, **kwargs):
         super().__init__(args, kwargs)
