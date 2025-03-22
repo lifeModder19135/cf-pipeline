@@ -213,7 +213,7 @@ class ResultResolutionMode(Flag):
     INSTANCE_PROPERTY = '"{}({})".format(args[2], args[3])'
     ENV_DICT = '"self.putenv({},{})".format(args[2], args[3])'
 
-    def Resolver(self) ->bool:
+    def Resolver(self) -> bool:
         exec(self.value)
 
 class IOType(Flag):
@@ -337,22 +337,22 @@ class IOHandlerBase:
         return self.__hndlr_args
 
     @handler_args.setter
-    def handler_args(self, ls:list) ->None:
+    def handler_args(self, ls:list) -> None:
         self.__hndlr_args = ls
 
     @property
-    def io_type(self) ->IOType:
+    def io_type(self) -> iOType:
         return self.__io_t
 
     @io_type.setter
-    def io_type(self, iotype: IOType) ->None:
+    def io_type(self, iotype: IOType) -> None:
         """
         Sets io_type from IOType Enum object. io_type is either INPUT, SOURCE, or OUTPUT, otherwise throw error.
         """
         self.__io_t = iotype
 
     @io_type.setter
-    def io_type_fromstring(self, io_type:IOType) ->None:
+    def io_type_fromstring(self, io_type:IOType) -> None:
         """
         Sets io_type from string. io_type is either input, source, or output, otherwise throw error.
         """
@@ -386,11 +386,11 @@ class InputHandler(IOHandlerBase):
     # TODO:
 
     @property
-    def input_type(self) ->InputType:
+    def input_type(self) -> inputType:
         return self.__inp_t
 
     @input_type.setter
-    def input_type(self,type: InputType) ->None:
+    def input_type(self,type: InputType) -> None:
         self.__inp_t = type    
 
     def __init__(self, itype: str, *args, **kwargs):
@@ -469,8 +469,7 @@ class CfpFile:
         pass
 
     def from_scratch(self, header):
-        pass
-        
+        pass       
 
 class InputFileHandler(InputHandler):
     """
@@ -544,7 +543,7 @@ class InputCommandString(str):
     # TODO:
 
     @property
-    def primary_shellchoice(self) ->str:
+    def primary_shellchoice(self) -> str:
         """
         Description: This is the shell that this object's shellscript code should be evaluated with
         Returns: The shell_lang property's current value
@@ -555,7 +554,7 @@ class InputCommandString(str):
         return self.__flavor
     
     @primary_shellchoice.setter
-    def primary_shellchoice(self,sh) ->None:
+    def primary_shellchoice(self,sh) -> None:
         self.__rnr_sh = sh
 
     def to_cmd_objs(self):
@@ -564,7 +563,6 @@ class InputCommandString(str):
         Returns: 
         """
         pass 
-
 
 class Program(Path):
     """
@@ -628,7 +626,7 @@ class Program(Path):
                 raise CfpPermissionDeniedError
             self.fullpath(name_or_path)
             
-    def run(self,shell_errors_fail:bool=False) ->str:
+    def run(self,shell_errors_fail:bool=False) -> str:
         """
         Description: A very simple builtin runner that runs the program without args and returns the output. No option for pipes, etc.
         Raises:
@@ -656,7 +654,6 @@ class Program(Path):
             else:
                 return str(r_p.stdout)
 
-
 class CmdArg(str):
 
     """
@@ -668,18 +665,17 @@ class CmdArg(str):
     def __init__(self, input_src):
         super().__init__(input_src)
 
-    def as_str(self) ->str:
+    def as_str(self) -> str:
         try:
             return str(self)
         except BaseException as e:
             raise CfpRuntimeError from e
 
-    def as_int(self) ->int:
+    def as_int(self) -> int:
         try:
             return int(self)
         except BaseException as e:
             raise CfpRuntimeError from e
-
 
 class CmdArgString(str):    
     """
@@ -699,7 +695,7 @@ class CmdArgList:
     # TODO:
 
     @property
-    def args(self) -> list[CmdArg]:
+    def args(self) -> List[CmdArg]:
         return self.__args
 
     @args.setter
@@ -722,7 +718,7 @@ class CmdArgList:
         else:
             return len(self.__args)
 
-    def to_argstring(self) ->str:
+    def to_argstring(self) -> str:
         a_str = ''
         for a in self.args:
             if a_str == '':
@@ -735,33 +731,33 @@ class CmdArgList:
             else:
                 return a_str.lstrip().rstrip()
 
-    def __addlist(self, ls: list) ->None:
+    def __addlist(self, ls: list) -> None:
         if type(ls) is not list:
             raise CfpTypeError
         else:
             for i in ls:
                 self.__args.append(CmdArg(i))
 
-    def __addtuple(self, tup:tuple) ->None:
+    def __addtuple(self, tup:tuple) -> None:
         if type(tup) is not tuple:
             raise CfpTypeError
         else:
             for i in tup:
                 self.__args.append(CmdArg(str(i)))            
 
-    def __addint(self, i:int) ->None:
+    def __addint(self, i:int) -> None:
         if type(i) is not int:
             raise CfpTypeError
         else:
             self.__args.append(CmdArg(str(i)))
 
-    def __addstring(self, s:str) ->None:
+    def __addstring(self, s:str) -> None:
         if type(s) is not str and type(s) is not str:
             raise CfpTypeError
         else:
             self.__args.append(CmdArg(str(s)))
 
-    def __addcmdarg(self, a:CmdArg) ->None:
+    def __addcmdarg(self, a:CmdArg) -> None:
         if type(a) is not CmdArg:
             raise CfpTypeError
         else:
@@ -830,7 +826,7 @@ class Task:
         return self.__content
     
     @content.setter
-    def content(self, c: str) ->None:
+    def content(self, c: str) -> None:
         self.__content = c 
     
     def __init__(self):
@@ -846,11 +842,11 @@ class ShellProgram(Program):
         run: start the program via the launchpath
     """
     @property
-    def name(self) ->str:
+    def name(self) -> str:
         return self.__namestr
     
     @name.setter
-    def name(self, arg) ->None:
+    def name(self, arg) -> None:
         self.__namestr = arg
         
     @property
@@ -858,18 +854,18 @@ class ShellProgram(Program):
         return self.__launch_path
     
     @launchpath.setter
-    def launchpath(self, lp: Path) ->None:
+    def launchpath(self, lp: Path) -> None:
         self.__launch_path = lp
         
     @property
-    def command_concat(self) ->str:
+    def command_concat(self) -> str:
         """
         This string is used to concat the command strings. Expects values such as '&&'.
         """
         return self.__cmd_concat
     
     @command_concat.setter
-    def command_concat(self, val) ->None:
+    def command_concat(self, val) -> None:
         self.__cmd_concat = str(val)
         
     def __init__(self, name:str, concat:str, altpath:Path=None):
@@ -878,14 +874,14 @@ class ShellProgram(Program):
         self.launchpath(altpath)
         super().__init__()
         
-    def run_task(self, task:Task) ->None:
+    def run_task(self, task:Task) -> None:
         if self.launchpath is not None:
             callstr = str(self.launchpath(), ' ', task.as_string(self.command_concat()))
         else:
             callstr = str(self.path, ' ', task.as_string(self.command_concat()))
         output = subprocess.run(callstr)
     
-    def run_task_via_progpath_call(self, task:Task) ->None:
+    def run_task_via_progpath_call(self, task:Task) -> None:
         callstr = str(self.path, ' ', task.as_string(self.command_concat()))
         sub = subprocess.run(callstr)
 
@@ -927,7 +923,7 @@ class Job:
         else:
             self.content = cmd_ls
     
-    def to_string(self) ->str:
+    def to_string(self) -> str:
         try:
             progpath = which(str(self.content[0]))
             cmd_str = ' '.join(list(self.self.content[1]))
@@ -960,15 +956,15 @@ class BaseRunner:
     # TODO:
 
     @property
-    def infile(self) ->InputHandler:
+    def infile(self) -> inputHandler:
         return self.__input_file
 
     @infile.setter
-    def infile(self, arg) ->None:
+    def infile(self, arg) -> None:
         self.__input_file = arg
 
     @property
-    def infrom(self) ->str:
+    def infrom(self) -> str:
         return self.__in_from
 
     @infrom.setter
@@ -1008,7 +1004,7 @@ class BaseRunner:
                 raise CfpUserInputError("If included, value for infile must be a valid path")        
              
 
-    def InitializeIOHandler(self, *handler_args, **handler_kwargs) ->IOHandlerBase:
+    def InitializeIOHandler(self, *handler_args, **handler_kwargs) -> iOHandlerBase:
         """
         Description: creates and returns an IOHandler with 
         Args:
@@ -1132,7 +1128,7 @@ class CfpRunner(BaseRunner):
             raise e
         return True
 
-    def __subprocrun_rnr_run_cmdstring(command_string: str) ->None:
+    def __subprocrun_rnr_run_cmdstring(command_string: str) -> None:
         try:
             subprocess.run(command_string,)
         except subprocess.SubprocessError:
@@ -1160,19 +1156,19 @@ class Context:
        pass    
 
     @property
-    def namespace(self) ->str:
+    def namespace(self) -> str:
         return self.__name_space
 
     @namespace.setter
-    def namespace(self, ns:str) ->None:
+    def namespace(self, ns:str) -> None:
         self.__name_space = ns
 
     @property
-    def ctx_type(self) ->str:
+    def ctx_type(self) -> str:
         return self.__ctx_t
 
     @ctx_type.setter
-    def ctx_type(self, ctxtype: str) ->None:
+    def ctx_type(self, ctxtype: str) -> None:
         self.__ctx_t = ctxtype 
 
     @property
@@ -1189,14 +1185,14 @@ class Context:
             elif overwrite == False:
                 raise CfpOverwriteNotAllowedError
                    
-    def putenv(self,k, v) ->bool:
+    def putenv(self,k, v) -> bool:
         self.env_dict().update({k: v})
         return True
             
-    def getenv(self, key) ->str:
+    def getenv(self, key) -> str:
         return self.env_dict[key]
     
-    def print_info(self,outputFmt:str) ->None:
+    def print_info(self,outputFmt:str) -> None:
         """
         TODO: make sure this is tested with a populated env_dict.
         """
@@ -1375,7 +1371,7 @@ class CfpShellBasedTestContext(CfpShellContext):
         return self.__lang
 
     @lang.setter
-    def lang(self,lng) ->None:
+    def lang(self,lng) -> None:
         self.__lang = lng
         return None
 

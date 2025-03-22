@@ -86,7 +86,7 @@ class ConfigFile(object):
         return self.__sectslist_
 
     @sections.setter
-    def sections(self, action_and_args: list) ->None:
+    def sections(self, action_and_args: list) -> None:
         """
         Sets the sections list. 
         The paramater is a list with either 1 or 2 items.

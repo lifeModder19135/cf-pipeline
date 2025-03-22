@@ -34,30 +34,30 @@ class Contest:
     """
     
     @property
-    def contest_id(self) ->str:
+    def contest_id(self) -> str:
         """Enum: CF, IOI, ICPC. Scoring system used for the contest."""
         return self.__contest_id
     
     @contest_id.setter
-    def contest_id(self, cid: str) ->None:
+    def contest_id(self, cid: str) -> None:
         self.__contest_id = cid
 
     @property
-    def name(self) ->str:
+    def name(self) -> str:
         """String containing contest name."""
         return self.__name
 
     @name.setter
-    def name(self, name: str) ->None:
+    def name(self, name: str) -> None:
         self.__name = name
 
     @property
-    def contest_type(self) ->str:
+    def contest_type(self) -> str:
         """Enum: CF, IOI, ICPC. Scoring system used for the contest."""
         return self.__contest_type
 
     @contest_type.setter
-    def contest_type(self, ct: str) ->None:
+    def contest_type(self, ct: str) -> None:
         self.__contest_type = ct
         
     @property
@@ -106,12 +106,12 @@ class Contest:
         self.__relative_time_seconds = rt_seconds
 
     @property
-    def prepared_by(self) ->str:
+    def prepared_by(self) -> str:
         """Can be absent. Handle of the user, who created the contest."""
         return self.__prepared_by
     
     @prepared_by.setter
-    def prepared_by(self, prep: str) ->None:
+    def prepared_by(self, prep: str) -> None:
         self.__prepared_by = prep
 
     @property
