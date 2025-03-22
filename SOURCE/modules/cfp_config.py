@@ -103,6 +103,8 @@ class ConfigFile(object):
         #TODO: finish me
         # if not self.__sectslist_:
         #     self.__sectslist_ = []
+        if not hasattr(self, '__sectslist_'):
+            self.__sectslist_ = []
         if action_and_args[0] == Action.UPDATE:
             if type(action_and_args[1]) == list:
                 for a in action_and_args[1]:
