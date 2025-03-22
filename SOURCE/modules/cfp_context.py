@@ -2,7 +2,7 @@ import encodings
 import os, click, invoke, subprocess, fileinput, shutil
 import sys
 # from types import NoneType
-from typing import Any
+from typing import Any, List
 from dataclasses import dataclass
 
 # from tomlkit import string
@@ -213,7 +213,7 @@ class ResultResolutionMode(Flag):
     INSTANCE_PROPERTY = '"{}({})".format(args[2], args[3])'
     ENV_DICT = '"self.putenv({},{})".format(args[2], args[3])'
 
-    def Resolver(self)->bool:
+    def Resolver(self) ->bool:
         exec(self.value)
 
 class IOType(Flag):
@@ -275,7 +275,6 @@ class FileType(Flag):
     SOURCE_FILE_JAVA = 13
     DIRECTORY = 14
 
-
 class LanguageChoice(Flag):
     """
     description: a collection of names of programming languages
@@ -326,33 +325,34 @@ class Openability(Flag):
 class IOHandlerBase:
     """
     properties:
-        [type]: [description]
+        handler_args: arguments passed to handler
+        io_type: either input or output
     """
     # TODO:
 
     @property
-    def handler_args(self)->list:
+    def handler_args(self) ->List:
         if not self.__hndlr_args:    
             self.__hndlr_args = []
         return self.__hndlr_args
 
     @handler_args.setter
-    def handler_args(self, ls:list)->None:
+    def handler_args(self, ls:list) ->None:
         self.__hndlr_args = ls
 
     @property
-    def io_type(self)->IOType:
+    def io_type(self) ->IOType:
         return self.__io_t
 
     @io_type.setter
-    def io_type(self, iotype: IOType)->None:
+    def io_type(self, iotype: IOType) ->None:
         """
         Sets io_type from IOType Enum object. io_type is either INPUT, SOURCE, or OUTPUT, otherwise throw error.
         """
         self.__io_t = iotype
 
     @io_type.setter
-    def io_type_fromstring(self, io_type:IOType)->None:
+    def io_type_fromstring(self, io_type:IOType) ->None:
         """
         Sets io_type from string. io_type is either input, source, or output, otherwise throw error.
         """
@@ -368,11 +368,11 @@ class IOHandlerBase:
             raise CfpValueError from CfpUserInputError(f'Invalid value given for parameter {io_type}')
         return True
 
-    def __init__(self, *args, **kwargs):
-        if not args and not kwargs:
+    def __init__(self, **kwargs):
+        if not kwargs:
             return self
         else:
-            self.handler_args = args
+            self.handler_args = {}
             for k,v in kwargs:
                 st = f'{k}={v}'
                 self.handler_args.append(st)
@@ -386,11 +386,11 @@ class InputHandler(IOHandlerBase):
     # TODO:
 
     @property
-    def input_type(self)->InputType:
+    def input_type(self) ->InputType:
         return self.__inp_t
 
     @input_type.setter
-    def input_type(self,type: InputType)->None:
+    def input_type(self,type: InputType) ->None:
         self.__inp_t = type    
 
     def __init__(self, itype: str, *args, **kwargs):
@@ -405,58 +405,58 @@ class CfpFile:
     # TODO:
 
     @property
-    def handler(self)-> IOHandlerBase:
+    def handler(self) -> IOHandlerBase:
         return self.__handler
 
     @handler.setter
-    def handler(self, handler)-> None:
+    def handler(self, handler) -> None:
         self.__handler = handler
 
     @property
-    def location_path(self)-> Path:
+    def location_path(self) -> Path:
         if type(self.__loc) is Path:
             return self.__loc
         else:
             raise CfpTypeError
 
     @location_path.setter
-    def location_path(self, loc:Path)-> None:
+    def location_path(self, loc:Path) -> None:
         if type(loc) is Path:
             self.__loc = loc
         else:
             raise CfpTypeError
 
     @property
-    def filetype(self)-> FileType:
+    def filetype(self) -> FileType:
         return self.__f_type
 
     @filetype.setter
-    def filetype(self, ftype:FileType)-> None:
+    def filetype(self, ftype:FileType) -> None:
         self.__f_type = ftype
 
     @property
-    def size_in_bytes(self)-> int:
+    def size_in_bytes(self) -> int:
         return self.__num_bytes
 
     @size_in_bytes.setter
-    def size_in_bytes(self, bytes:int)-> None:
+    def size_in_bytes(self, bytes:int) -> None:
         self.__num_bytes = bytes
 
     @property
-    def is_openable(self,)-> bool:
+    def is_openable(self,) -> bool:
         if type(self.__can_open) is bool:
             return self.__can_open
         else:
             raise CfpTypeError
     
     @is_openable.setter
-    def is_openable(self,o:bool)-> None:
+    def is_openable(self,o:bool) -> None:
         if type(o) is bool:
             self.__can_open = o
         else:
             raise CfpTypeError
 
-    def content(self):
+    def content(self) -> None:
         if self.__f_type() is FileType.CFP_INPUTFILE_TEXT_FMT_1:
             lines_list = []
             with open(self.location_path()) as c:
@@ -490,16 +490,16 @@ class InputFileHandler(InputHandler):
         self.__f_curr = value
     
     @property
-    def files_previously_handled(self) -> list[CfpFile]:
-        """The files_previously_handled property."""
+    def files_previously_handled(self) -> List[CfpFile]:
+        """A queue of files that have already been used."""
         return self.__previous_files
     
     @files_previously_handled.setter
-    def files_previously_handled(self, value:"list[this.CfpFile]"=None) -> None:
+    def files_previously_handled(self, value: List[CfpFile]=None) -> None:
         self.__previous_files = value
     
     @property
-    def files_on_deck(self) -> list[CfpFile]:
+    def files_on_deck(self) -> List[CfpFile]:
         """The files_on_deck property."""
         return self.__files_on_deck
     
@@ -523,7 +523,7 @@ class OutputHandler(IOHandlerBase):
     # TODO:
     #   - add implementation
 
-    def to_file(self, fullpath, encoding:str="UTF-8")-> None:
+    def to_file(self, fullpath, encoding:str="UTF-8") -> None:
         try:
            ofile = open(fullpath, "w", encoding=encoding)
         except IOError:
@@ -544,7 +544,7 @@ class InputCommandString(str):
     # TODO:
 
     @property
-    def primary_shellchoice(self)->str:
+    def primary_shellchoice(self) ->str:
         """
         Description: This is the shell that this object's shellscript code should be evaluated with
         Returns: The shell_lang property's current value
@@ -555,7 +555,7 @@ class InputCommandString(str):
         return self.__flavor
     
     @primary_shellchoice.setter
-    def primary_shellchoice(self,sh)->None:
+    def primary_shellchoice(self,sh) ->None:
         self.__rnr_sh = sh
 
     def to_cmd_objs(self):
@@ -590,12 +590,12 @@ class Program(Path):
             self.__op_sys = o_s
     
     @property
-    def invoked_by(self)-> str:
+    def invoked_by(self) -> str:
         """The username of the account that the program was executed under"""
         return self.__caller
     
     @invoked_by.setter
-    def invoked_by(self, user:str=None)-> None:
+    def invoked_by(self, user:str=None) -> None:
         if user is None:
             self.__caller = str(os.path.expandvars('$USER'))
         elif type(user) == str:
@@ -604,11 +604,11 @@ class Program(Path):
             raise CfpTypeError()
             
     @property
-    def fullpath(self)-> Path:
+    def fullpath(self) -> Path:
         return self.__full_path
     
     @fullpath.setter
-    def fullpath(self, val:str)-> None:
+    def fullpath(self, val:str) -> None:
         if type(val) is str:
             self.__full_path = Path(val)
         elif type(val) is Path:
@@ -628,7 +628,7 @@ class Program(Path):
                 raise CfpPermissionDeniedError
             self.fullpath(name_or_path)
             
-    def run(self,shell_errors_fail:bool=False)->str:
+    def run(self,shell_errors_fail:bool=False) ->str:
         """
         Description: A very simple builtin runner that runs the program without args and returns the output. No option for pipes, etc.
         Raises:
@@ -668,13 +668,13 @@ class CmdArg(str):
     def __init__(self, input_src):
         super().__init__(input_src)
 
-    def as_str(self)->str:
+    def as_str(self) ->str:
         try:
             return str(self)
         except BaseException as e:
             raise CfpRuntimeError from e
 
-    def as_int(self)->int:
+    def as_int(self) ->int:
         try:
             return int(self)
         except BaseException as e:
@@ -699,11 +699,11 @@ class CmdArgList:
     # TODO:
 
     @property
-    def args(self)-> list[CmdArg]:
+    def args(self) -> list[CmdArg]:
         return self.__args
 
     @args.setter
-    def args(self,*args)-> None:
+    def args(self,*args) -> None:
         a_ls = []
         for arg in args:
             if type(arg) is CmdArg():
@@ -716,13 +716,13 @@ class CmdArgList:
         self.__args = a_ls
 
     @property
-    def args_count(self)-> int:
+    def args_count(self) -> int:
         if not self.__args():
             return 0
         else:
             return len(self.__args)
 
-    def to_argstring(self)->str:
+    def to_argstring(self) ->str:
         a_str = ''
         for a in self.args:
             if a_str == '':
@@ -735,33 +735,33 @@ class CmdArgList:
             else:
                 return a_str.lstrip().rstrip()
 
-    def __addlist(self, ls: list)->None:
+    def __addlist(self, ls: list) ->None:
         if type(ls) is not list:
             raise CfpTypeError
         else:
             for i in ls:
                 self.__args.append(CmdArg(i))
 
-    def __addtuple(self, tup:tuple)->None:
+    def __addtuple(self, tup:tuple) ->None:
         if type(tup) is not tuple:
             raise CfpTypeError
         else:
             for i in tup:
                 self.__args.append(CmdArg(str(i)))            
 
-    def __addint(self, i:int)->None:
+    def __addint(self, i:int) ->None:
         if type(i) is not int:
             raise CfpTypeError
         else:
             self.__args.append(CmdArg(str(i)))
 
-    def __addstring(self, s:str)->None:
+    def __addstring(self, s:str) ->None:
         if type(s) is not str and type(s) is not str:
             raise CfpTypeError
         else:
             self.__args.append(CmdArg(str(s)))
 
-    def __addcmdarg(self, a:CmdArg)->None:
+    def __addcmdarg(self, a:CmdArg) ->None:
         if type(a) is not CmdArg:
             raise CfpTypeError
         else:
@@ -790,19 +790,19 @@ class Command:
     # TODO:
 
     @property
-    def executable(self)-> Program:
+    def executable(self) -> Program:
         return self._exec
 
     @executable.setter
-    def executable(self, prog: Program)-> str:
+    def executable(self, prog: Program) -> str:
         self.__exec = prog
 
     @property
-    def args(self)-> list:
+    def args(self) -> list:
         return self.__args
     
     @args.setter
-    def args(self, *args)-> None:
+    def args(self, *args) -> None:
         try:
             arg_ls = []
             for arg in args:
@@ -819,9 +819,6 @@ class Command:
         self.executable(exe)
         self.args(args)
 
-
-
-
 class Task:
     """
     Represents a group of one or more commands connected together via pipes / fifos. IMPORTANT: commands which are connected via `&&` , `||` , or `;` are not 
@@ -829,11 +826,11 @@ class Task:
     # TODO:
 
     @property
-    def content(self)->list[Command]:
+    def content(self) ->list[Command]:
         return self.__content
     
     @content.setter
-    def content(self, c: str)->None:
+    def content(self, c: str) ->None:
         self.__content = c 
     
     def __init__(self):
@@ -849,30 +846,30 @@ class ShellProgram(Program):
         run: start the program via the launchpath
     """
     @property
-    def name(self)->str:
+    def name(self) ->str:
         return self.__namestr
     
     @name.setter
-    def name(self, arg)->None:
+    def name(self, arg) ->None:
         self.__namestr = arg
         
     @property
-    def launchpath(self)->Path:
+    def launchpath(self) ->Path:
         return self.__launch_path
     
     @launchpath.setter
-    def launchpath(self, lp: Path)->None:
+    def launchpath(self, lp: Path) ->None:
         self.__launch_path = lp
         
     @property
-    def command_concat(self)->str:
+    def command_concat(self) ->str:
         """
         This string is used to concat the command strings. Expects values such as '&&'.
         """
         return self.__cmd_concat
     
     @command_concat.setter
-    def command_concat(self, val)->None:
+    def command_concat(self, val) ->None:
         self.__cmd_concat = str(val)
         
     def __init__(self, name:str, concat:str, altpath:Path=None):
@@ -881,14 +878,14 @@ class ShellProgram(Program):
         self.launchpath(altpath)
         super().__init__()
         
-    def run_task(self, task:Task)->None:
+    def run_task(self, task:Task) ->None:
         if self.launchpath is not None:
             callstr = str(self.launchpath(), ' ', task.as_string(self.command_concat()))
         else:
             callstr = str(self.path, ' ', task.as_string(self.command_concat()))
         output = subprocess.run(callstr)
     
-    def run_task_via_progpath_call(self, task:Task)->None:
+    def run_task_via_progpath_call(self, task:Task) ->None:
         callstr = str(self.path, ' ', task.as_string(self.command_concat()))
         sub = subprocess.run(callstr)
 
@@ -930,7 +927,7 @@ class Job:
         else:
             self.content = cmd_ls
     
-    def to_string(self)->str:
+    def to_string(self) ->str:
         try:
             progpath = which(str(self.content[0]))
             cmd_str = ' '.join(list(self.self.content[1]))
@@ -963,38 +960,38 @@ class BaseRunner:
     # TODO:
 
     @property
-    def infile(self)->InputHandler:
+    def infile(self) ->InputHandler:
         return self.__input_file
 
     @infile.setter
-    def infile(self, arg)->None:
+    def infile(self, arg) ->None:
         self.__input_file = arg
 
     @property
-    def infrom(self)->str:
+    def infrom(self) ->str:
         return self.__in_from
 
     @infrom.setter
-    def infrom(self, arg)-> None:
+    def infrom(self, arg) -> None:
         self.__in_from = arg
 
     @property
-    def outto(self)-> OutputHandler:
+    def outto(self) -> OutputHandler:
         if type(self.__out_to) == OutputHandler:
             return self.__out_to
         else:
             raise TypeError
 
     @outto.setter
-    def outto(self, dest)-> None:
+    def outto(self, dest) -> None:
         self.__out_to = dest
 
     @property
-    def job(self, arg)-> Job:
+    def job(self, arg) -> Job:
         return self.__cmd_list
 
     @job.setter
-    def job(self, clist)-> None:
+    def job(self, clist) -> None:
         self.__cmd_list = clist
 
     def __init__(self, in_from=None, out_to=None, infile=None, cmd=None):
@@ -1011,7 +1008,7 @@ class BaseRunner:
                 raise CfpUserInputError("If included, value for infile must be a valid path")        
              
 
-    def InitializeIOHandler(self, *handler_args, **handler_kwargs)->IOHandlerBase:
+    def InitializeIOHandler(self, *handler_args, **handler_kwargs) ->IOHandlerBase:
         """
         Description: creates and returns an IOHandler with 
         Args:
@@ -1030,7 +1027,6 @@ class BaseRunner:
             handler = IOHandlerBase(self.infile(), handler_args)
         return handler
 
-
 class CfpRunner(BaseRunner):
     """
     Description: This is a highly dynamic class which is responsible for nearly all cfp runner types. If the init method is called directly, it will raise an error, but the various runner-type-getters, e.g. get_new_*_runner(), call init after setting a class property. After this is set, the runner will build itself according to its value.
@@ -1038,7 +1034,7 @@ class CfpRunner(BaseRunner):
     Properties:
       runtype_old: 
     """
-    # TODO: 
+    # TODO: finish subprocess_runner
     
     DEFAULT_INPUT_SRC = 'subprocess.STDIN'
     DEFAULT_OUTPUT_SRC = 'subprocess.STDOUT'
@@ -1104,17 +1100,17 @@ class CfpRunner(BaseRunner):
             self.strategy = 'subprocess_run'
         elif self.runtype() == RunType.SUBPROCESS_LEGACY:
             self.strategy = 'subprocess_check_output'      
-        self.frompipe(frompipe)
-        self.topipe(topipe)
+        self.frompipe = frompipe
+        self.topipe = topipe
 
     def configure(self):
         pass
     
-    @classmethod
     def subprocess_runner(self, legacy:bool=False):
         """
         Description: What it says. It returns a fresh instance of CfpRunner with the Runtype set to SUBPROCESS.   
         """
+        #TODO: finish
         if legacy == True:
             self.setRuntype(RunType.SUBPROCESS_LEGACY)
         else:
@@ -1122,11 +1118,11 @@ class CfpRunner(BaseRunner):
         self.__init__()
 
     @property
-    def runtype(self)-> RunType:
+    def runtype(self) -> RunType:
         return self.__invoc_type
 
     @runtype.setter
-    def runtype(self, rt: RunType)-> bool:
+    def runtype(self, rt: RunType) -> bool:
         try:
             if self.__r_type:
                 self.__r_type_old = self.__r_type
@@ -1136,7 +1132,7 @@ class CfpRunner(BaseRunner):
             raise e
         return True
 
-    def __subprocrun_rnr_run_cmdstring(command_string: str)->None:
+    def __subprocrun_rnr_run_cmdstring(command_string: str) ->None:
         try:
             subprocess.run(command_string,)
         except subprocess.SubprocessError:
@@ -1164,23 +1160,23 @@ class Context:
        pass    
 
     @property
-    def namespace(self)->str:
+    def namespace(self) ->str:
         return self.__name_space
 
     @namespace.setter
-    def namespace(self, ns:str)->None:
+    def namespace(self, ns:str) ->None:
         self.__name_space = ns
 
     @property
-    def ctx_type(self)->str:
+    def ctx_type(self) ->str:
         return self.__ctx_t
 
     @ctx_type.setter
-    def ctx_type(self, ctxtype: str)->None:
+    def ctx_type(self, ctxtype: str) ->None:
         self.__ctx_t = ctxtype 
 
     @property
-    def env_dict(self)->dict:
+    def env_dict(self) ->dict:
         return self.__environ_dict
 
     @env_dict.setter
@@ -1193,14 +1189,14 @@ class Context:
             elif overwrite == False:
                 raise CfpOverwriteNotAllowedError
                    
-    def putenv(self,k, v)->bool:
+    def putenv(self,k, v) ->bool:
         self.env_dict().update({k: v})
         return True
             
-    def getenv(self, key)->str:
+    def getenv(self, key) ->str:
         return self.env_dict[key]
     
-    def print_info(self,outputFmt:str)->None:
+    def print_info(self,outputFmt:str) ->None:
         """
         TODO: make sure this is tested with a populated env_dict.
         """
@@ -1349,7 +1345,7 @@ class CfpShellBasedTestContext(CfpShellContext):
     
     # represents the chosen language's index in the cf_allowedlangs list 
     @property
-    def cf_lang_index(self)-> int:
+    def cf_lang_index(self) -> int:
         lc = LanguageChoice()
         if not self.__lang_ndx:
             self.__lang_ndx = -1
@@ -1375,11 +1371,11 @@ class CfpShellBasedTestContext(CfpShellContext):
                 raise RuntimeError
 
     @property
-    def lang(self)-> str:
+    def lang(self) -> str:
         return self.__lang
 
     @lang.setter
-    def lang(self,lng)->None:
+    def lang(self,lng) ->None:
         self.__lang = lng
         return None
 

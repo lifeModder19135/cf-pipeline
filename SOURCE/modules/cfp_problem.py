@@ -22,57 +22,57 @@ class Problem(object):
         return self.__problemset_name
 
     @problemset_name.setter
-    def problemset_name(self, ps_name:str)-> None:
+    def problemset_name(self, ps_name:str) -> None:
         self.__problemset_name = ps_name 
 
     @property
-    def index(self)-> int:
+    def index(self) -> int:
         return self.__ndx
 
     @index.setter
-    def index(self,index:int)-> None:
+    def index(self,index:int) -> None:
         self.__ndx = index
 
     @property
-    def name(self)-> str:
+    def name(self) -> str:
         return self.__name
 
     @name.setter
-    def name(self,name:str)-> None:
+    def name(self,name:str) -> None:
         self.__name = name
 
     @property
-    def problem_type(self)-> ProblemType:
+    def problem_type(self) -> ProblemType:
         return self.__problem_type
 
     @index.setter
-    def problem_type(self,prob_type:ProblemType)-> None:
+    def problem_type(self,prob_type:ProblemType) -> None:
         self.__problem_type = prob_type
 
     @property
-    def points(self)-> float:
+    def points(self) -> float:
         return self.__points
 
     @points.setter
-    def points(self,points:float)-> None:
+    def points(self,points:float) -> None:
         self.__points = points
 
     @property
-    def rating(self)-> int:
+    def rating(self) -> int:
         return self.__rating
 
     @rating.setter
-    def rating(self,rating:int)-> None:
+    def rating(self,rating:int) -> None:
         self.__rating = rating
 
     @property
-    def tags(self)-> list:
+    def tags(self) -> list:
         if not self.__tags:
             self.__tags = []
         return self.__tags
 
     @tags.setter
-    def tags(self, tag_list:list)-> None:
+    def tags(self, tag_list:list) -> None:
         if type(tag_list) is list:
             self.__tags = tag_list
         elif type(tag_list) is str:
@@ -81,11 +81,11 @@ class Problem(object):
             raise CfpTypeError
 
     @property
-    def solved_by_user(self)-> bool:
+    def solved_by_user(self) -> bool:
         return self.__solved
 
     @index.setter
-    def solved_by_user(self, sbu:bool)-> None:
+    def solved_by_user(self, sbu:bool) -> None:
         self.__solved = sbu
 
 #    contestId: "int" = -1       # Can be absent. Id of the contest, containing the problem.

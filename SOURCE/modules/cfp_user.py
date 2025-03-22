@@ -10,155 +10,155 @@ class User:
         pass
    
     @property 
-    def handle(self)-> str:
+    def handle(self) -> str:
         return self.__handle
 
     @handle.setter
-    def handle(self, val:str)-> None:
+    def handle(self, val:str) -> None:
         self.__handle = val
 
     @property
-    def email(self)-> str:
+    def email(self) -> str:
         return self.__email
 
     @email.setter
-    def email(self, email:str)-> None:
+    def email(self, email:str) -> None:
         self.__email = email
 
     @property 
-    def vkid(self)-> str:
+    def vkid(self) -> str:
         return self.__vkid
 
     @vkid.setter
-    def vkid(self, id:str)-> None:
+    def vkid(self, id:str) -> None:
         self.__vkid = id
 
     @property
-    def openid(self)-> str:
+    def openid(self) -> str:
         return self.__openid
 
     @openid.setter
-    def openid(self, id:str)-> None:
+    def openid(self, id:str) -> None:
         self.__openid = id
     
     @property 
-    def firstname(self)-> str:
+    def firstname(self) -> str:
         return self.__f_name
 
     @firstname.setter
-    def firstname(self, fname:str)-> None:
+    def firstname(self, fname:str) -> None:
         self.__f_name = fname
 
     @property
-    def lastname(self)-> str:
+    def lastname(self) -> str:
         return self.__l_name
 
     @lastname.setter
-    def lastname(self, lname:str)-> None:
+    def lastname(self, lname:str) -> None:
         self.__l_name = lname
 
     @property 
-    def country(self)-> str:
+    def country(self) -> str:
         return self.__country
 
     @country.setter
-    def country(self, cntry)-> None:
+    def country(self, cntry) -> None:
         self.__country = cntry
 
     @property
-    def city(self)-> str:
+    def city(self) -> str:
         return self.__city
 
     @city.setter
-    def city(self, city)-> str:
+    def city(self, city) -> str:
         self.__city = city
     
     @property
-    def organization(self)-> str:
+    def organization(self) -> str:
         return self.__organization
 
     @organization.setter
-    def organization(self, org:str)-> None:
+    def organization(self, org:str) -> None:
         self.__organization = org
 
     @property
-    def contribution(self)-> int:
+    def contribution(self) -> int:
         return self.__contribution
 
     @contribution.setter
-    def contribution(self, cont:int)-> None:
+    def contribution(self, cont:int) -> None:
         self.__contribution = cont
 
     @property
-    def rank(self)-> str:
+    def rank(self) -> str:
         return self.__rank
 
     @rank.setter
-    def rank(self,rnk:str)-> None:
+    def rank(self,rnk:str) -> None:
         self.__rank = rnk
 
     @property
-    def rating(self)-> int:
+    def rating(self) -> int:
         return self.__rating
 
     @rating.setter
-    def rating(self, rtng:int)-> None:
+    def rating(self, rtng:int) -> None:
         self.__rating = rtng
 
     @property
-    def max_rank(self)-> str:
+    def max_rank(self) -> str:
         return self.__max_rank
 
     @max_rank.setter
-    def max_rank(self,rnk:str)-> None:
+    def max_rank(self,rnk:str) -> None:
         self.__max_rank = rnk
 
     @property
-    def max_rating(self)-> int:
+    def max_rating(self) -> int:
         return self.__max_rating
 
     @max_rating.setter
-    def max_rating(self, rtng:int)-> None:
+    def max_rating(self, rtng:int) -> None:
         self.__max_rating = rtng
 
     @property
-    def last_online_time_seconds(self)-> int:
+    def last_online_time_seconds(self) -> int:
         return self.__last_online
 
     @last_online_time_seconds.setter
-    def last_online_time_seconds(self, time:int)-> None:
+    def last_online_time_seconds(self, time:int) -> None:
         self.__last_online = time
 
     @property
-    def registration_time_seconds(self)-> int:
+    def registration_time_seconds(self) -> int:
         return self.__reg_time
 
     @registration_time_seconds.setter
-    def registration_time_seconds(self, time:int)-> None:
+    def registration_time_seconds(self, time:int) -> None:
         self.__reg_time = time
 
     @property 
-    def friend_of_count(self)-> int:
+    def friend_of_count(self) -> int:
         return self.__friend_of_count
 
     @friend_of_count.setter
-    def friend_of_count(self, foc:int)-> None:
+    def friend_of_count(self, foc:int) -> None:
         self.__friend_of_count = foc
 
     @property
-    def avatar(self)-> str:
+    def avatar(self) -> str:
         return self.__avatar
 
     @avatar.setter
-    def avatar(self, avatar:str)-> None:
+    def avatar(self, avatar:str) -> None:
         self.__avatar = avatar
 
     @property 
-    def title_photo(self)-> Path:
+    def title_photo(self) -> Path:
         return self.__title_photo
 
     @title_photo.setter
-    def title_photo(self, path:Path)-> None:
+    def title_photo(self, path:Path) -> None:
         self.__title_photo = path
 
 #    handle = '' # Codeforces user handle

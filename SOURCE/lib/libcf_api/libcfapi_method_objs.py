@@ -229,7 +229,7 @@ class ParamType(click.ParamType):
 
 
 
-    def check_typehint(typehint:str)->ParamTypes:
+    def check_typehint(typehint:str) ->ParamTypes:
         x = typehint.lower() 
         res:ParamTypes = None
         if x == 'str' or x == 'string':
@@ -324,11 +324,11 @@ class ApiMethodParameter(object):
         self.__def_val = dv
 
     @property
-    def types_accepted(self)->dict:
+    def types_accepted(self) ->dict:
         return self.__t_acc
 
     @types_accepted.setter
-    def types_accepted(self, ta:dict)->dict:
+    def types_accepted(self, ta:dict) ->dict:
         self.__t_acc = ta
 
     def __init__(self, name, def_val:object=None, required:bool=False, param_type:ParamTypes='obj', types_accepted:dict=None):
@@ -448,7 +448,7 @@ class ApiMethod(object):
     def run_query():
         pass
     
-    def __init__(self, params:list=None, paramstr:str=None)->ParamTypes:
+    def __init__(self, params:list=None, paramstr:str=None) ->ParamTypes:
         """Needs exactly one of the two args. accepts a string or a list of  parameter"""
         pass
 
@@ -491,6 +491,6 @@ class CodeforcesApiMethod(ApiMethod):
     def run_query():
         pass
     
-    def __init__(self,*params:ApiMethodParameter)->ParamTypes:
+    def __init__(self,*params:ApiMethodParameter) ->ParamTypes:
         pass
     
