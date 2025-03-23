@@ -6,13 +6,13 @@ from typing import Any, List, Tuple, Union
 from dataclasses import dataclass
 
 # from tomlkit import string
-from .cfp_errors import CfpIOError, CfpInitializationError, CfpNotExecutableError, CfpPermissionDeniedError, CfpRuntimeError, CfpTimeoutError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpValueError
+from SOURCE.modules.cfp_errors import CfpIOError, CfpInitializationError, CfpNotExecutableError, CfpPermissionDeniedError, CfpRuntimeError, CfpTimeoutError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpValueError
 from enum import Enum, Flag
 from shutil import which
 from shlex import shlex, split, join
 from pathlib import Path
-from ..lib.libcf_api import libcfapi_utils
-from . import cfp_context as this
+from SOURCE.lib.libcf_api import libcfapi_utils
+# from . import cfp_context as this
 
 
 #          ^                                                                Legend:
@@ -348,45 +348,43 @@ class IOHandlerBase:
             return None
 
     @io_type.setter
-    def io_type(self, iotype: Union[IOType, str]) -> None:
+    def io_type(self, iotype) -> None:
         """
         Sets io_type from IOType Enum object. io_type is either INPUT, SOURCE, or OUTPUT, otherwise throw error.
         """
         if type(iotype) == IOType:
             self.__io_t = iotype
         elif type(iotype) == str:
-            if str(io_type).lower() == 'i' or str(io_type).lower() == 'in' or str(io_type).lower() == 'input':    
+            if str(iotype).lower() == 'i' or str(iotype).lower() == 'in' or str(iotype).lower() == 'input':    
                 self.__io_t = IOType.INPUT
-            elif str(io_type).lower == 'o' or str(io_type).lower == 'out' or str(io_type).lower == 'output':
+            elif str(iotype).lower == 'o' or str(iotype).lower == 'out' or str(iotype).lower == 'output':
                 self.__io_t = IOType.OUTPUT
-            elif str(io_type).lower() == 's' or str(io_type).lower() == 'src':
+            elif str(iotype).lower() == 's' or str(iotype).lower() == 'src':
                 self.__io_t = IOType.SOURCE
-            elif len(str(io_type)) >= 3 and str(io_type).lower() in 'source':
+            elif len(str(iotype)) >= 3 and str(iotype).lower() in 'source':
                 self.__io_t = IOType.SOURCE 
             else:
-                raise CfpValueError from CfpUserInputError(f'Invalid value given for parameter {io_type}')
+                raise CfpValueError from CfpUserInputError('Invalid value given for parameter iotype')
             return True
         else:
             raise CfpInitializationError
             raise CfpValueError from CfpUserInputError('The value provided for io_type must be of type string of IOType.')
 
-    def __init__(self, io_type: IOType = None, str_io_type: str = None, **kwargs) -> None:
+    def __init__(self, args: list, io_type: IOType = None, str_io_type: str = None) -> None:
         """
-        Sets io_type from string. io_type is either input, source, or output, otherwise throw error.
+        sets io_type and handler_args
         """
-        
         if io_type != None and str_io_type != None:
             raise CfpValueError from CfpUserInputError('io_type and str_io_type cannot both have values. Ohe or the other.')
         elif io_type != None or str_io_type != None:
             self.io_type = io_type
         else:
             raise CfpValueError from CfpUserInputError('You must provide a value for either io_type or str_io_type.')
-        self.handler_args = []
-        if kwargs:
-            for k,v in kwargs.items():
-                st = f'{k}={v}'
-                self.handler_args.append(st)
-                
+        self.handler_args = args
+        # if kwargs:
+        #     for k,v in kwargs.items():
+        #         st = f'{k}={v}'
+        #         self.handler_args.append(st)
 
 class InputHandler(IOHandlerBase):
     """
@@ -413,6 +411,12 @@ class CfpFile:
     Base class for Executable, Source_File, Shell_Application, Input_File, and anything with a location: Path attribute. Not all will be eligible for File.open(), as directories are files as well.  
     """    
     # TODO:
+
+    __handler: IOHandlerBase
+    __loc: Path
+    __f_type: FileType
+    __num_bytes: int
+    __can_open: bool
 
     @property
     def handler(self) -> IOHandlerBase:
@@ -1071,7 +1075,7 @@ class CfpRunner(BaseRunner):
         try:
             if type(arg_str) == CmdArgString:
                 self.__argstring = arg_str
-            elif type(arg_str) == this.CmdArglist:
+            elif type(arg_str) == self.CmdArglist:
                 cal = ''
                 for a in arg_str:
                     cal = cal + str(a) + ' '
