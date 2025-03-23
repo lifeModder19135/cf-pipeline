@@ -2,7 +2,7 @@ import encodings
 import os, click, invoke, subprocess, fileinput, shutil
 import sys
 # from types import NoneType
-from typing import Any, List
+from typing import Any, List, Tuple, Union
 from dataclasses import dataclass
 
 # from tomlkit import string
@@ -331,8 +331,8 @@ class IOHandlerBase:
     # TODO:
 
     @property
-    def handler_args(self) ->List:
-        if not self.__hndlr_args:    
+    def handler_args(self) -> List:
+        if not hasattr(self, '__hndlr_args'):    
             self.__hndlr_args = []
         return self.__hndlr_args
 
@@ -341,42 +341,52 @@ class IOHandlerBase:
         self.__hndlr_args = ls
 
     @property
-    def io_type(self) -> iOType:
-        return self.__io_t
+    def io_type(self) -> IOType:
+        if hasattr(self, '__io_t'):
+            return self.__io_t
+        else:
+            return None
 
     @io_type.setter
-    def io_type(self, iotype: IOType) -> None:
+    def io_type(self, iotype: Union[IOType, str]) -> None:
         """
         Sets io_type from IOType Enum object. io_type is either INPUT, SOURCE, or OUTPUT, otherwise throw error.
         """
-        self.__io_t = iotype
+        if type(iotype) == IOType:
+            self.__io_t = iotype
+        elif type(iotype) == str:
+            if str(io_type).lower() == 'i' or str(io_type).lower() == 'in' or str(io_type).lower() == 'input':    
+                self.__io_t = IOType.INPUT
+            elif str(io_type).lower == 'o' or str(io_type).lower == 'out' or str(io_type).lower == 'output':
+                self.__io_t = IOType.OUTPUT
+            elif str(io_type).lower() == 's' or str(io_type).lower() == 'src':
+                self.__io_t = IOType.SOURCE
+            elif len(str(io_type)) >= 3 and str(io_type).lower() in 'source':
+                self.__io_t = IOType.SOURCE 
+            else:
+                raise CfpValueError from CfpUserInputError(f'Invalid value given for parameter {io_type}')
+            return True
+        else:
+            raise CfpInitializationError
+            raise CfpValueError from CfpUserInputError('The value provided for io_type must be of type string of IOType.')
 
-    @io_type.setter
-    def io_type_fromstring(self, io_type:IOType) -> None:
+    def __init__(self, io_type: IOType = None, str_io_type: str = None, **kwargs) -> None:
         """
         Sets io_type from string. io_type is either input, source, or output, otherwise throw error.
         """
-        if io_type.lower() == 'i' or io_type.lower() == 'in' or io_type.lower() == 'input':    
-            self.__io_t = IOType.INPUT
-        elif io_type == 'o' or io_type == 'out' or io_type == 'output':
-            self.__io_t = IOType.OUTPUT
-        elif io_type.lower() is 's' or io_type.lower() is 'src':
-            self.__io_t = IOType.SOURCE
-        elif len(io_type) >= 3 and io_type.lower() in 'source':
-            self.__io_t = IOType.SOURCE 
+        
+        if io_type != None and str_io_type != None:
+            raise CfpValueError from CfpUserInputError('io_type and str_io_type cannot both have values. Ohe or the other.')
+        elif io_type != None or str_io_type != None:
+            self.io_type = io_type
         else:
-            raise CfpValueError from CfpUserInputError(f'Invalid value given for parameter {io_type}')
-        return True
-
-    def __init__(self, **kwargs):
-        if not kwargs:
-            return self
-        else:
-            self.handler_args = {}
-            for k,v in kwargs:
+            raise CfpValueError from CfpUserInputError('You must provide a value for either io_type or str_io_type.')
+        self.handler_args = []
+        if kwargs:
+            for k,v in kwargs.items():
                 st = f'{k}={v}'
                 self.handler_args.append(st)
-        return self
+                
 
 class InputHandler(IOHandlerBase):
     """
@@ -386,15 +396,15 @@ class InputHandler(IOHandlerBase):
     # TODO:
 
     @property
-    def input_type(self) -> inputType:
+    def input_type(self) -> InputType:
         return self.__inp_t
 
     @input_type.setter
     def input_type(self,type: InputType) -> None:
         self.__inp_t = type    
 
-    def __init__(self, itype: str, *args, **kwargs):
-        super().__init__(args, kwargs)
+    def __init__(self, itype: str, **kwargs):
+        super().__init__(kwargs)
         self.input_type(itype)
 
 @dataclass
@@ -794,7 +804,7 @@ class Command:
         self.__exec = prog
 
     @property
-    def args(self) -> list:
+    def args(self) -> List:
         return self.__args
     
     @args.setter
@@ -822,7 +832,7 @@ class Task:
     # TODO:
 
     @property
-    def content(self) ->list[Command]:
+    def content(self) -> List[Command]:
         return self.__content
     
     @content.setter
@@ -896,19 +906,19 @@ class Job:
     TOP_LEVEL:bool = False
     
     @property
-    def aliases(self) -> "list[str]":
+    def aliases(self) -> List[str]:
         return self.__aliases
     
     @aliases.setter
-    def aliases(self, vals:"list[str]") -> None:
+    def aliases(self, vals: List[str]) -> None:
         self.__aliases = vals    
     
     @property
-    def content(self) -> tuple[ShellProgram,Task]:
+    def content(self) -> Tuple[ShellProgram,Task]:
         return self.__content
     
     @content.setter
-    def content(self, tup) -> None:
+    def content(self, tup: Tuple) -> None:
         if type(tup) == tuple and len(tup) == 2: 
             if type(tuple[1]) is Task:
                 self.__content = tup  
@@ -917,7 +927,7 @@ class Job:
         else: 
             raise CfpTypeError
     
-    def __init__(self, *cmd_ls:Task, aliases:list):
+    def __init__(self, *cmd_ls: Task, aliases: List):
         if len(cmd_ls) <= 0:
             raise CfpUserInputError('Job objects must always contain at least one Task.')
         else:
@@ -956,7 +966,7 @@ class BaseRunner:
     # TODO:
 
     @property
-    def infile(self) -> inputHandler:
+    def infile(self) -> InputHandler:
         return self.__input_file
 
     @infile.setter
@@ -1004,7 +1014,7 @@ class BaseRunner:
                 raise CfpUserInputError("If included, value for infile must be a valid path")        
              
 
-    def InitializeIOHandler(self, *handler_args, **handler_kwargs) -> iOHandlerBase:
+    def InitializeIOHandler(self, *handler_args, **handler_kwargs) -> IOHandlerBase:
         """
         Description: creates and returns an IOHandler with 
         Args:
