@@ -332,21 +332,16 @@ class IOHandlerBase:
 
     @property
     def handler_args(self) -> List:
-        if not hasattr(self, '__hndlr_args'):    
-            self.__hndlr_args = []
         return self.__hndlr_args
-
+        
     @handler_args.setter
     def handler_args(self, ls:list) -> None:
         self.__hndlr_args = ls
 
     @property
     def io_type(self) -> IOType:
-        if hasattr(self, '__io_t'):
-            return self.__io_t
-        else:
-            return None
-
+        return self.__io_t
+        
     @io_type.setter
     def io_type(self, iotype) -> None:
         """
@@ -381,10 +376,6 @@ class IOHandlerBase:
         else:
             raise CfpValueError from CfpUserInputError('You must provide a value for either io_type or str_io_type.')
         self.handler_args = args
-        # if kwargs:
-        #     for k,v in kwargs.items():
-        #         st = f'{k}={v}'
-        #         self.handler_args.append(st)
 
 class InputHandler(IOHandlerBase):
     """
@@ -403,7 +394,7 @@ class InputHandler(IOHandlerBase):
 
     def __init__(self, itype: str, **kwargs):
         super().__init__(kwargs)
-        self.input_type(itype)
+        self.input_type = itype
 
 @dataclass
 class CfpFile:
