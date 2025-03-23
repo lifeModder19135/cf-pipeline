@@ -384,16 +384,23 @@ class InputHandler(IOHandlerBase):
     """
     # TODO:
 
+    __inp_t: InputType
+
     @property
     def input_type(self) -> InputType:
         return self.__inp_t
 
     @input_type.setter
-    def input_type(self,type: InputType) -> None:
-        self.__inp_t = type    
+    def input_type(self, itype: InputType) -> None:
+        if type(itype) == InputType:
+            self.__inp_t = itype
+        else:
+            raise CfpTypeError from CfpUserInputError('The type of itype must be InputType.')   
 
-    def __init__(self, itype: str, **kwargs):
-        super().__init__(kwargs)
+    def __init__(self, itype: str, args):
+        # super().__init__(args)
+        self.io_type = IOType.INPUT
+        self.handler_args = args
         self.input_type = itype
 
 @dataclass
