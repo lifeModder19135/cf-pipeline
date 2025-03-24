@@ -556,6 +556,14 @@ class OutputHandler(IOHandlerBase):
     __outtype_: OutputType
 
     @property
+    def io_type(self):
+        return self.__io_t
+
+    @io_type.setter
+    def io_type(self, x):
+        raise CfpOverwriteNotAllowedError('io_type is hardcoded to OUTPUT and cannot be changed.')
+
+    @property
     def output_type(self) -> OutputType:
         return self.__outtype_
     
@@ -564,7 +572,7 @@ class OutputHandler(IOHandlerBase):
         self.__outtype_ = ot
 
     def __init__(self, outputtype: OutputType, args: List):
-        self.io_type = IOType.OUTPUT
+        self.__outtype_ = IOType.OUTPUT
         self.output_type = outputtype
         self.handler_args = args
 
