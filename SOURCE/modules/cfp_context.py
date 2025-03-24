@@ -21,7 +21,7 @@ from SOURCE.lib.libcf_api import libcfapi_utils
 #          |
 #  has-a = |   /  is-a =  < < < ----
 
-#                   context < < < ----------------------------  test_contest
+#                   context < < < ----------------------------  test_context
 #                  |      |
 #                 |         |
 #                |           |
@@ -359,11 +359,10 @@ class IOHandlerBase:
             elif len(str(iotype)) >= 3 and str(iotype).lower() in 'source':
                 self.__io_t = IOType.SOURCE 
             else:
-                raise CfpValueError from CfpUserInputError('Invalid value given for parameter iotype')
+                raise CfpValueError('Invalid value given for parameter iotype') from CfpUserInputError('Invalid value given for parameter iotype')
             return True
         else:
-            raise CfpInitializationError
-            raise CfpValueError from CfpUserInputError('The value provided for io_type must be of type string of IOType.')
+            raise CfpValueError from CfpUserInputError('The value provided for io_type must be of type string or IOType.')
 
     def __init__(self, args: list, io_type: IOType = None, str_io_type: str = None) -> None:
         """
@@ -397,11 +396,16 @@ class InputHandler(IOHandlerBase):
         else:
             raise CfpTypeError from CfpUserInputError('The type of itype must be InputType.')   
 
-    def __init__(self, itype: str, args):
-        # super().__init__(args)
+    def __init__(self, itype: InputType, args: List):
         self.io_type = IOType.INPUT
         self.handler_args = args
         self.input_type = itype
+
+    def __enter__():
+        pass
+
+    def __exit__():
+        pass
 
 @dataclass
 class CfpFile:
