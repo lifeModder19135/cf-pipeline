@@ -1,6 +1,6 @@
 from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler, OutputHandler, OutputType
 import pytest
-from SOURCE.modules.cfp_errors import CfpInitializationError, CfpMethodInputError, CfpTypeError, CfpValueError, CfpUserInputError
+from SOURCE.modules.cfp_errors import CfpInitializationError, CfpMethodInputError, CfpTypeError, CfpValueError, CfpUserInputError, CfpOverwriteNotAllowedError
 from pathlib import Path, PosixPath
 ########################################  ~~~~ IOHandlerBase ~~~~  #####################
 
@@ -34,8 +34,8 @@ def test_create_inputhandler_test():
     assert hndlr.handler_args[1] == 'test value 2'
 
 def test_create_inputhandler_fails_properly_test():
-     with pytest.raises((CfpTypeError, CfpUserInputError)):
-         hndlr = InputHandler('wrong type', ['test value 1', 'test value 2'])
+    with pytest.raises((CfpTypeError, CfpUserInputError)):
+        hndlr = InputHandler('wrong type', ['test value 1', 'test value 2'])
 
 ########################################  ~~~~ CfpFile ~~~~  #####################
 
@@ -65,3 +65,8 @@ def test_create_outputhandler_test():
     assert hndlr.handler_args[1] == 'test value 2'
     assert hndlr.output_type == OutputType.OUTFILE
     assert hndlr.io_type == IOType.OUTPUT
+
+    def test_outputhandler_iotype_changeability_test():
+        hndlr = OutputHandler(OutputType.OUTFILE, ['test value 1', 'test value 2'])
+        with pytest.raises(CfpOverwriteNotAllowedError):
+            hndlr.io_type = IOType.INPUT
