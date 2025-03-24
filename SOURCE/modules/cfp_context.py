@@ -218,10 +218,11 @@ class ResultResolutionMode(Flag):
 
 class IOType(Flag):
     """
-    Description: An Enum used for defining whether an IO object is to be used with input or output.
+    Description: A Flag used for defining whether an IO object is to be used with input or output.
     Values: 
-        INPUT: 0
-        OUTPUT: 1
+         INPUT: object is to be used with input
+        OUTPUT: object is to be used with output
+        SOURCE: object is to be used with source code
     """
     # TODO:
 
@@ -231,8 +232,12 @@ class IOType(Flag):
 
 class InputType(Flag):
     """
-    properties:
-        Enum ([type]): [description]
+    Description: A flag with values representing different input sources.
+    Values: 
+        INFILE: data is coming from a file
+        INSTREAM: data is coming from a stream
+        INSTRING: data is coming from a Python string
+        INPIPE: data is coming from a pipe
     """
     # TODO:
 
@@ -243,8 +248,11 @@ class InputType(Flag):
 
 class OutputType(Flag):
     """
-    properties:
-        Enum ([type]): [description]
+    Description: A flag used in OutputHandler with values representing different output sources.
+    Values:
+        OUTFILE: handler is outputting to a file
+        OUTSTREAM: handler is outputting to a stream
+        OUTPIPE: handler is outputting to a pipe
     """
     # TODO:
 
@@ -254,7 +262,8 @@ class OutputType(Flag):
 
 class FileType(Flag):
     """
-    properties:
+    Description: Represents different types of files.
+    Values:
         Enum ([type]): [description]
     """
     # TODO:
@@ -277,9 +286,7 @@ class FileType(Flag):
 
 class LanguageChoice(Flag):
     """
-    description: a collection of names of programming languages
-    properties:
-        `Language_name`: each represents a programming language, source code of which is accepted by one of the apis
+    description: a collection of names of programming languages. Each represents a programming language, source code of which is accepted by one of the apis
     """    
     C_SHARP_MONO = 'C#mono',
     D_DMD32 = 'D_DMD32',
@@ -384,6 +391,14 @@ class InputHandler(IOHandlerBase):
     # TODO:
 
     __inp_t: InputType
+
+    @property
+    def io_type(self) -> IOType:
+        return self.__io_t
+    
+    @io_type.setter
+    def io_type(self) -> None:
+        raise CfpOverwriteNotAllowedError('io_type is hardcoded to INPUT and cannot be changed.') 
 
     @property
     def input_type(self) -> InputType:
@@ -572,7 +587,7 @@ class OutputHandler(IOHandlerBase):
         self.__outtype_ = ot
 
     def __init__(self, outputtype: OutputType, args: List):
-        self.__outtype_ = IOType.OUTPUT
+        self.__io_t = IOType.OUTPUT
         self.output_type = outputtype
         self.handler_args = args
 
