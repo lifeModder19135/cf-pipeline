@@ -10,7 +10,7 @@ from SOURCE.modules.cfp_errors import CfpIOError, CfpInitializationError, CfpNot
 from enum import Enum, Flag
 from shutil import which
 from shlex import shlex, split, join
-from pathlib import Path
+from pathlib import Path, PosixPath, WindowsPath
 from SOURCE.lib.libcf_api import libcfapi_utils
 # from . import cfp_context as this
 
@@ -414,30 +414,21 @@ class CfpFile:
     """    
     # TODO:
 
-    __handler: IOHandlerBase
     __loc: Path
     __f_type: FileType
     __num_bytes: int
     __can_open: bool
 
     @property
-    def handler(self) -> IOHandlerBase:
-        return self.__handler
-
-    @handler.setter
-    def handler(self, handler) -> None:
-        self.__handler = handler
-
-    @property
     def location_path(self) -> Path:
-        if type(self.__loc) is Path:
+        if type(self.__loc) is PosixPath or type(self.__loc) is WindowsPath:
             return self.__loc
         else:
             raise CfpTypeError
 
     @location_path.setter
     def location_path(self, loc:Path) -> None:
-        if type(loc) is Path:
+        if type(loc) is PosixPath or type(loc) is WindowsPath:
             self.__loc = loc
         else:
             raise CfpTypeError
@@ -465,27 +456,41 @@ class CfpFile:
         else:
             raise CfpTypeError
     
-    @is_openable.setter
-    def is_openable(self,o:bool) -> None:
-        if type(o) is bool:
-            self.__can_open = o
-        else:
-            raise CfpTypeError
+    # @is_openable.setter
+    # def is_openable(self,o:bool) -> None:
+    #     if type(o) is bool:
+    #         self.__can_open = o
+    #     else:
+    #         raise CfpTypeError
+        
+    def __init__(self, loc: Path, ftype: FileType, size: int):
+        self.location_path = loc
+        self.filetype = ftype
+        self.size_in_bytes = size
+        try:
+            with open(self.location_path):
+                self.__can_open = True
+        except Exception as e:
+            self.__can_open = False
 
-    def content(self) -> None:
-        if self.__f_type() is FileType.CFP_INPUTFILE_TEXT_FMT_1:
-            lines_list = []
-            with open(self.location_path()) as c:
-                count = 0
-                for line in c:
-                    count = count + 1
-                    lines_list.append((int(count), str(line))) 
+    def get_content(self) -> list:
+            if self.__f_type() is FileType.CFP_INPUTFILE_TEXT_FMT_1:
+                lines_list = []
+                if os.path.isfile(self.location_path) == True:
+                    with open(self.location_path()) as c:
+                        count = 0
+                        for line in c:
+                            count = count + 1
+                            lines_list.append((int(count), str(line)))
+                        return lines_list
+                else:
+                    raise CfpValueError('self.location_path must point to a valid file.')
 
     def get_template(self, loc):
         pass
 
     def from_scratch(self, header):
-        pass       
+        pass
 
 class InputFileHandler(InputHandler):
     """
@@ -494,7 +499,11 @@ class InputFileHandler(InputHandler):
     #TODO: 
     #   Add methods: load_file, handle
     #   Add property: handle_action:
-    
+
+    __f_curr: CfpFile
+    __previous_files: List[CfpFile]
+    __files_on_deck: List[CfpFile]
+
     @property
     def current_file(self) -> CfpFile:
         """The current_file property."""
@@ -522,14 +531,21 @@ class InputFileHandler(InputHandler):
     def files_on_deck(self, value) -> None:
         self.__files_on_deck = value
 
-    def get_content_from_current(self, format:FileType=FileType.CFP_INPUTFILE_TEXT_FMT_1) -> CfpFile:
+    def get_content_from_current(self, format: FileType = FileType.CFP_INPUTFILE_TEXT_FMT_1) -> CfpFile:
         with open(self.current_file) as curr:
             lines = []
             for line in curr:
                 lines.append(line)
 
-    def __init__(self, file:CfpFile=None, *args, **kwargs):
-        super().__init__(InputType.INFILE, *args, **kwargs)        
+    def __init__(self, files: List[CfpFile], args: List):
+        super().__init__(InputType.INFILE, args)
+        self.current_file = files[0]
+        self.files_previously_handled = []
+        self.files_on_deck = []
+        for n, i in enumerate(files):
+            if n != 0:
+                self.files_on_deck.append(i) 
+
 
 class OutputHandler(IOHandlerBase):
     """
