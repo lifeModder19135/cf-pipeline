@@ -1,4 +1,4 @@
-from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType
+from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler
 import pytest
 from SOURCE.modules.cfp_errors import CfpInitializationError, CfpMethodInputError, CfpTypeError, CfpValueError, CfpUserInputError
 from pathlib import Path, PosixPath
@@ -40,18 +40,19 @@ def test_create_inputhandler_fails_properly_test():
 ########################################  ~~~~ CfpFile ~~~~  #####################
 
 def test_create_cfpfile_test():
-    hndlr = InputHandler(InputType.INFILE, ['test value 1', 'test value 2'])
     path = Path('/test/path/testfile.txt')
-    file = CfpFile(hndlr, path, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
-    assert type(file.handler) == InputHandler
+    file = CfpFile(path, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
     assert type(file.location_path) == PosixPath
     assert file.filetype == FileType.CFP_INPUTFILE_TEXT_FMT_1
     assert file.is_openable == False
 
 def test_create_inputfilehandler_test():
-    hndlr = InputHandler(InputType.INFILE, ['test value 1', 'test value 2'])
     path1 = Path('/test/path/testfile1.txt')
     path2 = Path('/test/path/testfile2.txt')
-    file1 = CfpFile(hndlr, path1, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
-    file2 = CfpFile(hndlr, path2, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
+    file1 = CfpFile(path1, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
+    file2 = CfpFile(path2, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
+    hndlr = InputFileHandler([file1, file2], ['arg 1', 'arg 2'])
+    assert hndlr.current_file == file1
+    assert hndlr.files_previously_handled == []
+    assert hndlr.files_on_deck[0] == file2
  
