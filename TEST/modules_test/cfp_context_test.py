@@ -1,4 +1,4 @@
-from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler
+from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler, OutputHandler, OutputType
 import pytest
 from SOURCE.modules.cfp_errors import CfpInitializationError, CfpMethodInputError, CfpTypeError, CfpValueError, CfpUserInputError
 from pathlib import Path, PosixPath
@@ -46,6 +46,8 @@ def test_create_cfpfile_test():
     assert file.filetype == FileType.CFP_INPUTFILE_TEXT_FMT_1
     assert file.is_openable == False
 
+########################################  ~~~~ InputFileHandler ~~~~  #####################
+
 def test_create_inputfilehandler_test():
     path1 = Path('/test/path/testfile1.txt')
     path2 = Path('/test/path/testfile2.txt')
@@ -56,3 +58,10 @@ def test_create_inputfilehandler_test():
     assert hndlr.files_previously_handled == []
     assert hndlr.files_on_deck[0] == file2
  
+ ########################################  ~~~~ OutputHandler ~~~~  #####################
+
+def test_create_outputhandler_test():
+    hndlr = OutputHandler(OutputType.OUTFILE, ['test value 1', 'test value 2'])
+    assert hndlr.handler_args[1] == 'test value 2'
+    assert hndlr.output_type == OutputType.OUTFILE
+    assert hndlr.io_type == IOType.INPUT
