@@ -537,7 +537,7 @@ class InputFileHandler(InputHandler):
             for line in curr:
                 lines.append(line)
 
-    def __init__(self, files: List[CfpFile], args: List):
+    def __init__(self, files: List[CfpFile], args: List = None):
         super().__init__(InputType.INFILE, args)
         self.current_file = files[0]
         self.files_previously_handled = []
@@ -546,13 +546,27 @@ class InputFileHandler(InputHandler):
             if n != 0:
                 self.files_on_deck.append(i) 
 
-
 class OutputHandler(IOHandlerBase):
     """
     Description: Active container which implements an interface for controlling what happens to, and what is affected by, the output of a runner in a context.
     """
     # TODO:
     #   - add implementation
+
+    __outtype_: OutputType
+
+    @property
+    def output_type(self) -> OutputType:
+        return self.__outtype_
+    
+    @output_type.setter
+    def output_type(self, ot: OutputType) -> None:
+        self.__outtype_ = ot
+
+    def __init__(self, outputtype: OutputType, args: List):
+        self.io_type = IOType.OUTPUT
+        self.output_type = outputtype
+        self.handler_args = args
 
     def to_file(self, fullpath, encoding:str="UTF-8") -> None:
         try:
