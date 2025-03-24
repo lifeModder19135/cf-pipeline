@@ -64,4 +64,4 @@ def test_create_outputhandler_test():
     hndlr = OutputHandler(OutputType.OUTFILE, ['test value 1', 'test value 2'])
     assert hndlr.handler_args[1] == 'test value 2'
     assert hndlr.output_type == OutputType.OUTFILE
-    assert hndlr.io_type == IOType.INPUT
+    assert hndlr.io_type == IOType.OUTPUT
