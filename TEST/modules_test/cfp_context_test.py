@@ -1,4 +1,4 @@
-from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler, OutputHandler, OutputType
+from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler, OutputHandler, OutputType, InputCommandString, Program, CmdArg
 import pytest
 from SOURCE.modules.cfp_errors import CfpInitializationError, CfpMethodInputError, CfpTypeError, CfpValueError, CfpUserInputError, CfpOverwriteNotAllowedError
 from pathlib import Path, PosixPath
@@ -66,7 +66,26 @@ def test_create_outputhandler_test():
     assert hndlr.output_type == OutputType.OUTFILE
     assert hndlr.io_type == IOType.OUTPUT
 
-    def test_outputhandler_iotype_changeability_test():
-        hndlr = OutputHandler(OutputType.OUTFILE, ['test value 1', 'test value 2'])
-        with pytest.raises(CfpOverwriteNotAllowedError):
-            hndlr.io_type = IOType.INPUT
+def test_outputhandler_iotype_changeability_test():
+    hndlr = OutputHandler(OutputType.OUTFILE, ['test value 1', 'test value 2'])
+    with pytest.raises(CfpOverwriteNotAllowedError):
+        hndlr.io_type = IOType.INPUT
+
+ ########################################  ~~~~ InputCommandString ~~~~  #####################
+
+def test_create_commandstring_test():
+    cmdstr = InputCommandString('test -command', 'bash')
+    assert cmdstr.command == 'test -command'
+    assert cmdstr.primary_shellchoice == 'bash'
+
+ ########################################  ~~~~ Program ~~~~  ################################
+
+def test_create_program_test():
+    pa = Path('/test/path.py')
+    pr = Program(pa, 'posix', 'test user')
+
+ ########################################  ~~~~ Program ~~~~  ################################
+
+def test_create_CmdArg_Test():
+    arg = CmdArg('testarg')
+    assert arg.argument == 'testarg'
