@@ -412,7 +412,7 @@ class InputHandler(IOHandlerBase):
             raise CfpTypeError from CfpUserInputError('The type of itype must be InputType.')   
 
     def __init__(self, itype: InputType, args: List):
-        self.io_type = IOType.INPUT
+        self.__io_t = IOType.INPUT
         self.handler_args = args
         self.input_type = itype
 
@@ -559,7 +559,13 @@ class InputFileHandler(InputHandler):
         self.files_on_deck = []
         for n, i in enumerate(files):
             if n != 0:
-                self.files_on_deck.append(i) 
+                self.files_on_deck.append(i)
+
+    def __enter__():
+        pass
+
+    def __exit__():
+        pass
 
 class OutputHandler(IOHandlerBase):
     """
@@ -598,18 +604,27 @@ class OutputHandler(IOHandlerBase):
             raise CfpUserInputError from CfpIOError
         except BaseException as e:
             raise CfpRuntimeError from e
+        
+    def __enter__():
+        pass
+
+    def __exit__():
+        pass
 
 ########                                                                                         ########
 ########################################  ~~~~ RUNNER_SUBS ~~~~  ########################################
 ########                                                                                         ########     
 
-class InputCommandString(str):
+class InputCommandString:
     """
     description: represents a string containing one or more shell commands
     properties:
         shell_lang: see method docstring
     """
     # TODO:
+
+    __rnr_sh: str
+    __command: str
 
     @property
     def primary_shellchoice(self) -> str:
@@ -618,22 +633,33 @@ class InputCommandString(str):
         Returns: The shell_lang property's current value
         Defaults to: Bash 
         """
-        if not self.__flavor:
-            self.__pref_rnr_sh = 'Bash'
-        return self.__flavor
+        return self.__rnr_sh
     
     @primary_shellchoice.setter
-    def primary_shellchoice(self,sh) -> None:
+    def primary_shellchoice(self, sh: str = 'bash') -> None:
         self.__rnr_sh = sh
+
+    @property
+    def command(self) -> str:
+        return self.__command
+    
+    @command.setter
+    def command(self, comm) -> None:
+        self.__command = comm
+
+    def __init__(self, cmd, shell: str = 'bash'):
+        self.primary_shellchoice = shell
+        self.command = cmd
 
     def to_cmd_objs(self):
         """
-        Description: This method converts the method to a list of Command objects.
+        Description: This method converts the command string to a list of Command objects.
         Returns: 
         """
+        x = self
         pass 
 
-class Program(Path):
+class Program:
     """
     Description: Represents a running instance of a computer program.
     properties: 
@@ -642,58 +668,58 @@ class Program(Path):
         fullpath (str): full path to the program's executable file.
     """
     # TODO:
+
+    __op_sys: str
+    __caller: str
+    __full_path: Union[PosixPath, WindowsPath]
     
     @property
     def operating_system(self) -> str:
-        """The os on which the program is running."""
+        """The os on which the program is running. If not specified during initialization, it defaults to your current operating system."""
         return self.__op_sys
     
     
     @operating_system.setter
-    def operating_system(self, o_s:str=None) -> None:
-        if o_s is None:
-            self.__op_sys = sys.platform
-        else:
-            self.__op_sys = o_s
+    def operating_system(self, o_s:str) -> None:
+        self.__op_sys = o_s
     
     @property
     def invoked_by(self) -> str:
-        """The username of the account that the program was executed under"""
+        """The username of the account that the program was executed under. If not given during initialization, it defaults to the current user."""
         return self.__caller
     
     @invoked_by.setter
     def invoked_by(self, user:str=None) -> None:
-        if user is None:
-            self.__caller = str(os.path.expandvars('$USER'))
-        elif type(user) == str:
-            self.__caller = user
-        else:
-            raise CfpTypeError()
+        self.__caller = user
             
     @property
     def fullpath(self) -> Path:
         return self.__full_path
     
     @fullpath.setter
-    def fullpath(self, val:str) -> None:
+    def fullpath(self, val: Union[str, PosixPath, WindowsPath]) -> None:
         if type(val) is str:
             self.__full_path = Path(val)
-        elif type(val) is Path:
+        elif type(val) is PosixPath or type(val) is WindowsPath:
             self.__full_path = val
         else:
             raise CfpTypeError
 
-    def __init__(self, name_or_path:str):
-        p = super().__init__(name_or_path)
-        if not p.exists:
-            self.fullpath(shutil.which(p))
-            if self.fullpath() == None:
-                raise CfpNotExecutableError
-            try:
-                o_p = open(p)
-            except PermissionError:
-                raise CfpPermissionDeniedError
-            self.fullpath(name_or_path)
+    def __init__(self, path:str, opsys: str = None, caller: str = None):
+        if opsys == None:
+            self.operating_system = str(os.name)
+        else:
+            self.operating_system = opsys
+        if caller == None:
+            self.invoked_by = str(os.path.expandvars('$USER'))
+        else:
+            self.invoked_by = caller
+        self.fullpath = path
+            # try:
+            #     o_p = open(p)
+            # except PermissionError:
+            #     raise CfpPermissionDeniedError
+            # self.fullpath(name_or_path)
             
     def run(self,shell_errors_fail:bool=False) -> str:
         """
@@ -723,7 +749,7 @@ class Program(Path):
             else:
                 return str(r_p.stdout)
 
-class CmdArg(str):
+class CmdArg:
 
     """
     properties:
@@ -731,8 +757,18 @@ class CmdArg(str):
     """
     # TODO:
 
+    __arg: str
+
+    @property
+    def argument(self) -> str:
+        return self.__arg
+    
+    @argument.setter
+    def argument(self, a: str) -> None:
+        self.__arg = a
+
     def __init__(self, input_src):
-        super().__init__(input_src)
+        self.argument = input_src
 
     def as_str(self) -> str:
         try:
