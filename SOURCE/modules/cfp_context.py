@@ -795,6 +795,7 @@ class CmdArgString(str):
 
 class CmdArgList:
     """
+    Description: A list of CmdArg objects representing all options and arguments of a single command line, along with some metadata about the list.
     properties:
         args: the actual arguments list. Type is list[CmdArg]
     """
@@ -888,7 +889,7 @@ class CmdArgList:
             # print(type(i))
             raise CfpTypeError(type(input))
 
-class Command:
+class CommandLine:
     """
     properties:
         [type]: [description]
@@ -904,22 +905,26 @@ class Command:
         self.__exec = prog
 
     @property
-    def args(self) -> List:
+    def args(self) -> CmdArgList:
         return self.__args
     
     @args.setter
-    def args(self, *args) -> None:
-        try:
-            arg_ls = []
-            for arg in args:
-                arg_ls.append(arg)
-            self.__args = arg_ls
-        except TypeError:
+    def args(self, args: CmdArgList) -> None:
+        if type(args) == CmdArgList:
+            self.__args = args
+        else:
             raise CfpTypeError
-        except ValueError:
-            raise CfpValueError
-        except BaseException as e:
-            raise CfpRuntimeError from e
+        # try:
+        #     arg_ls = []
+        #     for arg in args:
+        #         arg_ls.append(arg)
+        #     self.__args = arg_ls
+        # except TypeError:
+        #     raise CfpTypeError
+        # except ValueError:
+        #     raise CfpValueError
+        # except BaseException as e:
+        #     raise CfpRuntimeError from e
 
     def __init__(self, exe:Program, *args):
         self.executable(exe)
