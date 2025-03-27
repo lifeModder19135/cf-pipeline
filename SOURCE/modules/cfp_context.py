@@ -869,22 +869,24 @@ class CmdArgList:
         if type(a) is not CmdArg:
             raise CfpTypeError
         else:
-            self.__args.append(a.argument)
+            self.__args.append(a)
 
-    def __init__(self, *input):
-        for i in input:
-            if type(i) is CmdArg:
-                self.addcmdarg(i.argument)
-            if type(i) is list:
-                self.addlist(i)
-            elif type(i) is tuple:
-                self.addtuple(i)
-            elif type(i) is int:
-                self.addint(i)
-            elif type(i) is str or type(i) is str:
-                self.addstring(i)
-            else:
-                raise CfpTypeError
+    def __init__(self, input):
+        self.__args = []
+            
+        if type(input) == CmdArg:
+            self.addcmdarg(input)
+        elif type(input) == list:
+            self.addlist(input)
+        elif type(input) == tuple:
+            self.addtuple(input)
+        elif type(input) == int:
+            self.addint(input)
+        elif type(input) == str:
+            self.addstring(input)
+        else:
+            # print(type(i))
+            raise CfpTypeError(type(input))
 
 class Command:
     """
