@@ -1,4 +1,4 @@
-from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler, OutputHandler, OutputType, InputCommandString, Program, CmdArg
+from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler, OutputHandler, OutputType, InputCommandString, Program, CmdArg, CmdArgString, CmdArgList
 import pytest
 from SOURCE.modules.cfp_errors import CfpInitializationError, CfpMethodInputError, CfpTypeError, CfpValueError, CfpUserInputError, CfpOverwriteNotAllowedError
 from pathlib import Path, PosixPath
@@ -84,8 +84,13 @@ def test_create_program_test():
     pa = Path('/test/path.py')
     pr = Program(pa, 'posix', 'test user')
 
- ########################################  ~~~~ Program ~~~~  ################################
+ ########################################  ~~~~ CmdArg ~~~~  ################################
 
-def test_create_CmdArg_Test():
+def test_create_cmdarg_test():
     arg = CmdArg('testarg')
     assert arg.argument == 'testarg'
+
+ ########################################  ~~~~ CmdArgString ~~~~  ################################
+
+def test_create_cmdargstring_test():
+    assert CmdArgString('-option') == str('-option')
