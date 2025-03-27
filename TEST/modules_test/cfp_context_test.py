@@ -1,4 +1,4 @@
-from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler, OutputHandler, OutputType, InputCommandString, Program, CmdArg, CmdArgString, CmdArgList
+from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler, OutputHandler, OutputType, InputCommandString, Program, CmdArg, CmdArgString, CmdArgList, CommandLine, Task, ShellProgram, Job, BaseRunner, CfpRunner, Context, CfpShellBasedTestContext, DynamicStrRunnerContext, CfpShellContext
 import pytest
 from SOURCE.modules.cfp_errors import CfpInitializationError, CfpMethodInputError, CfpTypeError, CfpValueError, CfpUserInputError, CfpOverwriteNotAllowedError
 from pathlib import Path, PosixPath
@@ -119,3 +119,5 @@ def test_create_cmdargList_fromint_test():
 def test_create_cmdargList_fromstring_test():
     cmdls = CmdArgList('-option')
     assert cmdls.args[0].argument == '-option'
+
+ ########################################  ~~~~ CommandLine ~~~~  ################################
