@@ -94,3 +94,28 @@ def test_create_cmdarg_test():
 
 def test_create_cmdargstring_test():
     assert CmdArgString('-option') == str('-option')
+
+ ########################################  ~~~~ CmdArgList ~~~~  ################################
+
+def test_create_cmdargList_fromcmdarg_test():
+    arg = CmdArg('-testarg')
+    cmdls = CmdArgList(arg)
+    assert cmdls.args[0].argument == '-testarg'
+
+def test_create_cmdargList_fromlist_test():
+    ls = ['argument', '-option']
+    cmdls = CmdArgList(ls)
+    assert cmdls.args[1].argument == '-option'
+
+def test_create_cmdargList_fromtuple_test():
+    t = ('argument', '-option')
+    cmdls = CmdArgList(t)
+    assert cmdls.args[1].argument == '-option'
+
+def test_create_cmdargList_fromint_test():
+    cmdls = CmdArgList(1)
+    assert cmdls.args[0].argument == '1'
+
+def test_create_cmdargList_fromstring_test():
+    cmdls = CmdArgList('-option')
+    assert cmdls.args[0].argument == '-option'
