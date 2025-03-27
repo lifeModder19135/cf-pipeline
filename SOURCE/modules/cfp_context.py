@@ -752,8 +752,9 @@ class Program:
 class CmdArg:
 
     """
+    Description: A single argument or option to a single command.
     properties:
-        [type]: [description]
+        argument: contains the actual argument or option
     """
     # TODO:
 
@@ -784,13 +785,13 @@ class CmdArg:
 
 class CmdArgString(str):    
     """
-    properties:
-        [type]: [description]
+    Description: A string containing one or more command arguments. Should contain all arguments and options given to a single command. In other words, the entire command line minus the command itself. For all arguments in list form, see CmdArgList.
     """
     # TODO:
 
-    def __init__(self, *args):
-        super().__init__(args)
+    def __new__(cls, value, *args, **kwargs):
+        return super(CmdArgString, cls).__new__(cls, value)
+
 
 class CmdArgList:
     """
@@ -798,6 +799,8 @@ class CmdArgList:
         args: the actual arguments list. Type is list[CmdArg]
     """
     # TODO:
+
+    __args: List
 
     @property
     def args(self) -> List[CmdArg]:
@@ -818,7 +821,7 @@ class CmdArgList:
 
     @property
     def args_count(self) -> int:
-        if not self.__args():
+        if not hasattr(self, __args):
             return 0
         else:
             return len(self.__args)
@@ -836,50 +839,50 @@ class CmdArgList:
             else:
                 return a_str.lstrip().rstrip()
 
-    def __addlist(self, ls: list) -> None:
+    def addlist(self, ls: list) -> None:
         if type(ls) is not list:
             raise CfpTypeError
         else:
             for i in ls:
                 self.__args.append(CmdArg(i))
 
-    def __addtuple(self, tup:tuple) -> None:
+    def addtuple(self, tup:tuple) -> None:
         if type(tup) is not tuple:
             raise CfpTypeError
         else:
             for i in tup:
                 self.__args.append(CmdArg(str(i)))            
 
-    def __addint(self, i:int) -> None:
+    def addint(self, i:int) -> None:
         if type(i) is not int:
             raise CfpTypeError
         else:
             self.__args.append(CmdArg(str(i)))
 
-    def __addstring(self, s:str) -> None:
+    def addstring(self, s:str) -> None:
         if type(s) is not str and type(s) is not str:
             raise CfpTypeError
         else:
             self.__args.append(CmdArg(str(s)))
 
-    def __addcmdarg(self, a:CmdArg) -> None:
+    def addcmdarg(self, a:CmdArg) -> None:
         if type(a) is not CmdArg:
             raise CfpTypeError
         else:
-            self.__args.append(a)
+            self.__args.append(a.argument)
 
     def __init__(self, *input):
         for i in input:
             if type(i) is CmdArg:
-                self.__addcmdarg(i)
+                self.addcmdarg(i.argument)
             if type(i) is list:
-                self.__addlist(i)
+                self.addlist(i)
             elif type(i) is tuple:
-                self.__addtuple(i)
+                self.addtuple(i)
             elif type(i) is int:
-                self.__addint(i)
+                self.addint(i)
             elif type(i) is str or type(i) is str:
-                self.__addstring(i)
+                self.addstring(i)
             else:
                 raise CfpTypeError
 
