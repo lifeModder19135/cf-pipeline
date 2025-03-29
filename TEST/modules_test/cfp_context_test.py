@@ -1,4 +1,4 @@
-from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler, OutputHandler, OutputType, InputCommandString, Program, CmdArg, CmdArgString, CmdArgList, CommandLine, Task, ShellProgram, Job, BaseRunner, CfpRunner, Context, CfpShellBasedTestContext, DynamicStrRunnerContext, CfpShellContext
+from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler, OutputHandler, OutputType, InputCommandString, Program, CmdArg, CmdArgString, CmdArgList, CommandLine, Task, ShellProgram, Job, BaseRunner, CfpRunner, Context, CfpShellBasedTestContext, DynamicStrRunnerContext, CfpShellContext, Separator
 import pytest
 from SOURCE.modules.cfp_errors import CfpInitializationError, CfpMethodInputError, CfpTypeError, CfpValueError, CfpUserInputError, CfpOverwriteNotAllowedError
 from pathlib import Path, PosixPath
@@ -83,6 +83,14 @@ def test_create_commandstring_test():
 def test_create_program_test():
     pa = Path('/test/path.py')
     pr = Program(pa, 'posix', 'test user')
+    assert type(pr.fullpath) == PosixPath
+    assert pr.invoked_by == 'test user'
+    assert pr.operating_system == 'posix'
+
+def test_program_tostring_test():
+    pa = Path('/test/path.py')
+    pr = Program(pa, 'posix', 'test user')
+    assert pr.tostring() == '/test/path.py'
 
  ########################################  ~~~~ CmdArg ~~~~  ################################
 
@@ -120,4 +128,42 @@ def test_create_cmdargList_fromstring_test():
     cmdls = CmdArgList('-option')
     assert cmdls.args[0].argument == '-option'
 
+def test_cmdarglist_tostring_test():
+    ls = ['argument', '-option']
+    cal = CmdArgList(ls)
+    str = cal.tostring() == 'argument -option'
+
  ########################################  ~~~~ CommandLine ~~~~  ################################
+
+def test_create_commandline_test():
+    pr = Program('/test/program.py', 'linux', 'test caller')
+    cal = CmdArgList('test')
+    cl = CommandLine(pr, cal)
+    assert type(cl.args) == CmdArgList
+    assert type(cl.args.args[0]) == CmdArg
+    assert cl.args.args[0].argument == 'test'
+    assert type(cl.executable) == Program
+
+def test_commandline_tostring_test():
+    pr = Program('/test/program', 'linux', 'test caller')
+    cal = CmdArgList('test')
+    cl = CommandLine(pr, cal)
+    str = cl.tostring()
+    assert str == '/test/program test'
+
+ ########################################  ~~~~ Task ~~~~  ################################
+
+def test_create_task_test():
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    assert type(tsk.content[1]) == CommandLine
+    assert type(tsk.separators[1]) == Separator
