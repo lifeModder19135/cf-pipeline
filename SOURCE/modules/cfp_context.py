@@ -325,6 +325,15 @@ class Openability(Flag):
     FILETYPE_NOT_SUPPORTED = 5
     NOT_OPENABLE_REASON_UNKNOWN = 6
 
+class Separator(Flag):
+    """A list of possible command line Separators such as '&&' and '|' that connect commands in various ways."""
+    AMPERSANDS = '&&'
+    PIPE = '|'
+    DOUBLE_PIPE = '||'
+    FORWARD_FIFO = '>'
+    BACKWARD_FIFO = '<'
+    SEMICOLON = ';'
+
 ########                                                                                         ########
 ########################################  ~~~~ IO_HANDLERS ~~~~  ########################################
 ########                                                                                         ########    
@@ -720,6 +729,9 @@ class Program:
             # except PermissionError:
             #     raise CfpPermissionDeniedError
             # self.fullpath(name_or_path)
+
+    def tostring(self):
+        return str(self.fullpath)
             
     def run(self,shell_errors_fail:bool=False) -> str:
         """
@@ -822,18 +834,15 @@ class CmdArgList:
 
     @property
     def args_count(self) -> int:
-        if not hasattr(self, __args):
-            return 0
-        else:
-            return len(self.__args)
+        return len(self.__args)
 
-    def to_argstring(self) -> str:
+    def tostring(self) -> str:
         a_str = ''
         for a in self.args:
             if a_str == '':
-                a_str = a
+                a_str = a.argument
             else:
-                a_str = a_str + ' ' + a
+                a_str = a_str + ' ' + a.argument
         else:
             if a_str == '':
                 return None
@@ -872,7 +881,7 @@ class CmdArgList:
         else:
             self.__args.append(a)
 
-    def __init__(self, input):
+    def __init__(self, input: Union[CmdArg, List, tuple, int, str]):
         self.__args = []
             
         if type(input) == CmdArg:
@@ -896,9 +905,12 @@ class CommandLine:
     """
     # TODO:
 
+    __exec: Program
+    __args: CmdArgList
+
     @property
     def executable(self) -> Program:
-        return self._exec
+        return self.__exec
 
     @executable.setter
     def executable(self, prog: Program) -> str:
@@ -926,27 +938,57 @@ class CommandLine:
         # except BaseException as e:
         #     raise CfpRuntimeError from e
 
-    def __init__(self, exe:Program, *args):
-        self.executable(exe)
-        self.args(args)
+    def __init__(self, exe:Program, args: CmdArgList):
+        self.executable = exe
+        self.args = args
+
+    def tostring(self):
+        str1 = self.executable.tostring()
+        str2 = self.args.tostring()
+        str3 = str1 + ' ' + str2
+        return str3
 
 class Task:
     """
-    Represents a group of one or more commands connected together via pipes / fifos. IMPORTANT: commands which are connected via `&&` , `||` , or `;` are not 
+    Represents a group of one or more command lines connected together via pipes / fifos. IMPORTANT: There must be the same amount of items in the 'Separators' list as their are in the 'content' list, otherwise the functions of this class will produce errors!
     """
-    # TODO:
+    # TODO: add tostring method which combines the content and Separators into a string that can be run on the command line
+
+    __content: List[CommandLine]
+    __seps: List[Separator]
 
     @property
-    def content(self) -> List[Command]:
+    def content(self) -> List[CommandLine]:
+        """
+        A list containing the command lines to be connected. The length of this list must be the same lingth as the separators list.
+        """
         return self.__content
     
     @content.setter
     def content(self, c: str) -> None:
         self.__content = c 
+
+    @property
+    def separators(self) -> List[Separator]:
+        """
+        a list of Separators (i.e. '&&' of '|') that separate the command lines in 'content', in the order that they appear. The amount of separators must be the same as the amount of CommandLine objects in 'content', and the last item must be Separator.SEMICOLON. 
+        """
+        return self.__seps
     
-    def __init__(self):
+    @separators.setter
+    def separators(self, s: List[Separator]) -> None:
+        self.__seps = s
+
+    def __init__(self, content: List[CommandLine], separators: List[Separator]):
+        self.content = content
+        self.separators = separators
+
+    def tostring(self):
+        # string = ''
+        # zipped = zip(self.content, self.separators)
+        # for i,c,s in enumerate(zipped):
+        #     string += c.
         pass
-              
 class ShellProgram(Program):
     """
     Description: A program that starts a command shell when run. e.g. bash, cmd, etc.  
