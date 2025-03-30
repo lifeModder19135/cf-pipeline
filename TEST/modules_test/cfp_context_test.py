@@ -165,5 +165,23 @@ def test_create_task_test():
     l1 = [cl1, cl2]
     l2 = [s1, s2]
     tsk = Task(l1, l2)
+    assert type(tsk.content) == list
+    assert type(tsk.separators) == list
     assert type(tsk.content[1]) == CommandLine
     assert type(tsk.separators[1]) == Separator
+
+def test_task_tostring_test():
+    pr1 = Program('/test/program1', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    st = tsk.tostring()
+    assert type(st) == str
+    assert st == '/test/program1 test && /test/program2 test;'
