@@ -185,3 +185,38 @@ def test_task_tostring_test():
     st = tsk.tostring()
     assert type(st) == str
     assert st == '/test/program1 test && /test/program2 test;'
+
+ ########################################  ~~~~ ShellProgram ~~~~  ################################
+
+def test_create_shellprogram_test():
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    assert sp.name == 'sp'
+    assert type(sp.launchpath) == PosixPath
+
+########################################  ~~~~ Job ~~~~  ##########################################
+
+def test_create_job_test():
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+    assert job.aliases == {}
+    assert type(job.content) == tuple
+    assert type(job.content[0]) == ShellProgram
+    assert type(job.content[1]) == list
+    assert type(job.content[1][0]) == Task
+
