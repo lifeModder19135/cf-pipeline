@@ -804,7 +804,6 @@ class CmdArgString(str):
     def __new__(cls, value, *args, **kwargs):
         return super(CmdArgString, cls).__new__(cls, value)
 
-
 class CmdArgList:
     """
     Description: A list of CmdArg objects representing all options and arguments of a single command line, along with some metadata about the list.
@@ -1034,10 +1033,10 @@ class ShellProgram(Program):
     def launchpath(self, lp: Path) -> None:
         self.__launch_path = lp
         
-    def __init__(self, name:str, fullpath:str, launchpath:Path=None, opsys: str = None, caller: str = None):
-        self.name = name
-        self.launchpath = path
-        super().__init__()
+    def __init__(self, sp_name: str, sp_fullpath: Path, sp_launchpath: Path = None, sp_opsys: str = None, sp_caller: str = None):
+        super().__init__(sp_fullpath, opsys=sp_opsys, caller=sp_caller)
+        self.name = sp_name
+        self.launchpath = sp_launchpath
         
     def run_task(self, task:Task) -> None:
         if self.launchpath is not None:
@@ -1059,41 +1058,46 @@ class Job:
     """
     # TODO:
 
-    TOP_LEVEL:bool = False
+    TOP_LEVEL: bool
     
     @property
-    def aliases(self) -> List[str]:
+    def aliases(self) -> dict:
+        """a dictionary where the keys are strings representing aliases and the values are strings representing what they expand to."""
         return self.__aliases
     
     @aliases.setter
-    def aliases(self, vals: List[str]) -> None:
+    def aliases(self, vals: dict) -> None:
         self.__aliases = vals    
     
     @property
-    def content(self) -> Tuple[ShellProgram,Task]:
+    def content(self) -> Tuple:
+        """the task to be run and the shell to run it with"""
         return self.__content
     
     @content.setter
     def content(self, tup: Tuple) -> None:
         if type(tup) == tuple and len(tup) == 2: 
-            if type(tuple[1]) is Task:
+            if type(tup[0]) == ShellProgram and type(tup[1]) == list:
                 self.__content = tup  
             else:
                 raise CfpTypeError
         else: 
             raise CfpTypeError
     
-    def __init__(self, *cmd_ls: Task, aliases: List):
-        if len(cmd_ls) <= 0:
+    def __init__(self, tsk_ls: list, prg: ShellProgram, aliases: dict = {}):
+        if len(tsk_ls) <= 0:
             raise CfpUserInputError('Job objects must always contain at least one Task.')
         else:
-            self.content = cmd_ls
+            self.content = (prg, tsk_ls)
+            self.aliases = aliases
     
-    def to_string(self) -> str:
+    def tostring(self) -> str:
         try:
-            progpath = which(str(self.content[0]))
-            cmd_str = ' '.join(list(self.self.content[1]))
-            return progpath + cmd_str
+            progpath = str(self.content[0].fullpath)
+            str = str(progpath, ' ')
+            for i in self.content[1]:
+                str = str + i.tostring + ' '
+            return str.lstrip(' ').rstrip(' ')
         except TypeError:
             raise CfpTypeError
         except BaseException as e:
