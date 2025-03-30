@@ -1076,13 +1076,16 @@ class Job:
     
     @content.setter
     def content(self, tup: Tuple) -> None:
-        if type(tup) == tuple and len(tup) == 2: 
-            if type(tup[0]) == ShellProgram and type(tup[1]) == list:
-                self.__content = tup  
+        if type(tup) == tuple: 
+            if len(tup) == 2: 
+                if type(tup[0]) == ShellProgram and type(tup[1]) == list:
+                    self.__content = tup  
+                else:
+                    raise CfpTypeError('One or more items inside tuple is of the wrong type. This must be a tuple containing a ShellProgram instance and a list of Task objects, in that order.')
             else:
-                raise CfpTypeError
+                raise CfpUserInputError('Tuple more of less than 2 items. This must be a tuple containing a ShellProgram instance and a list of Task objects, in that order.')
         else: 
-            raise CfpTypeError
+            raise CfpTypeError('content property must be given a tuple. This must be a tuple containing a ShellProgram instance and a list of Task objects, in that order.')
     
     def __init__(self, tsk_ls: list, prg: ShellProgram, aliases: dict = {}):
         if len(tsk_ls) <= 0:
@@ -1090,14 +1093,20 @@ class Job:
         else:
             self.content = (prg, tsk_ls)
             self.aliases = aliases
+
+    def add_task(self, tsk: Task):
+        if type(tsk) == Task:
+            self.content[1].append(tsk)
+        else:
+            raise CfpTypeError('You can only add values of type Task to the task list')
     
     def tostring(self) -> str:
         try:
             progpath = str(self.content[0].fullpath)
-            str = str(progpath, ' ')
+            string = progpath + ' '
             for i in self.content[1]:
-                str = str + i.tostring + ' '
-            return str.lstrip(' ').rstrip(' ')
+                string = string + i.tostring() + ' '
+            return string.lstrip(' ').rstrip(' ')
         except TypeError:
             raise CfpTypeError
         except BaseException as e:
