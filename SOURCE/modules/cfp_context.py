@@ -714,7 +714,7 @@ class Program:
         else:
             raise CfpTypeError
 
-    def __init__(self, path:str, opsys: str = None, caller: str = None):
+    def __init__(self, path: Path, opsys: str = None, caller: str = None):
         if opsys == None:
             self.operating_system = str(os.name)
         else:
@@ -1018,6 +1018,7 @@ class ShellProgram(Program):
     """
     @property
     def name(self) -> str:
+        """The name of the shell. e.g. 'bash'"""
         return self.__namestr
     
     @name.setter
@@ -1026,39 +1027,29 @@ class ShellProgram(Program):
         
     @property
     def launchpath(self) ->Path:
+        """the path to the executable. e.g. '/bin/bash'; This only needs set if it is different than fullpath, such as if it uses an alias."""
         return self.__launch_path
     
     @launchpath.setter
     def launchpath(self, lp: Path) -> None:
         self.__launch_path = lp
         
-    @property
-    def command_concat(self) -> str:
-        """
-        This string is used to concat the command strings. Expects values such as '&&'.
-        """
-        return self.__cmd_concat
-    
-    @command_concat.setter
-    def command_concat(self, val) -> None:
-        self.__cmd_concat = str(val)
-        
-    def __init__(self, name:str, concat:str, altpath:Path=None):
-        self.name(name)
-        self.command_concat(concat)
-        self.launchpath(altpath)
+    def __init__(self, name:str, fullpath:str, launchpath:Path=None, opsys: str = None, caller: str = None):
+        self.name = name
+        self.launchpath = path
         super().__init__()
         
     def run_task(self, task:Task) -> None:
         if self.launchpath is not None:
-            callstr = str(self.launchpath(), ' ', task.as_string(self.command_concat()))
+            callstr = str(str(self.launchpath), ' ', task.tostring())
         else:
-            callstr = str(self.path, ' ', task.as_string(self.command_concat()))
-        output = subprocess.run(callstr)
+            callstr = str(str(self.path), ' ', task.tostring())
+        output = subprocess.run(callstr, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        return output
     
     def run_task_via_progpath_call(self, task:Task) -> None:
-        callstr = str(self.path, ' ', task.as_string(self.command_concat()))
-        sub = subprocess.run(callstr)
+        callstr = str(str(self.path), ' ', task.tostring())
+        sub = subprocess.run(callstr, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
 class Job:
     """
