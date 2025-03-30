@@ -965,7 +965,7 @@ class Task:
         return self.__content
     
     @content.setter
-    def content(self, c: str) -> None:
+    def content(self, c: List[CommandLine]) -> None:
         self.__content = c 
 
     @property
@@ -984,11 +984,29 @@ class Task:
         self.separators = separators
 
     def tostring(self):
-        # string = ''
-        # zipped = zip(self.content, self.separators)
-        # for i,c,s in enumerate(zipped):
-        #     string += c.
-        pass
+        if len(self.content) == len(self.separators):
+            string = ''
+            zipped = zip(self.content, self.separators)
+            for c,s in zipped:
+                string = string + c.tostring()
+                if s == Separator.AMPERSANDS:
+                    string = string + ' && '
+                elif s == Separator.BACKWARD_FIFO:
+                    string = string + ' < '
+                elif s == Separator.DOUBLE_PIPE:
+                    string = string + ' || '
+                elif s == Separator.FORWARD_FIFO:
+                    string = string + ' > '
+                elif s == Separator.PIPE:
+                    string = string + ' | '
+                elif s == Separator.SEMICOLON:
+                    string = string + '; '
+                else:
+                    raise CfpTypeError('The "separators" list must only contain values of type Separator.')
+            return string.lstrip(' ').rstrip(' ')
+        else:
+            raise CfpUserInputError('The list length of "content" must equal the list length of "separators".')
+
 class ShellProgram(Program):
     """
     Description: A program that starts a command shell when run. e.g. bash, cmd, etc.  
