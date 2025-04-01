@@ -2,7 +2,7 @@ from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, Inpu
 import pytest
 from SOURCE.modules.cfp_errors import CfpInitializationError, CfpMethodInputError, CfpTypeError, CfpValueError, CfpUserInputError, CfpOverwriteNotAllowedError
 from pathlib import Path, PosixPath
-########################################  ~~~~ IOHandlerBase ~~~~  #####################
+########################################  ~~~~ IOHandlerBase ~~~~  ###################################
 
 def test_create_iohandlerbase_test():
     base = IOHandlerBase(['test value 1', 'test value 2'], IOType.INPUT)
@@ -25,7 +25,7 @@ def test_create_iohandlerbase_fails_properly_test():
         base = IOHandlerBase(['test value 1', 'test value 2'], 14)
     # assert str(e.value) == 'The value provided for io_type must be of type string or IOType.'
 
-########################################  ~~~~ InputHandler ~~~~  #####################
+########################################  ~~~~ InputHandler ~~~~  ###################################
 
 def test_create_inputhandler_test():
     hndlr = InputHandler(InputType.INFILE, ['test value 1', 'test value 2'])
@@ -37,7 +37,7 @@ def test_create_inputhandler_fails_properly_test():
     with pytest.raises((CfpTypeError, CfpUserInputError)):
         hndlr = InputHandler('wrong type', ['test value 1', 'test value 2'])
 
-########################################  ~~~~ CfpFile ~~~~  #####################
+########################################  ~~~~ CfpFile ~~~~  #######################################
 
 def test_create_cfpfile_test():
     path = Path('/test/path/testfile.txt')
@@ -46,7 +46,7 @@ def test_create_cfpfile_test():
     assert file.filetype == FileType.CFP_INPUTFILE_TEXT_FMT_1
     assert file.is_openable == False
 
-########################################  ~~~~ InputFileHandler ~~~~  #####################
+########################################  ~~~~ InputFileHandler ~~~~  ##############################
 
 def test_create_inputfilehandler_test():
     path1 = Path('/test/path/testfile1.txt')
@@ -58,7 +58,7 @@ def test_create_inputfilehandler_test():
     assert hndlr.files_previously_handled == []
     assert hndlr.files_on_deck[0] == file2
  
- ########################################  ~~~~ OutputHandler ~~~~  #####################
+########################################  ~~~~ OutputHandler ~~~~  #################################
 
 def test_create_outputhandler_test():
     hndlr = OutputHandler(OutputType.OUTFILE, ['test value 1', 'test value 2'])
@@ -71,14 +71,14 @@ def test_outputhandler_iotype_changeability_test():
     with pytest.raises(CfpOverwriteNotAllowedError):
         hndlr.io_type = IOType.INPUT
 
- ########################################  ~~~~ InputCommandString ~~~~  #####################
+########################################  ~~~~ InputCommandString ~~~~  ############################
 
 def test_create_commandstring_test():
     cmdstr = InputCommandString('test -command', 'bash')
     assert cmdstr.command == 'test -command'
     assert cmdstr.primary_shellchoice == 'bash'
 
- ########################################  ~~~~ Program ~~~~  ################################
+########################################  ~~~~ Program ~~~~  #######################################
 
 def test_create_program_test():
     pa = Path('/test/path.py')
@@ -92,18 +92,18 @@ def test_program_tostring_test():
     pr = Program(pa, 'posix', 'test user')
     assert pr.tostring() == '/test/path.py'
 
- ########################################  ~~~~ CmdArg ~~~~  ################################
+########################################  ~~~~ CmdArg ~~~~  ########################################
 
 def test_create_cmdarg_test():
     arg = CmdArg('testarg')
     assert arg.argument == 'testarg'
 
- ########################################  ~~~~ CmdArgString ~~~~  ################################
+ ########################################  ~~~~ CmdArgString ~~~~  ###############################
 
 def test_create_cmdargstring_test():
     assert CmdArgString('-option') == str('-option')
 
- ########################################  ~~~~ CmdArgList ~~~~  ################################
+ ########################################  ~~~~ CmdArgList ~~~~  #################################
 
 def test_create_cmdargList_fromcmdarg_test():
     arg = CmdArg('-testarg')
@@ -133,7 +133,7 @@ def test_cmdarglist_tostring_test():
     cal = CmdArgList(ls)
     str = cal.tostring() == 'argument -option'
 
- ########################################  ~~~~ CommandLine ~~~~  ################################
+########################################  ~~~~ CommandLine ~~~~  #################################
 
 def test_create_commandline_test():
     pr = Program('/test/program.py', 'linux', 'test caller')
@@ -151,7 +151,7 @@ def test_commandline_tostring_test():
     str = cl.tostring()
     assert str == '/test/program test'
 
- ########################################  ~~~~ Task ~~~~  ################################
+########################################  ~~~~ Task ~~~~  ########################################
 
 def test_create_task_test():
     pr1 = Program('/test/program1.py', 'linux', 'test caller')
@@ -186,7 +186,7 @@ def test_task_tostring_test():
     assert type(st) == str
     assert st == '/test/program1 test && /test/program2 test;'
 
- ########################################  ~~~~ ShellProgram ~~~~  ################################
+########################################  ~~~~ ShellProgram ~~~~  ################################
 
 def test_create_shellprogram_test():
     pp = Path('/test/path.py')
@@ -195,7 +195,7 @@ def test_create_shellprogram_test():
     assert sp.name == 'sp'
     assert type(sp.launchpath) == PosixPath
 
-########################################  ~~~~ Job ~~~~  ##########################################
+########################################  ~~~~ Job ~~~~  #########################################
 
 def test_create_job_test():
     pp = Path('/test/path.py')
@@ -220,3 +220,165 @@ def test_create_job_test():
     assert type(job.content[1]) == list
     assert type(job.content[1][0]) == Task
 
+def test_job_add_task_method_test():
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    pr3 = Program('/test/program3.py', 'linux', 'test caller')
+    cal3 = CmdArgList('test')
+    cl3 = CommandLine(pr3, cal3)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    l3 = [cl3]
+    tsk = Task(l1, l2)
+    tsk2 = Task(l3, [s2])
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+    job.add_task(tsk2)
+    assert type(job.content[1]) == list
+    assert len(job.content[1]) == 2
+    assert type(job.content[1][1]) == Task
+
+def test_job_tostring_method_test():
+    pp = Path('/bin/bash')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+    str = job.tostring()
+    assert str == '/bin/bash /test/program1.py test && /test/program2.py test;'
+
+def test_job_emptylist_failsproperly_test():
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    with pytest.raises(CfpUserInputError):
+        j = Job([], sp)
+
+def test_job_contentsetter_failsproperly_wrongtype_1_test():
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+    with pytest.raises(CfpTypeError):
+        job.content = []
+
+def test_job_contentsetter_failsproperly_wrongtype_2_test():
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+    with pytest.raises(CfpTypeError):
+        job.content = (sp, 'wrong')
+
+def test_job_contentsetter_failsproperly_wrongtype_3_test():
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+    with pytest.raises(CfpTypeError):
+        job.content = ('wrong', tsk_ls)
+
+def test_job_contentsetter_failsproperly_wrongsize_test():
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+    with pytest.raises(CfpUserInputError):
+        job.content = (sp, tsk_ls, 'wrong')
+
+########################################  ~~~~ BaseRunner ~~~~  ##################################
+
+def test_create_baserunner_test():
+    file = open('file.txt', 'w')
+    file.close
+    ihndlr = InputHandler(InputType.INFILE, ['test value 1', 'test value 2'])
+    ohndlr = OutputHandler(OutputType.OUTFILE, ['test value 1', 'test value 2'])
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+    br = BaseRunner(job, in_from=ihndlr, out_to=ohndlr)
+
+    assert type(br.infrom) == InputHandler
+    assert type(br.outto) == OutputHandler
+    assert type(br.job) == Job
