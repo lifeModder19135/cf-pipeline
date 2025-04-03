@@ -219,3 +219,12 @@ class CtxPathResolver:
         
     def __init__(self, path:Path=None):
         self.ctx_dirpath(path) 
+
+class PathFinder:
+
+    def find_executable_fullpath(exe: str):
+        for path in os.environ["PATH"].split(os.pathsep):
+            file_path = os.path.join(path, exe)
+            if os.path.exists(file_path) and os.access(file_path, os.X_OK):
+                return file_path
+        return None

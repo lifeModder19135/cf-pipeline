@@ -12,6 +12,7 @@ from shutil import which
 from shlex import shlex, split, join
 from pathlib import Path, PosixPath, WindowsPath
 from SOURCE.lib.libcf_api import libcfapi_utils
+from SOURCE.lib.libcfp_maintutils import PathFinder
 # from . import cfp_context as this
 
 
@@ -712,7 +713,7 @@ class Program:
         elif type(val) is PosixPath or type(val) is WindowsPath:
             self.__full_path = val
         else:
-            raise CfpTypeError
+            raise CfpTypeError('The value of must be a string or a pathlib.Path object')
 
     def __init__(self, path: Path, opsys: str = None, caller: str = None):
         if opsys == None:
@@ -1075,11 +1076,11 @@ class Job:
         return self.__content
     
     @content.setter
-    def content(self, tup: Tuple) -> None:
-        if type(tup) == tuple: 
-            if len(tup) == 2: 
-                if type(tup[0]) == ShellProgram and type(tup[1]) == list:
-                    self.__content = tup  
+    def content(self, lst: list) -> None:
+        if type(lst) == list: 
+            if len(lst) == 2: 
+                if type(lst[0]) == ShellProgram and type(lst[1]) == list:
+                    self.__content = lst  
                 else:
                     raise CfpTypeError('One or more items inside tuple is of the wrong type. This must be a tuple containing a ShellProgram instance and a list of Task objects, in that order.')
             else:
@@ -1091,7 +1092,7 @@ class Job:
         if len(tsk_ls) <= 0:
             raise CfpUserInputError('Job objects must always contain at least one Task.')
         else:
-            self.content = (prg, tsk_ls)
+            self.content = [prg, tsk_ls]
             self.aliases = aliases
 
     def add_task(self, tsk: Task):
@@ -1135,53 +1136,75 @@ class BaseRunner:
     # TODO:
 
     @property
-    def infile(self) -> InputHandler:
+    def infile(self) -> Path:
         return self.__input_file
 
     @infile.setter
-    def infile(self, arg) -> None:
-        self.__input_file = arg
+    def infile(self, arg: Union[str, PosixPath, WindowsPath]) -> None:
+        if arg == None:
+            pass
+        elif type(arg) == str:
+            self.__input_file = Path(arg)
+        elif type(arg) == PosixPath or type(arg) == WindowsPath:
+            self.__input_file = arg
+        else:
+            raise CfpUserInputError('The value of infile must be a string representation of a file path or a pathlib.Path objict pointing to an actual file.')
 
     @property
-    def infrom(self) -> str:
+    def infrom(self) -> InputHandler:
         return self.__in_from
 
     @infrom.setter
-    def infrom(self, arg) -> None:
-        self.__in_from = arg
+    def infrom(self, arg: InputHandler) -> None:
+        # if type(arg) == InputHandler or type(arg) == InputFileHandler:
+        if issubclass(type(arg), InputHandler):
+            self.__in_from = arg
+        else:
+            raise CfpTypeError('The infrom property must be set to None or to an InputHandler.')
 
     @property
     def outto(self) -> OutputHandler:
-        if type(self.__out_to) == OutputHandler:
-            return self.__out_to
-        else:
-            raise TypeError
+        return self.__out_to
+        
 
     @outto.setter
     def outto(self, dest) -> None:
-        self.__out_to = dest
+        if type(dest) == OutputHandler:
+            self.__out_to = dest
+        else:
+            raise CfpTypeError('The outto property can only contain values of type OutputHandler')
 
     @property
-    def job(self, arg) -> Job:
+    def job(self) -> Job:
         return self.__cmd_list
 
     @job.setter
     def job(self, clist) -> None:
-        self.__cmd_list = clist
+        if type(clist) == Job:
+            self.__cmd_list = clist
+        else:
+            raise CfpTypeError('The job property can only contain values of type Job')
 
-    def __init__(self, in_from=None, out_to=None, infile=None, cmd=None):
-        self.infrom(in_from) 
-        self.outto(out_to)
-        self.infile(infile) 
-        if self.infile and self.infrom:
+    def __init__(self, job: Job, in_from: InputHandler=None, out_to: OutputHandler=None, infile: str=None, infile_type: FileType=FileType.CFP_INPUTFILE_TEXT_FMT_1):
+        self.job = job
+        self.outto = out_to
+        if in_from != None and infile != None:
             raise CfpUserInputError("You cannot specify values for both input and infile")
-        elif self.infile:
-            pth = Path(self.infile)
+        elif infile != None:
+            pth = Path(infile)
             if Path.exists(pth):
-                self.in_from = fileinput(pth)
+                f = CfpFile(pth, infile_type, os.path.getsize(pth))
+                self.infrom = InputFileHandler([f], [])
+                self.infile = pth
             else:
                 raise CfpUserInputError("If included, value for infile must be a valid path")        
-             
+        elif in_from != None:
+            if type(in_from) == InputHandler:
+                self.infrom = in_from
+                self.infile = None
+        else:
+            raise CfpUserInputError('you must give a value for either infile or in_from')
+        
 
     def InitializeIOHandler(self, *handler_args, **handler_kwargs) -> IOHandlerBase:
         """
@@ -1201,6 +1224,10 @@ class BaseRunner:
         if self.infile():
             handler = IOHandlerBase(self.infile(), handler_args)
         return handler
+
+    def run():
+        """This method must be overridden in all runners (in all child classes.) Here, it just passes."""
+        pass
 
 class CfpRunner(BaseRunner):
     """
@@ -1320,7 +1347,7 @@ class CfpRunner(BaseRunner):
 @dataclass
 class Context:
     """
-    Description: Base for all contexts. 
+    Description: Base for all contexts. When subclassing this class, make sure that the new class a.) explicitly defines both __enter__ and __exit__ methods and b.) calls super.__enter__ and super.__exit__ from inside them.
     """
     # TODO:
         # Add __enter__() & __exit__() methods to each context subtype
@@ -1329,13 +1356,21 @@ class Context:
                 # If __init__() is not already the last method, move it.
 
     def __enter__(self):
-        pass
-    
+        print('setting up environment')
+        for i, (k, v) in enumerate(self.env_dict):
+            j = i + 1
+            print('adding var ' + j + ' of ' + len(self.env_dict))
+            os.environ[k] = self.env_dict[k]
+        else:
+            print('finished setting up environment')
+
     def __exit__(self):
-       pass    
+       for k in self.env_dict:
+           del os.environ[k]   
 
     @property
     def namespace(self) -> str:
+        """This will prefix every key in the environment dict. When the keys and values are loaded into the process environment, this is how you can tell the difference between the variables you've created and the ones that were already there."""
         return self.__name_space
 
     @namespace.setter
@@ -1344,6 +1379,7 @@ class Context:
 
     @property
     def ctx_type(self) -> str:
+        """This describes the context. any time you create a subclass from this class, you will give your new class a ctx_type. For example, CfpShellContext has a ctx_type of 'shell_ctx'"""
         return self.__ctx_t
 
     @ctx_type.setter
@@ -1352,84 +1388,129 @@ class Context:
 
     @property
     def env_dict(self) ->dict:
+        """This contains all environment variables to be added to the process environment of the context. For any key-value-pair that is added, the key will be prfixed with the namespace followed by an underscore. This namespace helps to differentiate between the context variables and the variables that were already part of the process."""
         return self.__environ_dict
 
     @env_dict.setter
-    def env_dict(self, ed: dict, overwrite: bool=False) -> None:
-        if self.__environ_dict:
-            if len(self.__environ_dict) == 0:
-                self.__environ_dict = ed
-            elif overwrite == True:
-                self.__environ_dict = ed
-            elif overwrite == False:
-                raise CfpOverwriteNotAllowedError
+    def env_dict(self, ed: dict) -> None:
+        self.__environ_dict = {}
+        for k in ed:
+            prefd = str(self.namespace) + '_' + str(k)
+            self.__environ_dict[prefd] = ed[k]
                    
-    def putenv(self,k, v) -> bool:
-        self.env_dict().update({k: v})
+    def putenv(self,k: str, v: str) -> bool:
+        """add a key-value-pair to the process environment. It will also be added to the env_dict property, as the two coincide"""
+        prefd = str(self.namespace) + '_' + str(k)
+        self.__environ_dict.update({prefd: v})
+        os.environ[prefd] = v
         return True
             
-    def getenv(self, key) -> str:
-        return self.env_dict[key]
+    def getenv(self, key: str) -> str:
+        """retrieve the value for a key in the env_dict property and in the process environment. The given key must be prefixed in the form 'self.namespace + _ + key'. For example if the namespace is 'hello' and the key is 'world', the new key will be 'hello_world'."""
+        return self.__environ_dict[key]
     
     def print_info(self,outputFmt:str) -> None:
         """
+        This prints some metadata about the current instance of the class, followed by a list of all current environment variables inside the namespace.
         TODO: make sure this is tested with a populated env_dict.
         """
         print.format('CURRENT CONTEXT:' )
         print.format('        Instance of Type:   {} Context', self.ctx_type)
-        print.format('    Ctx Namespace Prefix:   {}_')
+        print.format('    Ctx Namespace Prefix:   {}_', self.namespace)
         print.format('    Ctx Inner Environment: {')
-        for k,v in self.env_dict().items():
+        for k,v in self.__environ_dict().items():
             if type(v) == str:
                 print(f'              {k}: {v}')
             else:
-                print(f'              {k}: {str(v)}')           
+                print(f'              {k}: {str(v)}') 
+
+    def __init__(self):
+        raise CfpInitializationError('Context is a base class that cannot be initialized. You must inherit from this class and initialize the subclass.')          
 
 class CfpShellContext(Context):
     """
-    Description: This is a context for running commands in a shell such as bash or zsh. The bash process is run on top of a Python process with its own environment that is kept seperate from the process environment by default, but whose variables can be accessed in the same way as process envvars at context runtime.    
+    Description: This is a context for running commands in a shell such as bash or zsh. The shell process is run on top of a Python process with its own environment, with all variables prefixed with self.namespace, whose variables can be accessed in the same way as process envvars at context runtime.    
     """
     # TODO:
 
+    shellpref_avail: bool = False
+
     def __enter__(self):
-       pass
+       super.__enter__()
    
     def __exit__(self):
-      pass    
+      super.__exit__()    
 
     @property
-    def shellchoice(self) -> ShellProgram:
+    def shellchoice(self) -> str:
+        """a string representing the user's preferred shell. Example 'bash' or 'zsh'. Note: This should be the exact program name of a shell program on the end user's system."""
         return self.__shell_choice
 
     @shellchoice.setter
-    def shellchoice(self, choice=None) -> None:  
+    def shellchoice(self, choice: str) -> None: 
+        if choice == None:
+            raise CfpTypeError 
         self.__shell_choice = choice
 
     @property
-    def current_shell(self) -> ShellProgram:  
+    def current_shell(self) -> ShellProgram:
+        """This contains a ShellProgram instance which usually points to the shellchoice shell. If that shell cant be found at runtime, it will default to either bash or cmd, depending on the operating system. Setting this will automatically update the runner with the new ShellProgram."""
         return self.__current_shell
 
     @current_shell.setter
-    def current_shell(self, curr=None) -> None:  
-        self.__current_shell = curr
-        
-    def __init__(self, cmds, runner: CfpRunner, shell_env: str, **envvars):
-        """
-        Description: Init calls parent init (sets namespace, ctx_type) and updates virtual_environment. Sets `cmds_fmt` to a 2d list where each outer element represents a command, itself represented by the inner list, with cmd[0] being the command and the rest of the inner list is its args. 
-        """
-        super().__init__('shell_ctx','shell')
-        self.env_dict.update(envvars)
-        self.shellpath = self.check_for_preferred_shell(self.shellchoice, resolve_mode="returnstatement")
-    
-    def check_for_preferred_shell(self, shellpref:str):
-        """
-        Description: runs which command with shellname as argument. If cmd returns empty, self.shellpref_avail is set to False and this func returns False. otherwise,it is set to True, and func returns the path which the os uses to execute it, usually "$PREFIX/bin/shellname".
-        """
-        sh_path = shutil.which(shellpref)
-        if sh_path is not None:
-            return Path(sh_path)
+    def current_shell(self, curr: ShellProgram) -> None:
+        if issubclass(type(curr), ShellProgram):
+            self.__current_shell = curr
+            if self.current_shell != None:
+                self.runner.job.content[0] = self.current_shell
         else:
-            return False
+            raise CfpTypeError('The value passed to current_shell must be of type ShellProgram')
+
+    @property
+    def runner(self) -> BaseRunner:
+        """The context runner. This holds important info such as the shellprogram to be used and the commands to be run with that shell."""
+        return self.__runner
+    
+    @runner.setter
+    def runner(self, rnr):
+        if issubclass(type(rnr), BaseRunner):
+            self.__runner = rnr
+
+        
+    def __init__(self, env_dict: dict, runner: CfpRunner, shell_choice: str=None):
+        """
+        Description: Init sets namespace, ctx_type and updates virtual_environment. Sets `cmds_fmt` to a 2d list where each outer element represents a command, itself represented by the inner list, with cmd[0] being the command and the rest of the inner list is its args. 
+        """
+        # super().__init__('shell_ctx','shell')
+        self.namespace = 'SHELLCTX'
+        self.ctx_type = 'shell_ctx'
+        self.env_dict = env_dict
+        self.runner = runner
+        self.shellchoice = shell_choice
+        self.current_shell = self.__get_a_shell(self.shellchoice)
+        
+    
+    def __get_a_shell(self, shellpref:str):
+        """
+        Description: This tries to return a ShellProgram instance with the fullpath set to self.shellpref. If the shellpref is not available in PATH on the runtime system, it tries to find bash or cmd in PATH. If neither of these are available, it returns None.".
+        """
+        sh_path = PathFinder.find_executable_fullpath(shellpref)
+        if sh_path is not None:
+            self.shellpref_avail = True
+            sp = ShellProgram(shellpref, Path(sh_path), sp_opsys=str(os.name), sp_caller=str(os.getuid()))
+            return sp
+        if sh_path == None:
+            self.shellpref_avail = False
+            sh_path = PathFinder.find_executable_fullpath('bash')
+            if sh_path != None:
+                sp = ShellProgram(shellpref, Path(sh_path), sp_opsys=str(os.name), sp_caller=str(os.getuid()))
+                return sp
+            else:
+                sh_path = PathFinder.find_executable_fullpath('cmd')
+                if sh_path != None:
+                    sp = ShellProgram(shellpref, Path(sh_path), sp_opsys=str(os.name), sp_caller=str(os.getuid()))
+                    return sp
+        return None
 
     def run_ctx(self, shellpath_clean):
         self.__run_jobs_with_runner(self.job_runner, shellpath_clean)        
