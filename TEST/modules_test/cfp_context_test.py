@@ -2,6 +2,7 @@ from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, Inpu
 import pytest
 from SOURCE.modules.cfp_errors import CfpInitializationError, CfpMethodInputError, CfpTypeError, CfpValueError, CfpUserInputError, CfpOverwriteNotAllowedError
 from pathlib import Path, PosixPath
+import os
 ########################################  ~~~~ IOHandlerBase ~~~~  ###################################
 
 def test_create_iohandlerbase_test():
@@ -215,7 +216,7 @@ def test_create_job_test():
     tsk_ls = [tsk]
     job = Job(tsk_ls, sp)
     assert job.aliases == {}
-    assert type(job.content) == tuple
+    assert type(job.content) == list
     assert type(job.content[0]) == ShellProgram
     assert type(job.content[1]) == list
     assert type(job.content[1][0]) == Task
@@ -292,7 +293,7 @@ def test_job_contentsetter_failsproperly_wrongtype_1_test():
     tsk_ls = [tsk]
     job = Job(tsk_ls, sp)
     with pytest.raises(CfpTypeError):
-        job.content = []
+        job.content = ()
 
 def test_job_contentsetter_failsproperly_wrongtype_2_test():
     pp = Path('/test/path.py')
@@ -352,11 +353,11 @@ def test_job_contentsetter_failsproperly_wrongsize_test():
     tsk_ls = [tsk]
     job = Job(tsk_ls, sp)
     with pytest.raises(CfpUserInputError):
-        job.content = (sp, tsk_ls, 'wrong')
+        job.content = [sp, tsk_ls, 'wrong']
 
 ########################################  ~~~~ BaseRunner ~~~~  ##################################
 
-def test_create_baserunner_test():
+def test_create_baserunner_with_infrom_test():
     file = open('file.txt', 'w')
     file.close
     ihndlr = InputHandler(InputType.INFILE, ['test value 1', 'test value 2'])
@@ -382,3 +383,138 @@ def test_create_baserunner_test():
     assert type(br.infrom) == InputHandler
     assert type(br.outto) == OutputHandler
     assert type(br.job) == Job
+
+    if os.path.exists('file.txt'):
+        os.remove('file.txt')
+    else:
+        pass
+
+def test_create_baserunner_with_infile_test():
+    file = open('file.txt', 'w')
+    file.close
+
+    ohndlr = OutputHandler(OutputType.OUTFILE, ['test value 1', 'test value 2'])
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+    br = BaseRunner(job, infile='file.txt', infile_type=FileType.PLAINTEXT_FILE, out_to=ohndlr)
+
+    assert issubclass(type(br.infrom), InputHandler)
+    assert type(br.outto) == OutputHandler
+    assert type(br.job) == Job
+
+    if os.path.exists('file.txt'):
+        os.remove('file.txt')
+    else:
+        pass
+
+########################################  ~~~~ Context ~~~~  #####################################
+
+def test_context_init_raises_error_test():
+    with pytest.raises(CfpInitializationError):
+        ctx = Context()
+
+########################################  ~~~~ CfpShellContext ~~~~  #############################
+
+def test_create_cfpshellcontext_test():
+    file = open('file.txt', 'w')
+    file.close
+    ihndlr = InputHandler(InputType.INFILE, ['test value 1', 'test value 2'])
+    ohndlr = OutputHandler(OutputType.OUTFILE, ['test value 1', 'test value 2'])
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+    br = BaseRunner(job, in_from=ihndlr, out_to=ohndlr)
+    
+    ed = {'TESTKEY': 'test value'}
+    ctx = CfpShellContext(ed, br, shell_choice='bash')
+
+    assert ctx.ctx_type == 'shell_ctx'
+    assert ctx.namespace == 'SHELLCTX'
+    assert ctx.env_dict == {'SHELLCTX_TESTKEY': 'test value'}
+
+def test_cfpshellcontext_putenv_test():
+    file = open('file.txt', 'w')
+    file.close
+    ihndlr = InputHandler(InputType.INFILE, ['test value 1', 'test value 2'])
+    ohndlr = OutputHandler(OutputType.OUTFILE, ['test value 1', 'test value 2'])
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+    br = BaseRunner(job, in_from=ihndlr, out_to=ohndlr)
+    
+    ed = {'TESTKEY': 'test value'}
+    ctx = CfpShellContext(ed, br, shell_choice='bash')
+    pe = ctx.putenv('TEST', 'test')
+    env = os.environ['SHELLCTX_TEST']
+
+    assert pe == True
+    assert env == 'test'
+
+def test_cfpshellcontext_getenv_test():
+    file = open('file.txt', 'w')
+    file.close
+    ihndlr = InputHandler(InputType.INFILE, ['test value 1', 'test value 2'])
+    ohndlr = OutputHandler(OutputType.OUTFILE, ['test value 1', 'test value 2'])
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+    br = BaseRunner(job, in_from=ihndlr, out_to=ohndlr)
+    
+    ed = {'TESTKEY': 'test value'}
+    ctx = CfpShellContext(ed, br, shell_choice='bash')
+    env = ctx.getenv('SHELLCTX_TESTKEY')
+
+    assert env == 'test value'
