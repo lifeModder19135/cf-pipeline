@@ -459,6 +459,11 @@ def test_create_cfpshellcontext_test():
     assert ctx.namespace == 'SHELLCTX'
     assert ctx.env_dict == {'SHELLCTX_TESTKEY': 'test value'}
 
+    if os.path.exists('file.txt'):
+        os.remove('file.txt')
+    else:
+        pass
+
 def test_cfpshellcontext_putenv_test():
     file = open('file.txt', 'w')
     file.close
@@ -490,6 +495,11 @@ def test_cfpshellcontext_putenv_test():
     assert pe == True
     assert env == 'test'
 
+    if os.path.exists('file.txt'):
+        os.remove('file.txt')
+    else:
+        pass
+
 def test_cfpshellcontext_getenv_test():
     file = open('file.txt', 'w')
     file.close
@@ -518,3 +528,8 @@ def test_cfpshellcontext_getenv_test():
     env = ctx.getenv('SHELLCTX_TESTKEY')
 
     assert env == 'test value'
+
+    if os.path.exists('file.txt'):
+        os.remove('file.txt')
+    else:
+        pass
