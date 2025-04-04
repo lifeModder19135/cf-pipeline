@@ -194,14 +194,22 @@ class RunType(Flag):
     # TODO:
 
     # 'asynchronous single-command runner using subprocess api'
-    SUBPROCESS = {'description_string': 'subprocess_default', 
+    SUBPROCESS_RUN = {'description_string': 'subprocess_default', 
                   'topipe': False, 
                   'frompipe': False, 
                   'default_input_src': 'subprocess.STDIN', 
                   'default_output_src': 'subprocess.STDOUT'}
     # 'asynchronous pipe-exit command runner using subprocess api'
-    SUBPROCESS_LEGACY = {'description_string': 'subprocess_legacy', 
-                         'exec_string': 'subprocess.check_output'}    
+    SUBPROCESS_RUN_LEGACY = {'description_string': 'subprocess_legacy', 
+                         'exec_string': 'subprocess.call'}   
+
+    SUBPROCESS_POPEN = {'description_string': 'subprocess_popen', 
+                         'exec_string': 'subprocess.Popen'}
+    
+    SUBPROCESS_CHECKOUTPUT = {'description_string': 'subprocess_check_output', 
+                         'exec_string': 'subprocess.check_output'}
+    
+
     
 class ResultResolutionMode(Flag):
     """
@@ -1259,67 +1267,6 @@ class CfpRunner(BaseRunner):
         self.__topipe = to_pipe
 
     @property
-    def argstring(self) -> CmdArgString :
-        return self.__argstring
-
-    @argstring.setter
-    def argstring(self, arg_str:Any) -> None :
-        try:
-            if type(arg_str) == CmdArgString:
-                self.__argstring = arg_str
-            elif type(arg_str) == self.CmdArglist:
-                cal = ''
-                for a in arg_str:
-                    cal = cal + str(a) + ' '
-                self.__argstring = CmdArgString(str(cal).rstrip())
-                # above: cal should be a string already, but it is re-stringified just in case...
-            elif type(arg_str) == CmdArg:
-                # this should work every time, because CmdArg type is a subtype of str, but it excepts TypeErrors regardless
-                self.__argstring = CmdArgString(str(arg_str))
-            elif type(arg_str) == str:
-                self.__argstring = CmdArgString(arg_str)
-            else:
-                hailmary = CmdArgString(arg_str)
-                if type(hailmary) == CmdArgString:
-                    self.__argstring = hailmary
-                else:
-                    raise TypeError
-        except TypeError:
-            raise CfpTypeError
-        except RuntimeError:
-            exc = str(type(e))
-            print('Runtime Error: ', exc, ' raised by the back end application.')
-            raise CfpRuntimeError
-        except BaseException as e:
-            exc = str(type(e))
-            print('Compiletime Error: ', exc, ' raised by the back end application.')
-            raise CfpRuntimeError
-
-    def __init__(self, runtype:RunType, topipe:bool=False, frompipe:bool=False):
-        if not self.runtype():
-            raise CfpInitializationError("You cannot invoke this __init__() method directly. Try using one of the @classmethods defined by this class to get a new instance.")
-        elif self.runtype() == RunType.SUBPROCESS:
-            self.strategy = 'subprocess_run'
-        elif self.runtype() == RunType.SUBPROCESS_LEGACY:
-            self.strategy = 'subprocess_check_output'      
-        self.frompipe = frompipe
-        self.topipe = topipe
-
-    def configure(self):
-        pass
-    
-    def subprocess_runner(self, legacy:bool=False):
-        """
-        Description: What it says. It returns a fresh instance of CfpRunner with the Runtype set to SUBPROCESS.   
-        """
-        #TODO: finish
-        if legacy == True:
-            self.setRuntype(RunType.SUBPROCESS_LEGACY)
-        else:
-            self.setRuntype(RunType.SUBPROCESS)
-        self.__init__()
-
-    @property
     def runtype(self) -> RunType:
         return self.__invoc_type
 
@@ -1334,11 +1281,43 @@ class CfpRunner(BaseRunner):
             raise e
         return True
 
+    def __init__(self, runtype:RunType, topipe:bool=False, frompipe:bool=False):
+        if not self.runtype():
+            raise CfpInitializationError("You cannot invoke this __init__() method directly. Try using one of the @classmethods defined by this class to get a new instance.")
+        elif self.runtype() == RunType.SUBPROCESS:
+            self.strategy = 'subprocess_run'
+        elif self.runtype() == RunType.SUBPROCESS_LEGACY:
+            self.strategy = 'subprocess_check_output'      
+        self.frompipe = frompipe
+        self.topipe = topipe
+
+    def configure(self):
+        pass
+
+    
+    
+    def __set_runtype(self, legacy:bool=False):
+        """
+        Description: What it says. It returns a fresh instance of CfpRunner with the Runtype set to SUBPROCESS.   
+        """
+        #TODO: finish
+        if legacy == True:
+            self.setRuntype(RunType.SUBPROCESS_LEGACY)
+        else:
+            self.setRuntype(RunType.SUBPROCESS)
+
     def __subprocrun_rnr_run_cmdstring(command_string: str) -> None:
         try:
-            subprocess.run(command_string,)
+            subprocess.run(command_string, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True)
         except subprocess.SubprocessError:
             print('Something went wrong. Check input and "try" again.')
+
+    def run(self, legacy: bool=False):
+        self.__set_runtype(legacy=legacy)
+        if self.runtype == RunType.SUBPROCESS:
+            subprocess.run(self.job.tostring(), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True)
+        elif self.runtype == RunType.SUBPROCESS_LEGACY:
+            subprocess.call(self.job.tostring(), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True)
 
 ########                                                                                         ########
 ##########################################  ~~~~ CONTEXTS ~~~~  ##########################################
@@ -1519,7 +1498,8 @@ class CfpShellContext(Context):
         """
         Description: simply runs cmd using self.shellpref. self.shellpref_avail must be True. DO NOT SET IT YOURSELF! To set it, you must first run the check_for_preferred_shell() func above. If it is False, then the shell isn't installed on the current system. In this case 
         """
-        pass       
+        job = self.runner.job
+
 
     def __prep_commands_list(self, cmd_list:"list[str]", shellpath):
         self.cmds_fmt = list()
