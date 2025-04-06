@@ -1,4 +1,4 @@
-from SOURCE.modules.cfp_context import IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler, OutputHandler, OutputType, InputCommandString, Program, CmdArg, CmdArgString, CmdArgList, CommandLine, Task, ShellProgram, Job, BaseRunner, CfpRunner, Context, CfpShellBasedTestContext, DynamicStrRunnerContext, CfpShellContext, Separator
+from SOURCE.modules.cfp_context import RunType, IOHandlerBase, IOType, InputHandler, InputType, CfpFile, FileType, InputFileHandler, OutputHandler, OutputType, InputCommandString, Program, CmdArg, CmdArgString, CmdArgList, CommandLine, Task, ShellProgram, Job, BaseRunner, CfpRunner, Context, CfpShellBasedTestContext, DynamicStrRunnerContext, CfpShellContext, Separator
 import pytest
 from SOURCE.modules.cfp_errors import CfpInitializationError, CfpMethodInputError, CfpTypeError, CfpValueError, CfpUserInputError, CfpOverwriteNotAllowedError
 from pathlib import Path, PosixPath
@@ -420,6 +420,34 @@ def test_create_baserunner_with_infile_test():
         os.remove('file.txt')
     else:
         pass
+
+########################################  ~~~~ CfpRunner ~~~~  ##################################
+
+def test_create_cfprunner_test():
+    file = open('file.txt', 'w')
+    file.close
+
+    ohndlr = OutputHandler(OutputType.OUTFILE, ['test value 1', 'test value 2'])
+    pp = Path('/test/path.py')
+    lp = Path('path')
+    sp = ShellProgram('sp', pp, sp_launchpath=lp, sp_opsys='linux', sp_caller='test caller')
+    pr1 = Program('/test/program1.py', 'linux', 'test caller')
+    cal1 = CmdArgList('test')
+    cl1 = CommandLine(pr1, cal1)
+    pr2 = Program('/test/program2.py', 'linux', 'test caller')
+    cal2 = CmdArgList('test')
+    cl2 = CommandLine(pr2, cal2)
+    s1 = Separator.AMPERSANDS
+    s2 = Separator.SEMICOLON
+    l1 = [cl1, cl2]
+    l2 = [s1, s2]
+    tsk = Task(l1, l2)
+    tsk_ls = [tsk]
+    job = Job(tsk_ls, sp)
+
+    ihndlr = InputHandler(InputType.INFILE, ['test value 1', 'test value 2'])
+
+    rnr = CfpRunner(RunType.SUBPROCESS_RUN, job, ih=ihndlr, oh=ohndlr)
 
 ########################################  ~~~~ Context ~~~~  #####################################
 
