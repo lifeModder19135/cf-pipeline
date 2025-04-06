@@ -209,8 +209,6 @@ class RunType(Flag):
     SUBPROCESS_CHECKOUTPUT = {'description_string': 'subprocess_check_output', 
                          'exec_string': 'subprocess.check_output'}
     
-
-    
 class ResultResolutionMode(Flag):
     """
     Description: This is meant to be a parameter for functions that configure one or more values that are persisted in the application after the function call finishes. It lets the caller specify how they want that value to be set /given. For example, the function could pass the value to its caller via return stmt, set a class variable, add a kv pair to env_dict, etc. To use, just add a kwarg of `arg: ResultResolutionMode = XXX` to func, where XXXX (the default) is one of the options below.
@@ -403,8 +401,7 @@ class IOHandlerBase:
 
 class InputHandler(IOHandlerBase):
     """
-    Note: Must be run with ContextManager
-    Description: An IOHandler subclass set up to feed an input source (params.source)
+    Holds data about the input of a runner in a context.
     """
     # TODO:
 
@@ -527,7 +524,7 @@ class CfpFile:
 
 class InputFileHandler(InputHandler):
     """
-    Description: IOHandler for an input file
+    Description: InputHandler for an input file
     """    
     #TODO: 
     #   Add methods: load_file, handle
@@ -587,7 +584,7 @@ class InputFileHandler(InputHandler):
 
 class OutputHandler(IOHandlerBase):
     """
-    Description: Active container which implements an interface for controlling what happens to, and what is affected by, the output of a runner in a context.
+    Holds data about the output of a runner in a context.
     """
     # TODO:
     #   - add implementation
@@ -1143,41 +1140,43 @@ class BaseRunner:
     """
     # TODO:
 
-    @property
-    def infile(self) -> Path:
-        return self.__input_file
+    #probably not needed
+    # @property
+    # def infile(self) -> Path:
+    #     return self.__input_file
 
-    @infile.setter
-    def infile(self, arg: Union[str, PosixPath, WindowsPath]) -> None:
-        if arg == None:
-            pass
-        elif type(arg) == str:
-            self.__input_file = Path(arg)
-        elif type(arg) == PosixPath or type(arg) == WindowsPath:
-            self.__input_file = arg
-        else:
-            raise CfpUserInputError('The value of infile must be a string representation of a file path or a pathlib.Path objict pointing to an actual file.')
+    # @infile.setter
+    # def infile(self, arg: Union[str, PosixPath, WindowsPath]) -> None:
+    #     if arg == None:
+    #         pass
+    #     elif type(arg) == str:
+    #         self.__input_file = Path(arg)
+    #     elif type(arg) == PosixPath or type(arg) == WindowsPath:
+    #         self.__input_file = arg
+        # else:
+        #     raise CfpUserInputError('The value of infile must be a string representation of a file path or a pathlib.Path objict pointing to an actual file.')
 
     @property
     def infrom(self) -> InputHandler:
+        """An InputHandler holding data bout the input to this runner"""
         return self.__in_from
 
     @infrom.setter
-    def infrom(self, arg: InputHandler) -> None:
-        # if type(arg) == InputHandler or type(arg) == InputFileHandler:
-        if issubclass(type(arg), InputHandler):
-            self.__in_from = arg
+    def infrom(self, src: InputHandler) -> None:
+        if issubclass(type(src), InputHandler):
+            self.__in_from = src
         else:
             raise CfpTypeError('The infrom property must be set to None or to an InputHandler.')
 
     @property
     def outto(self) -> OutputHandler:
+        """An OutputHandler holding data bout the output from this runner"""
         return self.__out_to
         
 
     @outto.setter
     def outto(self, dest) -> None:
-        if type(dest) == OutputHandler:
+        if issubclass(type(dest), OutputHandler):
             self.__out_to = dest
         else:
             raise CfpTypeError('The outto property can only contain values of type OutputHandler')
@@ -1192,6 +1191,15 @@ class BaseRunner:
             self.__cmd_list = clist
         else:
             raise CfpTypeError('The job property can only contain values of type Job')
+        
+    @property
+    def output(self):
+        """This holds the output of a runner's last run. Before it is run for the first time, it is set to None"""
+        return self.__output
+    
+    @output.setter
+    def output(self, out):
+        self.__output = out
 
     def __init__(self, job: Job, in_from: InputHandler=None, out_to: OutputHandler=None, infile: str=None, infile_type: FileType=FileType.CFP_INPUTFILE_TEXT_FMT_1):
         self.job = job
@@ -1256,6 +1264,7 @@ class CfpRunner(BaseRunner):
 
     @frompipe.setter
     def frompipe(self, frm: bool) -> None:
+        """Can be set to None or point to another runner which will be the input source for this one."""
         self.__frompipe = frm
 
     @property
@@ -1264,6 +1273,7 @@ class CfpRunner(BaseRunner):
 
     @topipe.setter
     def topipe(self, to_pipe:bool) -> None:
+        """Can be set to None or point to another runner which will be where the output to this runner is fed."""
         self.__topipe = to_pipe
 
     @property
@@ -1271,53 +1281,55 @@ class CfpRunner(BaseRunner):
         return self.__invoc_type
 
     @runtype.setter
-    def runtype(self, rt: RunType) -> bool:
-        try:
-            if self.__r_type:
-                self.__r_type_old = self.__r_type
-            self.__r_type = rt
-        except BaseException as e:
-            # TODO: add custom error handling
-            raise e
-        return True
-
-    def __init__(self, runtype:RunType, topipe:bool=False, frompipe:bool=False):
-        if not self.runtype():
-            raise CfpInitializationError("You cannot invoke this __init__() method directly. Try using one of the @classmethods defined by this class to get a new instance.")
-        elif self.runtype() == RunType.SUBPROCESS:
-            self.strategy = 'subprocess_run'
-        elif self.runtype() == RunType.SUBPROCESS_LEGACY:
-            self.strategy = 'subprocess_check_output'      
+    def runtype(self, rt: RunType) -> bool:   
+        self.__r_type = rt
+       
+    
+    def __init__(self, runtype:RunType, job: Job, ih: InputHandler, oh: OutputHandler, topipe: BaseRunner=None, frompipe: BaseRunner=None):
+        self.infrom = ih
+        self.outto = oh
+        self.job = job
+        self.runtype = runtype     
         self.frompipe = frompipe
         self.topipe = topipe
 
     def configure(self):
         pass
 
-    
-    
-    def __set_runtype(self, legacy:bool=False):
-        """
-        Description: What it says. It returns a fresh instance of CfpRunner with the Runtype set to SUBPROCESS.   
-        """
-        #TODO: finish
-        if legacy == True:
-            self.setRuntype(RunType.SUBPROCESS_LEGACY)
-        else:
-            self.setRuntype(RunType.SUBPROCESS)
-
     def __subprocrun_rnr_run_cmdstring(command_string: str) -> None:
         try:
-            subprocess.run(command_string, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True)
+            subprocess.run(shlex.split(command_string), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True)
         except subprocess.SubprocessError:
             print('Something went wrong. Check input and "try" again.')
 
-    def run(self, legacy: bool=False):
-        self.__set_runtype(legacy=legacy)
-        if self.runtype == RunType.SUBPROCESS:
-            subprocess.run(self.job.tostring(), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True)
-        elif self.runtype == RunType.SUBPROCESS_LEGACY:
-            subprocess.call(self.job.tostring(), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True)
+    def run(self, legacy: bool=False, frompipe: bool=False, topipe: bool=False):
+        try:
+            if frompipe == False and topipe == False:
+                if self.runtype == RunType.SUBPROCESS_RUN:
+                    output = subprocess.run(self.job.tostring(), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True)
+                elif self.runtype == RunType.SUBPROCESS_RUN_LEGACY:
+                    output = subprocess.call(self.job.tostring(), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True)
+                elif self.runtype == RunType.SUBPROCESS_POPEN:
+                    output = subprocess.Popen(shlex.split(self.job.tostring(), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE))
+                elif self.runtype == RunType.SUBPROCESS_CHECKOUTPUT:
+                    output = subprocess.check_output(shlex.split(self.job.tostring(), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True))
+                else:
+                    raise CfpUserInputError('The runtype attribute is either not set or set to an invalid value. It must be of type RunType.')
+                return output
+            elif frompipe == True and topipe == True:
+                if self.runtype == RunType.SUBPROCESS_RUN:
+                    output = subprocess.run(self.job.tostring(), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True)
+                elif self.runtype == RunType.SUBPROCESS_RUN_LEGACY:
+                    output = subprocess.call(self.job.tostring(), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True)
+                elif self.runtype == RunType.SUBPROCESS_POPEN:
+                    output = subprocess.Popen(shlex.split(self.job.tostring(), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE))
+                elif self.runtype == RunType.SUBPROCESS_CHECKOUTPUT:
+                    output = subprocess.check_output(shlex.split(self.job.tostring(), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True))
+                else:
+                    raise CfpUserInputError('The runtype attribute is either not set or set to an invalid value. It must be of type RunType.')
+                return output
+        except Exception:
+            raise CfpRuntimeError('Something went wrong while trying to run command.')
 
 ########                                                                                         ########
 ##########################################  ~~~~ CONTEXTS ~~~~  ##########################################
