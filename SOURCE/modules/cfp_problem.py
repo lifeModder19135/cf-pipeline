@@ -45,7 +45,7 @@ class Problem(object):
     def problem_type(self) -> ProblemType:
         return self.__problem_type
 
-    @index.setter
+    @problem_type.setter
     def problem_type(self, prob_type: ProblemType) -> None:
         self.__problem_type = prob_type
 
@@ -98,17 +98,17 @@ class Problem(object):
 #    tags: "list[str]" = list()       # Problem tags.
 #    solved_by_user: "bool" = False
     def __init__(self, contestId: int, problemset_name: str, index: str, name: str, problem_type: str, points: float, rating: int, tags: list):
-        self.contest_id(contestId) 
-        self.problemset_name(problemset_name)
-        self.index(index) 
-        self.name(name)
+        self.contest_id = contestId
+        self.problemset_name = problemset_name
+        self.index = index
+        self.name = name
         if type(problem_type) is ProblemType:
-            self.problem_type(problem_type)
+            self.problem_type = problem_type
         else:
             raise CfpTypeError('Type of problem_type is invalid. You must pass a value of type ProblemType for this parameter.')
-        self.points(points)
-        self.rating(rating)
-        self.tags(tags)
+        self.points = points
+        self.rating = rating
+        self.tags = tags
     
     def mark_solved(self, user):
         
