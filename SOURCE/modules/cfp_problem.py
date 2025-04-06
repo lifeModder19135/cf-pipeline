@@ -110,13 +110,14 @@ class Problem(object):
         self.rating(rating)
         self.tags(tags)
     
-    def mark_solved(self,user=None):
-        if user is None:
-            user = self.user
+    def mark_solved(self, user):
+        
+        self.user = user
         self.solved_by_user = True
         return True
         
-    def mark_unsolved(self,user=None):
+    def mark_unsolved(self, user):
+        self.user = user
         self.solved_by_user = False
         return True
         
