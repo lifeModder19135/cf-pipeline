@@ -14,7 +14,7 @@ class Problem(object):
         return self.__ctst_id
     
     @contest_id.setter
-    def contest_id(self, id:int) -> None:
+    def contest_id(self, id: int) -> None:
         self.__ctst_id = id        
     
     @property
@@ -22,7 +22,7 @@ class Problem(object):
         return self.__problemset_name
 
     @problemset_name.setter
-    def problemset_name(self, ps_name:str) -> None:
+    def problemset_name(self, ps_name: str) -> None:
         self.__problemset_name = ps_name 
 
     @property
@@ -30,7 +30,7 @@ class Problem(object):
         return self.__ndx
 
     @index.setter
-    def index(self,index:int) -> None:
+    def index(self, index: int) -> None:
         self.__ndx = index
 
     @property
@@ -38,7 +38,7 @@ class Problem(object):
         return self.__name
 
     @name.setter
-    def name(self,name:str) -> None:
+    def name(self, name: str) -> None:
         self.__name = name
 
     @property
@@ -46,7 +46,7 @@ class Problem(object):
         return self.__problem_type
 
     @index.setter
-    def problem_type(self,prob_type:ProblemType) -> None:
+    def problem_type(self, prob_type: ProblemType) -> None:
         self.__problem_type = prob_type
 
     @property
@@ -54,7 +54,7 @@ class Problem(object):
         return self.__points
 
     @points.setter
-    def points(self,points:float) -> None:
+    def points(self, points: float) -> None:
         self.__points = points
 
     @property
@@ -62,7 +62,7 @@ class Problem(object):
         return self.__rating
 
     @rating.setter
-    def rating(self,rating:int) -> None:
+    def rating(self, rating: int) -> None:
         self.__rating = rating
 
     @property
@@ -72,7 +72,7 @@ class Problem(object):
         return self.__tags
 
     @tags.setter
-    def tags(self, tag_list:list) -> None:
+    def tags(self, tag_list: list) -> None:
         if type(tag_list) is list:
             self.__tags = tag_list
         elif type(tag_list) is str:
@@ -85,7 +85,7 @@ class Problem(object):
         return self.__solved
 
     @index.setter
-    def solved_by_user(self, sbu:bool) -> None:
+    def solved_by_user(self, sbu: bool) -> None:
         self.__solved = sbu
 
 #    contestId: "int" = -1       # Can be absent. Id of the contest, containing the problem.
@@ -109,7 +109,6 @@ class Problem(object):
         self.points(points)
         self.rating(rating)
         self.tags(tags)
-        return True
     
     def mark_solved(self,user=None):
         if user is None:
