@@ -19,9 +19,11 @@ venv3.10/
 build/
 cfpipeline.egg-info/
 venv/
+testdir/
 
 ### Files
 **/reqs.txt
 .todo
 *.code-workspace
 OLD_*
+**/testfile.txt
