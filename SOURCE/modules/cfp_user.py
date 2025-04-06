@@ -1,4 +1,6 @@
-from pathlib import Path
+from pathlib import Path, PosixPath, WindowsPath
+from SOURCE.modules.cfp_errors import CfpTypeError
+from typing import Union
 
 
 class User:
@@ -14,7 +16,7 @@ class User:
         return self.__handle
 
     @handle.setter
-    def handle(self, val:str) -> None:
+    def handle(self, val: str) -> None:
         self.__handle = val
 
     @property
@@ -22,7 +24,7 @@ class User:
         return self.__email
 
     @email.setter
-    def email(self, email:str) -> None:
+    def email(self, email: str) -> None:
         self.__email = email
 
     @property 
@@ -30,7 +32,7 @@ class User:
         return self.__vkid
 
     @vkid.setter
-    def vkid(self, id:str) -> None:
+    def vkid(self, id: str) -> None:
         self.__vkid = id
 
     @property
@@ -38,7 +40,7 @@ class User:
         return self.__openid
 
     @openid.setter
-    def openid(self, id:str) -> None:
+    def openid(self, id: str) -> None:
         self.__openid = id
     
     @property 
@@ -46,7 +48,7 @@ class User:
         return self.__f_name
 
     @firstname.setter
-    def firstname(self, fname:str) -> None:
+    def firstname(self, fname: str) -> None:
         self.__f_name = fname
 
     @property
@@ -54,7 +56,7 @@ class User:
         return self.__l_name
 
     @lastname.setter
-    def lastname(self, lname:str) -> None:
+    def lastname(self, lname: str) -> None:
         self.__l_name = lname
 
     @property 
@@ -62,7 +64,7 @@ class User:
         return self.__country
 
     @country.setter
-    def country(self, cntry) -> None:
+    def country(self, cntry: str) -> None:
         self.__country = cntry
 
     @property
@@ -70,7 +72,7 @@ class User:
         return self.__city
 
     @city.setter
-    def city(self, city) -> str:
+    def city(self, city: str) -> str:
         self.__city = city
     
     @property
@@ -78,7 +80,7 @@ class User:
         return self.__organization
 
     @organization.setter
-    def organization(self, org:str) -> None:
+    def organization(self, org: str) -> None:
         self.__organization = org
 
     @property
@@ -86,7 +88,7 @@ class User:
         return self.__contribution
 
     @contribution.setter
-    def contribution(self, cont:int) -> None:
+    def contribution(self, cont: int) -> None:
         self.__contribution = cont
 
     @property
@@ -94,7 +96,7 @@ class User:
         return self.__rank
 
     @rank.setter
-    def rank(self,rnk:str) -> None:
+    def rank(self,rnk: str) -> None:
         self.__rank = rnk
 
     @property
@@ -102,7 +104,7 @@ class User:
         return self.__rating
 
     @rating.setter
-    def rating(self, rtng:int) -> None:
+    def rating(self, rtng :int) -> None:
         self.__rating = rtng
 
     @property
@@ -110,7 +112,7 @@ class User:
         return self.__max_rank
 
     @max_rank.setter
-    def max_rank(self,rnk:str) -> None:
+    def max_rank(self,rnk: str) -> None:
         self.__max_rank = rnk
 
     @property
@@ -118,7 +120,7 @@ class User:
         return self.__max_rating
 
     @max_rating.setter
-    def max_rating(self, rtng:int) -> None:
+    def max_rating(self, rtng: int) -> None:
         self.__max_rating = rtng
 
     @property
@@ -126,7 +128,7 @@ class User:
         return self.__last_online
 
     @last_online_time_seconds.setter
-    def last_online_time_seconds(self, time:int) -> None:
+    def last_online_time_seconds(self, time: int) -> None:
         self.__last_online = time
 
     @property
@@ -134,7 +136,7 @@ class User:
         return self.__reg_time
 
     @registration_time_seconds.setter
-    def registration_time_seconds(self, time:int) -> None:
+    def registration_time_seconds(self, time: int) -> None:
         self.__reg_time = time
 
     @property 
@@ -142,7 +144,7 @@ class User:
         return self.__friend_of_count
 
     @friend_of_count.setter
-    def friend_of_count(self, foc:int) -> None:
+    def friend_of_count(self, foc: int) -> None:
         self.__friend_of_count = foc
 
     @property
@@ -150,16 +152,19 @@ class User:
         return self.__avatar
 
     @avatar.setter
-    def avatar(self, avatar:str) -> None:
+    def avatar(self, avatar: str) -> None:
         self.__avatar = avatar
 
     @property 
-    def title_photo(self) -> Path:
+    def title_photo(self) -> Union[PosixPath, WindowsPath]:
         return self.__title_photo
 
     @title_photo.setter
-    def title_photo(self, path:Path) -> None:
-        self.__title_photo = path
+    def title_photo(self, path: Union[PosixPath, WindowsPath]) -> None:
+        if type(path) == PosixPath or type(path) == WindowsPath:
+            self.__title_photo = path
+        else:
+            raise CfpTypeError('title photo must be a Path object')
 
 #    handle = '' # Codeforces user handle
 #    email: str = '' # Shown only if user allowed to share his contact info
@@ -183,23 +188,23 @@ class User:
     
     
     def __init__(self, handle: str, email: str, vkId: str, openId: str, firstName: str, lastName: str, country: str, city: str, organization: str, contribution: int,rank: str, rating: int, maxRank: str, maxRating: int, lastOnlineTimeSeconds: int, registrationTimeSeconds: int, friendOfCount: int, avatar: str, titlePhoto: str):
-        self.handle(handle)
-        self.email(email)
-        self.vkid(vkId)
-        self.openid(openId)
-        self.firstname(firstName)
-        self.lastname(lastName)
-        self.country(country)
-        self.city(city)
-        self.organization(organization)
-        self.contribution(contribution)
-        self.rank(rank)
-        self.rating(rating)
-        self.max_rank(maxRank)
-        self.max_rating(maxRating)
-        self.last_online_time_seconds(lastOnlineTimeSeconds)
-        self.registration_time_seconds(registrationTimeSeconds)
-        self.friend_of_count(friendOfCount)
-        self.avatar(avatar)
-        self.title_photo(titlePhoto)
+        self.handle = handle
+        self.email = email
+        self.vkid = vkId
+        self.openid = openId
+        self.firstname = firstName
+        self.lastname = lastName
+        self.country = country
+        self.city = city
+        self.organization = organization
+        self.contribution = contribution
+        self.rank = rank
+        self.rating = rating
+        self.max_rank = maxRank
+        self.max_rating = maxRating
+        self.last_online_time_seconds = lastOnlineTimeSeconds
+        self.registration_time_seconds = registrationTimeSeconds
+        self.friend_of_count = friendOfCount
+        self.avatar = avatar
+        self.title_photo = titlePhoto
     
