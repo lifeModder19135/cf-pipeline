@@ -6,7 +6,7 @@ class PathTool:
     """
 def slashpath_remove_outermost_prefix(path_str: str):
     """
-    Removes the outer directory. returns the smallest prefix path, the path equivalent to the input if cwd were the  
+    Removes the outer directory. returns the smallest prefix path, the path equivalent to the input if cwd were the next directory in
     """
     lstripped: bool = False
     if path_str.startswith("/"):
@@ -22,6 +22,6 @@ class cfp_url():
     """
     Wrapper object for the named tuple returned by urllib parse function, which  takes in a url string and splits it into six sections: the protocol, net/host, params, path, attributes, and values
     """
-    
+    pass
     # def __init__():
        
