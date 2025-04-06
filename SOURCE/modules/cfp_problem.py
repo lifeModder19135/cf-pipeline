@@ -102,7 +102,7 @@ class Problem(object):
         self.problemset_name(problemset_name)
         self.index(index) 
         self.name(name)
-        if type(self.problem_type) is ProblemType:
+        if type(problem_type) is ProblemType:
             self.problem_type(problem_type)
         else:
             raise CfpTypeError('Type of problem_type is invalid. You must pass a value of type ProblemType for this parameter.')
