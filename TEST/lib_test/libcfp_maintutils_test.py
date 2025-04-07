@@ -1,4 +1,4 @@
-from SOURCE.lib.libcfp_maintutils import create_mock_conf_file, delete_nock_conf_file
+from SOURCE.lib.libcfp_maintutils import create_mock_conf_file, delete_nock_conf_file, OptionChoice
 import os
 
 def test_create_mock_conf_file_test():
@@ -13,3 +13,6 @@ def test_create_mock_conf_file_test():
         line = f.readlines()[0]
     assert line == '[[SECTION_1]]\n'
     delete_nock_conf_file('testdir')
+
+def test_create_optionchoice_test():
+    oc = OptionChoice(['choice 1', 'choice 2'])
