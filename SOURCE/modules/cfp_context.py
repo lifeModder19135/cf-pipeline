@@ -186,7 +186,7 @@ from SOURCE.lib.libcfp_maintutils import PathFinder
 
 class RunType(Flag):
     """
-    Description: RunType is an attribute of a runner which determines what happens when its run method is called.
+    RunType is an attribute of a runner which determines what happens when its run method is called.
     properties:
         SUBPROCESS: Uses the python3 subprocess module to implement the runner
         SUBPROCESS_LEGACY: Uses the subprocess module, but with methods from its legacy api.
@@ -211,7 +211,7 @@ class RunType(Flag):
     
 class ResultResolutionMode(Flag):
     """
-    Description: This is meant to be a parameter for functions that configure one or more values that are persisted in the application after the function call finishes. It lets the caller specify how they want that value to be set /given. For example, the function could pass the value to its caller via return stmt, set a class variable, add a kv pair to env_dict, etc. To use, just add a kwarg of `arg: ResultResolutionMode = XXX` to func, where XXXX (the default) is one of the options below.
+    This is meant to be a parameter for functions that configure one or more values that are persisted in the application after the function call finishes. It lets the caller specify how they want that value to be set /given. For example, the function could pass the value to its caller via return stmt, set a class variable, add a kv pair to env_dict, etc. To use, just add a kwarg of `arg: ResultResolutionMode = XXX` to func, where XXXX (the default) is one of the options below.
     """
     # TODO:
 
@@ -225,7 +225,7 @@ class ResultResolutionMode(Flag):
 
 class IOType(Flag):
     """
-    Description: A Flag used for defining whether an IO object is to be used with input or output.
+    A Flag used for defining whether an IO object is to be used with input or output.
     Values: 
          INPUT: object is to be used with input
         OUTPUT: object is to be used with output
@@ -239,7 +239,7 @@ class IOType(Flag):
 
 class InputType(Flag):
     """
-    Description: A flag with values representing different input sources.
+    A flag with values representing different input sources.
     Values: 
         INFILE: data is coming from a file
         INSTREAM: data is coming from a stream
@@ -255,7 +255,7 @@ class InputType(Flag):
 
 class OutputType(Flag):
     """
-    Description: A flag used in OutputHandler with values representing different output sources.
+    A flag used in OutputHandler with values representing different output sources.
     Values:
         OUTFILE: handler is outputting to a file
         OUTSTREAM: handler is outputting to a stream
@@ -269,9 +269,7 @@ class OutputType(Flag):
 
 class FileType(Flag):
     """
-    Description: Represents different types of files.
-    Values:
-        Enum ([type]): [description]
+    Represents different types of files.
     """
     # TODO:
     PLAINTEXT_FILE = 00,
@@ -293,7 +291,7 @@ class FileType(Flag):
 
 class LanguageChoice(Flag):
     """
-    description: a collection of names of programming languages. Each represents a programming language, source code of which is accepted by one of the apis
+    A collection of names of programming languages. Each represents a programming language, source code of which is accepted by one of the apis
     """    
     C_SHARP_MONO = 'C#mono',
     D_DMD32 = 'D_DMD32',
@@ -347,6 +345,7 @@ class Separator(Flag):
 
 class IOHandlerBase:
     """
+    A base class for all InputHandlers and OutputHandlers. These store data for input and output sources. This class itself is not to be invoked. To use it, instantiate one of it's subclasses.
     properties:
         handler_args: arguments passed to handler
         io_type: either input or output
@@ -355,6 +354,7 @@ class IOHandlerBase:
 
     @property
     def handler_args(self) -> List:
+        """arguments passed to the handler"""
         return self.__hndlr_args
         
     @handler_args.setter
@@ -363,6 +363,7 @@ class IOHandlerBase:
 
     @property
     def io_type(self) -> IOType:
+        """Must be set to either IOType.SOURCE, IOType.INPUT or IOType.OUTPUT"""
         return self.__io_t
         
     @io_type.setter
@@ -409,6 +410,7 @@ class InputHandler(IOHandlerBase):
 
     @property
     def io_type(self) -> IOType:
+        """Hard coded to IOType.INPUT"""
         return self.__io_t
     
     @io_type.setter
@@ -417,6 +419,7 @@ class InputHandler(IOHandlerBase):
 
     @property
     def input_type(self) -> InputType:
+        """must be set to a value of type InputType"""
         return self.__inp_t
 
     @input_type.setter
@@ -451,6 +454,7 @@ class CfpFile:
 
     @property
     def location_path(self) -> Path:
+        """This holds the full absolute path to this file"""
         if type(self.__loc) is PosixPath or type(self.__loc) is WindowsPath:
             return self.__loc
         else:
@@ -465,6 +469,7 @@ class CfpFile:
 
     @property
     def filetype(self) -> FileType:
+        """This describes the type of file. It is set to a value of this module's FileType flag."""
         return self.__f_type
 
     @filetype.setter
@@ -473,6 +478,7 @@ class CfpFile:
 
     @property
     def size_in_bytes(self) -> int:
+        """As it says, this is an int describing the size of the file in bytes"""
         return self.__num_bytes
 
     @size_in_bytes.setter
@@ -481,6 +487,7 @@ class CfpFile:
 
     @property
     def is_openable(self,) -> bool:
+        """This is a boolean denoting whether or not the file can be opened."""
         if type(self.__can_open) is bool:
             return self.__can_open
         else:
@@ -516,15 +523,19 @@ class CfpFile:
                 else:
                     raise CfpValueError('self.location_path must point to a valid file.')
 
+    @classmethod
     def get_template(self, loc):
+        """Not yet implemented. This will be a class method that gets a template from <path>, copy that template, and load it as a file to be edited."""
         pass
 
+    @classmethod
     def from_scratch(self, header):
+        """Not yet implemented. This will be a class method that builds a cfp formatted file from scratch."""
         pass
 
 class InputFileHandler(InputHandler):
     """
-    Description: InputHandler for an input file
+    InputHandler for an input file
     """    
     #TODO: 
     #   Add methods: load_file, handle
@@ -536,7 +547,7 @@ class InputFileHandler(InputHandler):
 
     @property
     def current_file(self) -> CfpFile:
-        """The current_file property."""
+        """The current_file being handled."""
         return self.__f_curr
     
     @current_file.setter
@@ -554,27 +565,25 @@ class InputFileHandler(InputHandler):
     
     @property
     def files_on_deck(self) -> List[CfpFile]:
-        """The files_on_deck property."""
+        """The files_to be loaded after the current file is finished."""
         return self.__files_on_deck
     
     @files_on_deck.setter
     def files_on_deck(self, value) -> None:
         self.__files_on_deck = value
 
-    def get_content_from_current(self, format: FileType = FileType.CFP_INPUTFILE_TEXT_FMT_1) -> CfpFile:
-        with open(self.current_file) as curr:
-            lines = []
-            for line in curr:
-                lines.append(line)
+    def get_content_from_current(self, format: FileType = FileType.CFP_INPUTFILE_TEXT_FMT_1) -> list:
+        """This returns the content of the current file as a list of lines."""
+        with open(self.current_file.location_path) as curr:
+            return curr.readlines()
+           
+                
 
     def __init__(self, files: List[CfpFile], args: List = None):
         super().__init__(InputType.INFILE, args)
         self.current_file = files[0]
         self.files_previously_handled = []
-        self.files_on_deck = []
-        for n, i in enumerate(files):
-            if n != 0:
-                self.files_on_deck.append(i)
+        self.files_on_deck = files[1:]
 
     def __enter__():
         pass
@@ -593,6 +602,7 @@ class OutputHandler(IOHandlerBase):
 
     @property
     def io_type(self):
+        """Hard coded to IOType.OUTPUT"""
         return self.__io_t
 
     @io_type.setter
@@ -601,23 +611,36 @@ class OutputHandler(IOHandlerBase):
 
     @property
     def output_type(self) -> OutputType:
+        """This describes the type of output it is working with. The content must be of type OutputType"""
         return self.__outtype_
     
     @output_type.setter
     def output_type(self, ot: OutputType) -> None:
         self.__outtype_ = ot
 
+    @property
+    def content(self) -> List:
+        """This holds the content of the output source."""
+        return self.__content
+    
+    @content.setter
+    def content(self, cont: list) -> None:
+        self.__content = cont
+
     def __init__(self, outputtype: OutputType, args: List):
         self.__io_t = IOType.OUTPUT
         self.output_type = outputtype
         self.handler_args = args
 
+
     def to_file(self, fullpath, encoding:str="UTF-8") -> None:
         try:
            ofile = open(fullpath, "w", encoding=encoding)
         except IOError:
+            ofile.close()
             raise CfpUserInputError from CfpIOError
         except BaseException as e:
+            ofile.close()
             raise CfpRuntimeError from e
         
     def __enter__():
@@ -632,9 +655,7 @@ class OutputHandler(IOHandlerBase):
 
 class InputCommandString:
     """
-    description: represents a string containing one or more shell commands
-    properties:
-        shell_lang: see method docstring
+    This represents a string containing one or more shell commands.
     """
     # TODO:
 
@@ -644,9 +665,8 @@ class InputCommandString:
     @property
     def primary_shellchoice(self) -> str:
         """
-        Description: This is the shell that this object's shellscript code should be evaluated with
-        Returns: The shell_lang property's current value
-        Defaults to: Bash 
+        This is the shell that this object's shellscript code should be evaluated with
+        Defaults to: 'bash' or 'cmd'
         """
         return self.__rnr_sh
     
@@ -656,27 +676,34 @@ class InputCommandString:
 
     @property
     def command(self) -> str:
+        """This holds the actual command or commands as a string"""
         return self.__command
     
     @command.setter
     def command(self, comm) -> None:
         self.__command = comm
 
-    def __init__(self, cmd, shell: str = 'bash'):
-        self.primary_shellchoice = shell
+    def __init__(self, cmd, shell: str = None):
+        if shell == None:
+            if os.name == 'posix':
+                self.primary_shellchoice = 'bash'
+            elif os.name == 'nt':
+                self.primary_shellchoice = 'cmd'
+            else:
+                self.primary_shellchoice = None
+        else:
+            self.primary_shellchoice = shell
         self.command = cmd
 
     def to_cmd_objs(self):
         """
-        Description: This method converts the command string to a list of Command objects.
-        Returns: 
+        Not yet implemented. This method will convert the command string to a list of Command objects. 
         """
-        x = self
         pass 
 
 class Program:
     """
-    Description: Represents a running instance of a computer program.
+    Represents a running instance of a computer program.
     properties: 
         operating_system (str): The os on which the program is running
         invoked_by (str): The username of the account that the program was executed under.
@@ -709,6 +736,7 @@ class Program:
             
     @property
     def fullpath(self) -> Path:
+        """This is the full absolute path to the program, including the file name"""
         return self.__full_path
     
     @fullpath.setter
@@ -737,11 +765,13 @@ class Program:
             # self.fullpath(name_or_path)
 
     def tostring(self):
+        """Returns a string representation of the path to the program. <fullpath> attribute must be set for this to work."""
         return str(self.fullpath)
             
     def run(self,shell_errors_fail:bool=False) -> str:
+
         """
-        Description: A very simple builtin runner that runs the program without args and returns the output. No option for pipes, etc.
+        A very simple builtin runner that runs the program without args and returns the output. No option for pipes, etc.
         Raises:
             CfpPermissionDeniedError: User doesn't have permissions required to run the specified program
             CfpTimeoutError: Process did not return within the allotted time
@@ -770,9 +800,7 @@ class Program:
 class CmdArg:
 
     """
-    Description: A single argument or option to a single command.
-    properties:
-        argument: contains the actual argument or option
+    A single argument or option to a single command.
     """
     # TODO:
 
@@ -780,6 +808,7 @@ class CmdArg:
 
     @property
     def argument(self) -> str:
+        """The argument itself"""
         return self.__arg
     
     @argument.setter
@@ -790,20 +819,22 @@ class CmdArg:
         self.argument = input_src
 
     def as_str(self) -> str:
+        """This returns the argument as a string"""
         try:
             return str(self)
         except BaseException as e:
             raise CfpRuntimeError from e
 
     def as_int(self) -> int:
+        """This tries to return the argument as an integer. If it fails, s CfpRuntimeError will be raised."""
         try:
             return int(self)
         except BaseException as e:
             raise CfpRuntimeError from e
 
-class CmdArgString(str):    
+class CmdArgString(str):
     """
-    Description: A string containing one or more command arguments. Should contain all arguments and options given to a single command. In other words, the entire command line minus the command itself. For all arguments in list form, see CmdArgList.
+    This is a string containing one or more command arguments. Should contain all arguments and options given to a single command. In other words, the entire command line minus the command itself. For all arguments in list form, see CmdArgList.
     """
     # TODO:
 
@@ -812,7 +843,7 @@ class CmdArgString(str):
 
 class CmdArgList:
     """
-    Description: A list of CmdArg objects representing all options and arguments of a single command line, along with some metadata about the list.
+    A list of CmdArg objects representing all options and arguments of a single command line, along with some metadata about the list.
     properties:
         args: the actual arguments list. Type is list[CmdArg]
     """
@@ -822,6 +853,7 @@ class CmdArgList:
 
     @property
     def args(self) -> List[CmdArg]:
+        """This holds the actual arguments list. Type is list[CmdArg]"""
         return self.__args
 
     @args.setter
@@ -839,9 +871,11 @@ class CmdArgList:
 
     @property
     def args_count(self) -> int:
+        """This holds the amount of arguments and/or options in the list."""
         return len(self.__args)
 
     def tostring(self) -> str:
+        """This returns a string representation of the arguments / options stored here, as they would be listed on the command line."""
         a_str = ''
         for a in self.args:
             if a_str == '':
@@ -855,6 +889,7 @@ class CmdArgList:
                 return a_str.lstrip().rstrip()
 
     def addlist(self, ls: list) -> None:
+        """This adds a list of args, in string form to the list. It first converts them to CmdArg objects, then it adds them to the list."""
         if type(ls) is not list:
             raise CfpTypeError
         else:
@@ -862,6 +897,7 @@ class CmdArgList:
                 self.__args.append(CmdArg(i))
 
     def addtuple(self, tup:tuple) -> None:
+        """This adds a tuple of args, in string form to the list. It first converts them to CmdArg objects, then it adds them to the list."""
         if type(tup) is not tuple:
             raise CfpTypeError
         else:
@@ -869,18 +905,21 @@ class CmdArgList:
                 self.__args.append(CmdArg(str(i)))            
 
     def addint(self, i:int) -> None:
+        """This converts a single int argument into a CmdArg object and adds it to the list."""
         if type(i) is not int:
             raise CfpTypeError
         else:
             self.__args.append(CmdArg(str(i)))
 
     def addstring(self, s:str) -> None:
+        """This converts a single string argument into a CmdArg object and adds it to the list."""
         if type(s) is not str and type(s) is not str:
             raise CfpTypeError
         else:
             self.__args.append(CmdArg(str(s)))
 
     def addcmdarg(self, a:CmdArg) -> None:
+        """This adds a single CmdArg to the list."""
         if type(a) is not CmdArg:
             raise CfpTypeError
         else:
@@ -905,8 +944,7 @@ class CmdArgList:
 
 class CommandLine:
     """
-    properties:
-        [type]: [description]
+    This holds a single command line. Here, a command line is a command with it's associated arguments and/or options.
     """
     # TODO:
 
@@ -915,6 +953,7 @@ class CommandLine:
 
     @property
     def executable(self) -> Program:
+        """This holds the base command of the command line."""
         return self.__exec
 
     @executable.setter
@@ -923,6 +962,7 @@ class CommandLine:
 
     @property
     def args(self) -> CmdArgList:
+        """This is a list of all arguments and/or options associated with the command line, in the order that they appear."""
         return self.__args
     
     @args.setter
@@ -948,6 +988,7 @@ class CommandLine:
         self.args = args
 
     def tostring(self):
+        """This returns the command line in string form."""
         str1 = self.executable.tostring()
         str2 = self.args.tostring()
         str3 = str1 + ' ' + str2
@@ -955,7 +996,7 @@ class CommandLine:
 
 class Task:
     """
-    Represents a group of one or more command lines connected together via pipes / fifos. IMPORTANT: There must be the same amount of items in the 'Separators' list as their are in the 'content' list, otherwise the functions of this class will produce errors!
+    This represents a group of one or more command lines connected together via pipes / fifos. IMPORTANT: There must be the same amount of items in the 'Separators' list as their are in the 'content' list, otherwise the functions of this class will produce errors!
     """
     # TODO: add tostring method which combines the content and Separators into a string that can be run on the command line
 
@@ -989,6 +1030,7 @@ class Task:
         self.separators = separators
 
     def tostring(self):
+        """This returns a string representation of the task, which itself can be run via a command prompt."""
         if len(self.content) == len(self.separators):
             string = ''
             zipped = zip(self.content, self.separators)
@@ -1014,7 +1056,7 @@ class Task:
 
 class ShellProgram(Program):
     """
-    Description: A program that starts a command shell when run. e.g. bash, cmd, etc.  
+    A program that starts a command shell when run. e.g. bash, cmd, etc.  
     Propertiess:
         name: a string version of the program name. Often the last part of the path.
         launchpath: the path to the launch prog. Usually 
@@ -1045,6 +1087,7 @@ class ShellProgram(Program):
         self.launchpath = sp_launchpath
         
     def run_task(self, task:Task) -> None:
+        """This runs a task with the shell via invoking launchpath <launchpath>"""
         if self.launchpath is not None:
             callstr = str(str(self.launchpath), ' ', task.tostring())
         else:
@@ -1053,12 +1096,13 @@ class ShellProgram(Program):
         return output
     
     def run_task_via_progpath_call(self, task:Task) -> None:
+        """Just like <run_task>, this runs a task with the shell, butinstead of using <launchpath>, this invokes <fullpath>."""
         callstr = str(str(self.path), ' ', task.tostring())
         sub = subprocess.run(callstr, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
 class Job:
     """
-    Description: Abstraction for a job of the format 'run specified list of commands using specified program' assigned to a runner
+    This is an abstraction for a job of the format 'run specified list of commands using specified program' assigned to a runner
     Params:
             top_level -- constant -- boolean -- if true, this Job is meant for running lower level jobs. If false, it is a lower_level itself, and is for running Task lists
     """
@@ -1101,6 +1145,7 @@ class Job:
             self.aliases = aliases
 
     def add_task(self, tsk: Task):
+        """This attaches the input task to the job"""
         if type(tsk) == Task:
             self.content[1].append(tsk)
         else:
@@ -1126,7 +1171,7 @@ class Job:
 @dataclass
 class BaseRunner:
     """
-    Description: This class should be a relative of EVERY runner defined in the application. It defines only logic that must be present for all runners, and therefore lays out the minimal contract for this abstraction.
+    This class should be a relative of EVERY runner defined in the application. It defines only logic that must be present for all runners, and therefore lays out the minimal contract for this abstraction.
 
     Properties:
         infile: pathlib.Path
@@ -1183,6 +1228,7 @@ class BaseRunner:
 
     @property
     def job(self) -> Job:
+        """This is the job to be run with this runner"""
         return self.__cmd_list
 
     @job.setter
@@ -1224,7 +1270,7 @@ class BaseRunner:
 
     def InitializeIOHandler(self, *handler_args, **handler_kwargs) -> IOHandlerBase:
         """
-        Description: creates and returns an IOHandler with 
+        This creates and returns an IOHandler with the input for this runner.
         Args:
             handler_args: tuple
             handler_kwargs: tuple
@@ -1247,10 +1293,7 @@ class BaseRunner:
 
 class CfpRunner(BaseRunner):
     """
-    Description: This is a highly dynamic class which is responsible for nearly all cfp runner types. If the init method is called directly, it will raise an error, but the various runner-type-getters, e.g. get_new_*_runner(), call init after setting a class property. After this is set, the runner will build itself according to its value.
-    
-    Properties:
-      runtype_old: 
+    This is a highly dynamic class which is responsible for nearly all cfp runner types. If the init method is called directly, it will raise an error, but the various runner-type-getters, e.g. get_new_*_runner(), call init after setting a class property. After this is set, the runner will build itself according to its value.
     """
     # TODO: finish subprocess_runner
     
@@ -1260,24 +1303,25 @@ class CfpRunner(BaseRunner):
 
     @property
     def frompipe(self) -> bool:
+        """Can be set to None or point to another runner which will be the input source for this one."""
         return self.__frompipe
 
     @frompipe.setter
     def frompipe(self, frm: bool) -> None:
-        """Can be set to None or point to another runner which will be the input source for this one."""
         self.__frompipe = frm
 
     @property
     def topipe(self) -> bool:
+        """Can be set to None or point to another runner which will be where the output to this runner is fed."""
         return self.__topipe
 
     @topipe.setter
     def topipe(self, to_pipe:bool) -> None:
-        """Can be set to None or point to another runner which will be where the output to this runner is fed."""
         self.__topipe = to_pipe
 
     @property
     def runtype(self) -> RunType:
+        """This defines the type of runner this is. Must be a value of type RunType."""
         return self.__invoc_type
 
     @runtype.setter
@@ -1297,12 +1341,14 @@ class CfpRunner(BaseRunner):
         pass
 
     def __subprocrun_rnr_run_cmdstring(command_string: str) -> None:
+        """This runs a command string with this runner."""
         try:
             subprocess.run(shlex.split(command_string), shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, text=True)
         except subprocess.SubprocessError:
             print('Something went wrong. Check input and "try" again.')
 
     def run(self, legacy: bool=False, frompipe: bool=False, topipe: bool=False):
+        """This is how this runner runs its job"""
         try:
             if frompipe == False and topipe == False:
                 if self.runtype == RunType.SUBPROCESS_RUN:
@@ -1338,7 +1384,7 @@ class CfpRunner(BaseRunner):
 @dataclass
 class Context:
     """
-    Description: Base for all contexts. When subclassing this class, make sure that the new class a.) explicitly defines both __enter__ and __exit__ methods and b.) calls super.__enter__ and super.__exit__ from inside them.
+    This is the base class for all contexts. When subclassing this class, make sure that the new class a.) explicitly defines both __enter__ and __exit__ methods and b.) calls super.__enter__ and super.__exit__ from inside them.
     """
     # TODO:
         # Add __enter__() & __exit__() methods to each context subtype
@@ -1420,7 +1466,7 @@ class Context:
 
 class CfpShellContext(Context):
     """
-    Description: This is a context for running commands in a shell such as bash or zsh. The shell process is run on top of a Python process with its own environment, with all variables prefixed with self.namespace, whose variables can be accessed in the same way as process envvars at context runtime.    
+    This is a context for running commands in a shell such as bash or zsh. The shell process is run on top of a Python process with its own environment, with all variables prefixed with self.namespace, whose variables can be accessed in the same way as process envvars at context runtime.    
     """
     # TODO:
 
@@ -1470,7 +1516,7 @@ class CfpShellContext(Context):
         
     def __init__(self, env_dict: dict, runner: CfpRunner, shell_choice: str=None):
         """
-        Description: Init sets namespace, ctx_type and updates virtual_environment. Sets `cmds_fmt` to a 2d list where each outer element represents a command, itself represented by the inner list, with cmd[0] being the command and the rest of the inner list is its args. 
+        Init sets namespace, ctx_type and updates virtual_environment. Sets `cmds_fmt` to a 2d list where each outer element represents a command, itself represented by the inner list, with cmd[0] being the command and the rest of the inner list is its args. 
         """
         # super().__init__('shell_ctx','shell')
         self.namespace = 'SHELLCTX'
@@ -1483,7 +1529,7 @@ class CfpShellContext(Context):
     
     def __get_a_shell(self, shellpref:str):
         """
-        Description: This tries to return a ShellProgram instance with the fullpath set to self.shellpref. If the shellpref is not available in PATH on the runtime system, it tries to find bash or cmd in PATH. If neither of these are available, it returns None.".
+        This tries to return a ShellProgram instance with the fullpath set to self.shellpref. If the shellpref is not available in PATH on the runtime system, it tries to find bash or cmd in PATH. If neither of these are available, it returns None.".
         """
         sh_path = PathFinder.find_executable_fullpath(shellpref)
         if sh_path is not None:
@@ -1504,12 +1550,14 @@ class CfpShellContext(Context):
         return None
 
     def run_ctx(self, shellpath_clean):
+        """This runs a job with the context runner."""
         self.__run_jobs_with_runner(self.job_runner, shellpath_clean)        
         
     def __run_jobs_with_runner(self, job_runner: CfpRunner, shellpath: str):
         """
-        Description: simply runs cmd using self.shellpref. self.shellpref_avail must be True. DO NOT SET IT YOURSELF! To set it, you must first run the check_for_preferred_shell() func above. If it is False, then the shell isn't installed on the current system. In this case 
-        """
+        This runs a cmd using self.shellpref. self.shellpref_avail must be True. DO NOT SET IT YOURSELF! To set it, you must first run the check_for_preferred_shell() func above. If it is False, then the shell isn't installed on the current system. In this case 
+        TODO: finish this method
+                """
         job = self.runner.job
 
 
@@ -1530,7 +1578,7 @@ class CfpShellContext(Context):
                 
 class DynamicStrRunnerContext(Context): 
     """
-    Description: Sets up the runner based on the value of ctx_type in the parent. Uses concept known as reflection in Java via running eval(runner_str) where runner str is based on ctx_type. This lets us dynamically build a string and then run that string as python3 code. e.g. say ctx_type is "subprocess". The resulting runner_str would be "subprocess.run(cmd)". 
+    This sets up the runner based on the value of ctx_type in the parent. Uses concept known as reflection in Java via running eval(runner_str) where runner str is based on ctx_type. This lets us dynamically build a string and then run that string as python3 code. e.g. say ctx_type is "subprocess". The resulting runner_str would be "subprocess.run(cmd)". 
     """
     # TODO:
 
@@ -1542,7 +1590,7 @@ class DynamicStrRunnerContext(Context):
     
 class CfpShellBasedTestContext(CfpShellContext):
     """
-    Description: Context for testing potential Codeforces solutions in a shell context
+    Context for testing potential Codeforces solutions in a shell context
     """
 #   TODO:
 #       - fix_me!
@@ -1647,5 +1695,3 @@ class CfpShellBasedTestContext(CfpShellContext):
     def __init__(self, cmds, rnnr: CfpRunner, shell_env: str, language: str, **envvars: any):
         super().__init__(cmds, rnnr,  envvars)
         self.setlang(language)
-
-
