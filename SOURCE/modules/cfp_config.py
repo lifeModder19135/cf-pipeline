@@ -13,16 +13,19 @@ class Action(Flag):
 
 class AppConfigurationOptions(Enum):
     """
-    Allowed config options. The dictionary keys correspond to the options allowed as l_values in the conffile. the values are stringified representations
+    This class can be used, when building a config, to describe all the possible options allowed in ypur config file. The dictionary keys correspond to the options allowed as l_values in the conffile. the values are stringified representations of those values.
     """
+    pass
 @dataclass
 class ConfFileSection:
+    """This class represents a section of a config file. Config options that are related should be located together in a section, represented as keys and values in the keys_vals_dict property of a ConfFileSection object."""
 
     __name_=''
     __config_kvs = {}
     
     @property
     def name(self) -> str:
+        """The name given to the section. This can be used to identify the section later."""
         return self.__name_
 
     @name.setter
@@ -31,6 +34,7 @@ class ConfFileSection:
 
     @property
     def description(self) -> str:
+        """This is a string that should be a snall paragraph that describes the section and what the keys and values represent."""
         return self.__descr
 
     @description.setter
@@ -39,6 +43,7 @@ class ConfFileSection:
 
     @property
     def keys_vals_dict(self) -> str:
+        """This is where the configuration options are stored as keys and values."""
         return self.__config_kvs
 
     @keys_vals_dict.setter
@@ -75,8 +80,7 @@ class ConfFileSection:
         self.keys_vals_dict = [action, keys_vals_dict]
 
 class ConfigFile(object):
-
-    
+    """This is the class representation of a config file. It contains metadata, including the path to the file, and a list of ConfFileSection objects, which make up the content of the file."""
 
     @property
     def sections(self) -> 'list[ConfFileSection]':
@@ -130,6 +134,7 @@ class ConfigFile(object):
 
     @property
     def location_dirpath(self) -> str:
+        """This is the absolute path to the directory of the config file on the end user's system. 'location_dirpath' + 'filename' should be the absolute path in full."""
         return self.__locdirpath
 
     @location_dirpath.setter
@@ -138,6 +143,7 @@ class ConfigFile(object):
 
     @property
     def filename(self) -> str:
+        """ This is the name of the config file. It should include the file extension if there is one. 'location_dirpath' + 'filename' should be the absolute path in full."""
         return self.__file_name
 
     @filename.setter
@@ -161,9 +167,16 @@ class ConfigFile(object):
         return sects_ls
 
     def __get_section_kvs_from_conffile(self) -> "list[tuple]":
+        """
+        retrieves a section from a conf file and returnsit as a python dictionary
+        TODO: fix it so it works
+        """
         __kv_dict = {}
-        _filelocation = '/'.join(self.location_path(),self.filename())
-        with open(_filelocation, 'r') as file:
+        if os.name == 'posix' or os.name == 'java':
+            self._filelocation = '/'.join(self.location_path(),self.filename())
+        elif os.name == 'nt':
+            self._filelocation = '\\'.join(self.location_path(),self.filename())
+        with open(self._filelocation, 'r') as file:
             for i, line in enumerate(file):
                 cleanln = line.lstrip().rstrip()
                 if cleanln.startswith("[[") and cleanln.endswith("]]"):
@@ -186,6 +199,8 @@ class ConfigFile(object):
 
     def __write_dict_to_conf_file(self, input_dict:dict, filelocation='use_obj_attributes'):
         """
+        This is a private function that takes a python dictionary and writes it to a conf file. It must be formatted as described below.
+        TODO: fix me
         Dict passed in must contain only section identifiers such as:
                 key = '[[section_name]]', value = 'SECTION'
         or values in a section such as:
@@ -213,6 +228,10 @@ class ConfigFile(object):
                 raise CfpMethodInputError('First kv in input dict must be a section identifier')
 
     def __write_section_to_conf_file():
+        """
+        A private function that takes in a ConfFileSection and writes it to a conf file.
+        TODO: write me
+        """
         pass
             
         
