@@ -16,3 +16,5 @@ def test_create_mock_conf_file_test():
 
 def test_create_optionchoice_test():
     oc = OptionChoice(['choice 1', 'choice 2'])
+    assert type(oc.choices_available) == list
+    assert oc.choices_available[0] == 'choice 1'
