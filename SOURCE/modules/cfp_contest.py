@@ -30,7 +30,7 @@ class ContestCategory(Enum):
 
 class Contest:
     """
-    Represents a Contest object in an Api return value
+    Represents a Contest object in an Api return value. The descriptions of its properties are direct from the Codeforces website.
     """
     
     @property
