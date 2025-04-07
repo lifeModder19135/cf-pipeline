@@ -3,12 +3,13 @@ import os
 from typing import Any
 from SOURCE.lib.libcf_api import libcfapi_constants as apic, libcfapi_utils as apiu
 from pathlib import Path
-from SOURCE.modules.cfp_errors import CfpInitializationError
+from SOURCE.modules.cfp_errors import CfpInitializationError, CfpValueError
+import shutil
 
 
-class OptionChoice(str):
+class OptionChoice:
     """
-    Type for an arg or kwarg string in a python function where the acceptable values are limited to just a few. This holds the chosen value. It also contains an OptionsAllowedList. The chosen value must be validated against the list when it is being set.
+    Type for an arg or kwarg string in a python function where the acceptable values are limited to just a few. This holds the chosen value. It also contains an OptionsAllowedList. The chosen value must be validated against the list when it is being set. To vreate an optionchoice, extend this class, and in yoir init method, invoke `super.__init__([your, list, of, choices] and set the value based on a passed parameter.)`
     """
     @property
     def chosen_value(self):
@@ -22,12 +23,15 @@ class OptionChoice(str):
             raise ValueError
 
     @property
-    def choices_available(self):
+    def choices_available(self) -> list:
         return self.__choices
 
     @choices_available.setter
-    def choices_available(self, vals:list) -> list:
+    def choices_available(self, vals:list) -> None:
         self.__choices = vals
+
+    def __init__(self, vals_list: list):
+        self.choices_available = vals_list
 
 class OptionsAllowedList(list):
     # ::TAGS:: |:Trend:|:beat:|:melon:|:moth:| 
@@ -140,22 +144,22 @@ class Location:
         if funcname != None and methodname != None:
             raise CfpInitializationError('The funcname and methodname properties of the Location class are mutually exclusive. Both cannot be set within a single object. Check the syntax in your setter.')
         elif funcname != None:
-            self.funcname(funcname)
+            self.funcname = funcname
         elif methodname != None:
-            self.methodname(methodname)
-        self.modulename(mname)
-        self.filename(fname)
-        self.linenum(lnum)        
+            self.methodname = methodname
+        self.modulename = mname
+        self.filename = fname
+        self.linenum = lnum
 
     def __s_init(self, sname:str, lnum:int, funcname:str=None, methodname:str=None):
         if funcname != None and methodname != None:
             raise CfpInitializationError('The funcname and methodname properties of the Location class are mutually exclusive. Both cannot be set within a single object. Check the syntax in your setter.')
         elif funcname != None:
-            self.funcname(funcname)
+            self.funcname = funcname
         elif methodname != None:
-            self.methodname(methodname)
-        self.scriptname(sname)
-        self.linenum(lnum)        
+            self.methodname = methodname
+        self.scriptname = sname
+        self.linenum = lnum
 
 
     def __init__(self, loctype:str, *args:str):
@@ -167,7 +171,7 @@ class Location:
             elif loctype == 'S':
                 self.__s_init(args)
             else:
-                raise ValueError
+                raise CfpValueError
         except ValueError:
             __initerror_message = "Check arguments and try again."
             raise CfpInitializationError(__initerror_message)
@@ -228,3 +232,24 @@ class PathFinder:
             if os.path.exists(file_path) and os.access(file_path, os.X_OK):
                 return file_path
         return None
+    
+def create_mock_conf_file(dirname, filename, num_sections: int=2, num_options: int=5):
+
+    os.mkdir(dirname)
+    fullpath = None
+    if os.name == 'posix' or os.name == 'java':
+        fullpath = '/'.join([dirname, filename])
+    elif os.name == 'nt':
+        fullpath = '\\'.join([dirname, filename])
+    with open(fullpath, 'w') as f:
+        for i in range(num_sections):
+            sec_number = i+1
+            st1 = str(sec_number)
+            f.write('[[SECTION_' + st1 + ']]\n')
+            for j in range(num_options):
+                opt_number = j+1
+                st2 = str(opt_number)
+                f.write('  option' + st2 + ' = value_' + st2 + '\n')
+
+def delete_nock_conf_file(dirname: str):
+    shutil.rmtree(dirname)
