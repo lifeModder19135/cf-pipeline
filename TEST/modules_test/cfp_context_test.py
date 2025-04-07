@@ -58,6 +58,18 @@ def test_create_inputfilehandler_test():
     assert hndlr.current_file == file1
     assert hndlr.files_previously_handled == []
     assert hndlr.files_on_deck[0] == file2
+
+def test_inputfilehandler_get_content_from_current_test():
+    with open('testfile.txt', 'w') as file:
+        file.write('this is a test')
+    path1 = Path('testfile.txt')
+    path2 = Path('/test/path/testfile2.txt')
+    file1 = CfpFile(path1, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
+    file2 = CfpFile(path2, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
+    hndlr = InputFileHandler([file1, file2], ['arg 1', 'arg 2'])
+    cnt = hndlr.get_content_from_current()
+    assert cnt[0] == 'this is a test'
+    os.remove('testfile.txt') 
  
 ########################################  ~~~~ OutputHandler ~~~~  #################################
 
