@@ -17,6 +17,7 @@ __pycache__/
 .idea/
 venv3.10/
 build/
+#DOCS/_build/html/
 cfpipeline.egg-info/
 venv/
 testdir/
@@ -31,3 +32,4 @@ DOCS/build/**
 
 ### Negated
 !**/DOCS/build/
+!**/DOCS/build/doctrees/
