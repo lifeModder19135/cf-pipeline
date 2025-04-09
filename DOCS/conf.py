@@ -5,25 +5,23 @@
 
 import os
 import sys
-# os.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'cf-pipeline'
+project = 'cf pipeline'
 copyright = '2025, Nathan Tolbert'
 author = 'Nathan Tolbert'
-release = '4-6-2025'
+release = '0.0.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = [
-    'sphinx.ext.autodoc'
-]
+extensions = ['sphinx.ext.autodoc']
 
 templates_path = ['_templates']
-exclude_patterns = []
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 
 
