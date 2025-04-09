@@ -8,7 +8,7 @@ Subpackages
    :maxdepth: 4
 
    cf-pipeline.SOURCE
-   cf-pipeline.TEST
+
 
 Submodules
 ----------
