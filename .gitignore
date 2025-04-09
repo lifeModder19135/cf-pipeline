@@ -27,3 +27,7 @@ testdir/
 *.code-workspace
 OLD_*
 **/testfile.txt
+DOCS/build/**
+
+### Negated
+!**/DOCS/build/
