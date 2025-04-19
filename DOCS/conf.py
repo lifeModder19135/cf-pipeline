@@ -5,7 +5,11 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
+# sys.path.insert(0, os.path.abspath('..'))
+# sys.path.insert(0, os.path.abspath('../SOURCE/modules/'))
+# sys.path.insert(0, os.path.abspath('../SOURCE/modules/cfp_context.py'))
+for x in os.walk('../SOURCE'):
+  sys.path.insert(0, x[0])
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
