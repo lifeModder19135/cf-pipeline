@@ -17,13 +17,5 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
-      - name: Run pytest
-        uses: pavelzw/pytest-action@v2
-        with:
-          verbose: true
-          emoji: true
-          job-summary: true
-          custom-pytest: 'python3 -m pytest'
-          custom-arguments: '-q'
-          click-to-expand: true
-          report-title: 'Test Report'
+      - name: Run Pytest
+        run: python3 -m pytest
