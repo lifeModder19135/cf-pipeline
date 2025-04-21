@@ -24,5 +24,4 @@ cf_pipeline.egg-info/PKG-INFO
 cf_pipeline.egg-info/SOURCES.txt
 cf_pipeline.egg-info/dependency_links.txt
 cf_pipeline.egg-info/entry_points.txt
-cf_pipeline.egg-info/requires.txt
 cf_pipeline.egg-info/top_level.txt

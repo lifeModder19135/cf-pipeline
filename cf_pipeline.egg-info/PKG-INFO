@@ -1,8 +1,12 @@
 Metadata-Version: 2.1
-Name: cf_pipeline
-Version: 0.0.5
+Name: cf-pipeline
+Version: 0.0.1
+Summary: A comprehensive Python API for Competitive Programming sites like Codeforces
+Author-email: Nate Tolbert <ntolbertu85@gmail.com>
+Project-URL: Homepage, https://github.com/lifemodder19135/cf-pipeline
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Classifier: License :: OSI Approved :: MIT License
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: click
-Requires-Dist: invoke
-Requires-Dist: pytest
-Requires-Dist: requests
