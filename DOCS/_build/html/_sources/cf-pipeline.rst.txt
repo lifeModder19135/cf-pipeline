@@ -1,15 +1,6 @@
 cf\-pipeline package
 ====================
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   cf-pipeline.SOURCE
-   cf-pipeline.TEST
-
 Submodules
 ----------
 
