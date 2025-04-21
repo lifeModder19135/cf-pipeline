@@ -1,4 +1,5 @@
 from enum import Enum
+import json
 
 from SOURCE.modules.cfp_errors import CfpTypeError
 from .cfp_errors import CfpValueError
@@ -42,11 +43,12 @@ class Problem(object):
         self.__name = name
 
     @property
-    def problem_type(self) -> ProblemType:
+    def type(self) -> ProblemType:
         return self.__problem_type
 
-    @problem_type.setter
-    def problem_type(self, prob_type: ProblemType) -> None:
+    @type.setter
+    def type(self, prob_type: ProblemType) -> None:
+        # if prob_type == 'PROGRAMMING':
         self.__problem_type = prob_type
 
     @property
@@ -97,18 +99,41 @@ class Problem(object):
 #    rating: "int" = -1          # Can be absent. Problem rating (difficulty).
 #    tags: "list[str]" = list()       # Problem tags.
 #    solved_by_user: "bool" = False
-    def __init__(self, contestId: int, problemset_name: str, index: str, name: str, problem_type: str, points: float, rating: int, tags: list):
+    def __init__(self, contestId: int, index: str, name: str, type: str, points: float = '0', tags: list = None, problemset_name: str = None, rating: int = None):
         self.contest_id = contestId
         self.problemset_name = problemset_name
         self.index = index
         self.name = name
-        if type(problem_type) is ProblemType:
-            self.problem_type = problem_type
-        else:
-            raise CfpTypeError('Type of problem_type is invalid. You must pass a value of type ProblemType for this parameter.')
+        self.type = type
+        # if type(problem_type) is ProblemType:
+        #     self.type = problem_type
+        # else:
+        #     raise CfpTypeError('Type of problem_type is invalid. You must pass a value of type ProblemType for this parameter.')
         self.points = points
         self.rating = rating
         self.tags = tags
+        if self.type == 'PROGRAMMING':
+            self.type = ProblemType.CF_PROGRAMMING
+        elif self.type == 'QUESTION':
+            self.type = ProblemType.CF_QUESTION
+        elif self.type == ProblemType.CF_PROGRAMMING or self.type == ProblemType.CF_QUESTION:
+            pass
+        else: 
+            raise CfpValueError('\"type\" attribute was passed an invalid value.')
+
+    def __repr__(self):
+        return f'\nProblem:\n\n  NAME: {self.name}\n  CONTEST: {self.contest_id}\n  INDEX: {self.index}\n  TYPE: {self.type}\n  POINTS: {self.points}\n  TAGS: {self.tags}\n'
+
+    @classmethod
+    def from_json(cls, j_str: str):
+        """This takes in a string of json data and returns Problem objects representing that data."""
+        j_dct = json.loads(str(j_str))
+        return cls(**j_dct)
+    
+    @classmethod
+    def from_dict(cls, jdct):
+        """This takes in a dictionary of data and returns Problem objects filled with that data."""
+        return cls(**jdct)
     
     def mark_solved(self, user):
         
