@@ -121,31 +121,31 @@ from SOURCE.lib.libcfp_maintutils import PathFinder
 #   File:
 #       .type = INFILE
 #       .fmt = CFP_INPUTFILE_FMT_2
-#       .Perms:
+#       .perms:
 #           .type = OCTAL | STR
 #           # This is just regex for a three digit octal number or a linux style perm-string e.g. 'drwxr-xr-x'
 #           .value = [1-8]{3} | ['"]d?([r-][w-][x-]){3}['"]
 #   Data:
-#       .CasesPrecursorLines:
+#       .casesPrecursorLines:
 #             # Be sure to wrap any lone ints like this in quotes if you want to feed your data in as the cf 
 #             # online judge would.
 #             # There should be N back-to-back '.precline = ...' defs, where N is the value of `.num_precursors`.
 #             # for this example we will assume that this value is 3. The same goes for all other values starting
 #             # with `.num_*s`. The * corresponds to a (usually-)nested spec. for which there should be M defs 
 #             # where M is the value of the `num_*s` spec. You'll see what is meant below.
-#           .num_precursors = '3'
-#           .prec_line = 'lorem ipsum'
-#           .prec_line = 'lorem ipsum two' 
-#           .prec_line = 'ipsum lorem' 
-#       .Cases:
-#             # This bool is true if the test case should include a line correponing to Cases.num_cases
+#           .numPrecursors = '3'
+#           .precLine = 'lorem ipsum'
+#           .precLine = 'lorem ipsum two' 
+#           .precLine = 'ipsum lorem' 
+#       .cases:
+#             # This bool is true if the test case should include a line corresponding to Cases.num_cases
 #             # If included, it would usually be the 1st line unless precursor lines were defined above
 #           .given = bool
-#           .num_cases = 'some_int'
-#           .Case:
-#               .num_lines = 'other_int'
-#               .Line:
-#                   .num_args = 'third_int'
+#           .numCases = 'some_int'
+#           .case:
+#               .numLines = 'other_int'
+#               .line:
+#                   .numArgs = 'third_int'
 #                    # pretend num_args for this line was '2'
 #                   .arg:
 #                       .value = 'lorem'
@@ -577,7 +577,12 @@ class InputFileHandler(InputHandler):
         with open(self.current_file.location_path) as curr:
             return curr.readlines()
            
-                
+    def pipe_input_file(inputfile):
+        """pipes an input file from param into current_file"""
+        pass
+
+    def parse_inputfile():
+        """parses an input file and returns a list of input data"""
 
     def __init__(self, files: List[CfpFile], args: List = None):
         super().__init__(InputType.INFILE, args)
