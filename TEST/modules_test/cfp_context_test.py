@@ -42,18 +42,19 @@ def test_create_inputhandler_fails_properly_test():
 
 def test_create_cfpfile_test():
     path = Path('/test/path/testfile.txt')
-    file = CfpFile(path, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
+    file = CfpFile(path, FileType.CFP_INPUTFILE_TEXT_FMT_1)
     assert type(file.location_path) == PosixPath
     assert file.filetype == FileType.CFP_INPUTFILE_TEXT_FMT_1
     assert file.is_openable == False
+    assert file.size_in_bytes == 0
 
 ########################################  ~~~~ InputFileHandler ~~~~  ##############################
 
 def test_create_inputfilehandler_test():
     path1 = Path('/test/path/testfile1.txt')
     path2 = Path('/test/path/testfile2.txt')
-    file1 = CfpFile(path1, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
-    file2 = CfpFile(path2, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
+    file1 = CfpFile(path1, FileType.CFP_INPUTFILE_TEXT_FMT_1)
+    file2 = CfpFile(path2, FileType.CFP_INPUTFILE_TEXT_FMT_1)
     hndlr = InputFileHandler([file1, file2], ['arg 1', 'arg 2'])
     assert hndlr.current_file == file1
     assert hndlr.files_previously_handled == []
@@ -64,8 +65,8 @@ def test_inputfilehandler_get_content_from_current_test():
         file.write('this is a test')
     path1 = Path('testfile.txt')
     path2 = Path('/test/path/testfile2.txt')
-    file1 = CfpFile(path1, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
-    file2 = CfpFile(path2, FileType.CFP_INPUTFILE_TEXT_FMT_1, 100)
+    file1 = CfpFile(path1, FileType.CFP_INPUTFILE_TEXT_FMT_1)
+    file2 = CfpFile(path2, FileType.CFP_INPUTFILE_TEXT_FMT_1)
     hndlr = InputFileHandler([file1, file2], ['arg 1', 'arg 2'])
     cnt = hndlr.get_content_from_current()
     assert cnt[0] == 'this is a test'
