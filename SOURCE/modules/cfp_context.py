@@ -443,7 +443,7 @@ class InputHandler(IOHandlerBase):
 @dataclass
 class CfpFile:
     """
-    Base class for Executable, Source_File, Shell_Application, Input_File, and anything with a location: Path attribute. Not all will be eligible for File.open(), as directories are files as well.  
+    Base class for Executable, Source_File, Shell_Application, Input_File, and anything with a location: Path attribute. Not all will be eligible for File.open(), as directories are files as well. If location_path does not point to an actual file, object will still be built, but size_in_bytes will be 0 and is_openable will be false.  
     """    
     # TODO:
 
@@ -508,15 +508,23 @@ class CfpFile:
         else:
             raise CfpTypeError('param `loc` must be a Path object')
         try:
-            with open(self.location_path):
+            os.stat(self.location_path)
+            with open(self.location_path, 'r'):
                 self.__can_open = True
-        except Exception as e:
+        except FileNotFoundError:
             self.__can_open = False
+        except PermissionError:
+            self.__can_open = False
+        
+
 
     def __set_size(self):
-        stats = self.location_path.stat()
-        size = stats.st_size
-        self.size_in_bytes = size
+        try:
+            stats = os.stat(self.location_path)
+            size = stats.st_size
+            self.size_in_bytes = size
+        except FileNotFoundError:
+            self.size_in_bytes = 0
 
     def get_content(self) -> list:
             if self.__f_type() is FileType.CFP_INPUTFILE_TEXT_FMT_1:
@@ -1268,7 +1276,7 @@ class BaseRunner:
         elif infile != None:
             pth = Path(infile)
             if Path.exists(pth):
-                f = CfpFile(pth, infile_type, os.path.getsize(pth))
+                f = CfpFile(pth, infile_type)
                 self.infrom = InputFileHandler([f], [])
                 self.infile = pth
             else:
