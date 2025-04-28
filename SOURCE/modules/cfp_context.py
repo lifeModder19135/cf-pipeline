@@ -500,15 +500,23 @@ class CfpFile:
     #     else:
     #         raise CfpTypeError
         
-    def __init__(self, loc: Path, ftype: FileType, size: int):
+    def __init__(self, loc: Path, ftype: FileType):
         self.location_path = loc
         self.filetype = ftype
-        self.size_in_bytes = size
+        if type(self.location_path) == PosixPath or type(self.location_path) == WindowsPath:
+            self.__set_size()
+        else:
+            raise CfpTypeError('param `loc` must be a Path object')
         try:
             with open(self.location_path):
                 self.__can_open = True
         except Exception as e:
             self.__can_open = False
+
+    def __set_size(self):
+        stats = self.location_path.stat()
+        size = stats.st_size
+        self.size_in_bytes = size
 
     def get_content(self) -> list:
             if self.__f_type() is FileType.CFP_INPUTFILE_TEXT_FMT_1:
