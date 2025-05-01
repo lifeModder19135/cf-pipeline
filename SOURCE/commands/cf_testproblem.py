@@ -12,7 +12,7 @@
 #
 
 import click
-from SOURCE.modules.cfp_context import CfpFile
+from SOURCE.modules.cfp_context import CfpFile, FileType
 from pathlib import Path
 
 @click.command()
@@ -21,3 +21,4 @@ from pathlib import Path
 def test_solution(inputfile: str, solutionfile: str):
     if_path = Path(inputfile)
     sf_path = Path(solutionfile)
+    
