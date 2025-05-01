@@ -143,14 +143,9 @@ from SOURCE.lib.libcfp_maintutils import PathFinder
 #           .given = bool
 #           .numCases = 'some_int'
 #           .case:
-#               .numLines = 'other_int'
 #               .line:
-#                   .numArgs = 'third_int'
-#                    # pretend num_args for this line was '2'
-#                   .arg:
-#                       .value = 'lorem'
-#                   .arg:
-#                       .value = 'ipsum'
+#                   .value = 'lorem'
+#                   .value = 'ipsum'
 #            ...
 #   Creation:
 #       .date = MMDDYYYY 
