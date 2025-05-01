@@ -8,7 +8,6 @@ Data:
         .given = True
         .numCases = 2
         .case
-            .numlines = 2
             .line
                 .value = 3
                 .value = 3
