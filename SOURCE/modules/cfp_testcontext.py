@@ -73,6 +73,8 @@ class InputParser:
             for line in temp:
                 print(line.rstrip('\n'))
 
+        os.remove('temp.txt')
+
     @classmethod
     def input_file_fmt_1_to_input_old(cls, inputfile: str):
         with open('temp.txt', 'w') as temp:
