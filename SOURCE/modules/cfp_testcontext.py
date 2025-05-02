@@ -17,14 +17,64 @@ class InputParser:
         path = inputfile.location_path
         with open(path, 'r') as file:
             output = {'file_info': [], 'data': []}
-            for line in file.readlines:
+            for line in file:
                 if line.lstrip().startswith('File:'):
                     pass
                 elif line.lstrip().startswith('Data:'):
                     pass
 
+    @staticmethod
+    def _parse_lines(inputfile: str) -> list[str]:
+        try:
+            with open(inputfile, 'r') as file:
+                output_lines = []
+                current_case = []
+                num_cases = 0
+                inside_line = False
+                for line in file:
+                    match line.strip().split('='):
+                        case '.numCases ', value:
+                            num_cases = int(value.strip())
+                            output_lines.append(str(num_cases))
+                        case '.line', *_:
+                            if current_case:
+                                output_lines.append(' '.join(current_case))
+                                current_case = []
+                            inside_line = True
+                        case '.value ', val:
+                            if inside_line:
+                                current_case.append(val.strip())
+                        case '.case', *_:
+                            if current_case:
+                                output_lines.append(' '.join(current_case))
+                                current_case = []
+                            inside_line = False
+                        case _:
+                            continue
+
+                if current_case:
+                    output_lines.append(' '.join(current_case))
+
+                return output_lines
+        except FileNotFoundError as e:
+            raise CfpRuntimeError from e
+        
     @classmethod
     def input_file_fmt_1_to_input(cls, inputfile: str):
+        output_lines = cls._parse_lines(inputfile)
+        with open('temp.txt', 'w') as temp:
+            for line in output_lines:
+                temp.write(line + '\n')
+
+        # result = ''.join(output_lines)
+        # print(result.stdout, end='')
+
+        with open('temp.txt', 'r') as temp:
+            for line in temp:
+                print(line.rstrip('\n'))
+
+    @classmethod
+    def input_file_fmt_1_to_input_old(cls, inputfile: str):
         with open('temp.txt', 'w') as temp:
             try:
                 with open(inputfile, 'r') as file:
@@ -130,8 +180,8 @@ class InputParser:
                     case10line8 = ''
                     case10line9 = ''
                     case10line10 = ''
-                    for lne in file.readlines():
-                        cleanline = lne.lstrip().rstrip()
+                    for lne in file:
+                        cleanline = lne.strip()
                         if cleanline.startswith('.numCases'):
                             split = cleanline.split(' ')
                             value = str(split[2]) + '\n'
@@ -141,6 +191,8 @@ class InputParser:
                             case += 1
                         elif cleanline.startswith('.line'):
                             line += 1
+                        elif cleanline.startswith('.value') and case == 0 and line == 0:
+                            print('case and line are at 0')
                         elif cleanline.startswith('.value') and case == 1 and line == 1:
                             print(str(cleanline.split(' ')[2]))
                             case1line1 = case1line1 + str(cleanline.split(' ')[2]) + ' '
@@ -345,7 +397,7 @@ class InputParser:
                         else:
                             pass
                         
-                        if case1line1 != '':
+                        if case1line1.strip() != '':
                             temp.write(case1line1)
                             temp.write('\n')
                         elif case1line2 != '':
@@ -655,7 +707,7 @@ class InputParser:
                             temp.write(case10line10)
                             temp.write('\n')
 
-                        result = run('cat temp.txt', shell=True, capture_output=True)
+                        result = run('cat temp.txt', shell=True, capture_output=True, text=True)
                         print(result.stdout)
                                 
             except FileNotFoundError as e:
