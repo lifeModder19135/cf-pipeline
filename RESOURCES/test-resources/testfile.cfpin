@@ -10,15 +10,15 @@ Data:
         .case
             .numlines = 2
             .line
-                value = 3
-                value = 3
+                .value = 3
+                .value = 3
             .line
-                value = 3
-                value = 3
+                .value = 3
+                .value = 3
         .case
             .line
-                value = 3
-                value = 3
+                .value = 3
+                .value = 3
             .line
-                value = 3
-                value = 3
+                .value = 3
+                .value = 3
