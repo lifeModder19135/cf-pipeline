@@ -23,3 +23,4 @@ Homepage = "https://github.com/lifemodder19135/cf-pipeline"
 [project.scripts]
 cf-getproblem = "SOURCE.commands.cf_getproblem:getproblem"
 test-cmd = "SOURCE.commands.cf_getproblem:test"
+cf-pipeline = "main:callcfpcommand"
