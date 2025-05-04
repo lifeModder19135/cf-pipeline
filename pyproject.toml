@@ -10,7 +10,7 @@ authors = [
 ]
 description = "A comprehensive Python API for Competitive Programming sites like Codeforces"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -23,4 +23,11 @@ Homepage = "https://github.com/lifemodder19135/cf-pipeline"
 [project.scripts]
 cf-getproblem = "SOURCE.commands.cf_getproblem:getproblem"
 test-cmd = "SOURCE.commands.cf_getproblem:test"
-cf-pipeline = "main:callcfpcommand"
+cf-pipeline = "SOURCE.commands.main:callcfpcommand"
+
+[tool.setuptools.packages.find]
+include = [
+  "SOURCE.commands",
+  "SOURCE.modules",
+  "SOURCE.lib"
+]
