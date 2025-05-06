@@ -1,4 +1,5 @@
 [console_scripts]
 cf-getproblem = SOURCE.commands.cf_getproblem:getproblem
 cf-pipeline = SOURCE.commands.main:callcfpcommand
+fetch-problem = SOURCE.commands.fetch_problem:fetch_problem
 test-cmd = SOURCE.commands.cf_getproblem:test
