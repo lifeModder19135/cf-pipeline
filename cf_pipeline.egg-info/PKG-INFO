@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: cf-pipeline
-Version: 0.0.1
+Version: 0.0.5
 Summary: A comprehensive Python API for Competitive Programming sites like Codeforces
 Author-email: Nate Tolbert <ntolbertu85@gmail.com>
 Project-URL: Homepage, https://github.com/lifemodder19135/cf-pipeline
