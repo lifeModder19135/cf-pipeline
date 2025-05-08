@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    cf-pipeline.SOURCE.commands
+   cf-pipeline.SOURCE.lib
    cf-pipeline.SOURCE.modules
 
 Module contents
@@ -15,5 +16,5 @@ Module contents
 
 .. automodule:: cf-pipeline.SOURCE
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

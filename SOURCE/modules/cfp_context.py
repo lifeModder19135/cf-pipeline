@@ -80,8 +80,8 @@ from SOURCE.lib.libcfp_maintutils import PathFinder
 #
 #     ~InputFiles: Format ~
 #
-# All input files will:
-#       * have the extension '.cfpin'
+# All input, output, or expected format 1 files will:
+#       * have the extension '.cfpin', '.cfpout', or '.cfpexp'
 #       * possibly contain comments:
 #           - these can be on any line by themselves, but cannot prefix or follow valid data on the same line
 #           - in this section, when you see 'line N' used, the comment lines are skipped when counting 
@@ -110,7 +110,7 @@ from SOURCE.lib.libcfp_maintutils import PathFinder
 #              specifies the details related to the file's creation. If you want to define your own input
 #              structure, remember that the sections `file` and `data` are both required. they are defined in
 #              the base InputParser class from which custom parsers are extended. 
-#           - The definition of CFP_INPUTFILE_FMT_2 is as follows (obviously without the #s):
+#           - The definition of CFP_INPUTFILE_FMT_1 is as follows (obviously without the #s):
 #
 # --------8<------------------------------------------------------------------------------>8--------------
 #
@@ -120,7 +120,7 @@ from SOURCE.lib.libcfp_maintutils import PathFinder
 #   # Start of the 'file' section. This section gives type and formatting info for the file.
 #   File:
 #       .type = INFILE
-#       .fmt = CFP_INPUTFILE_FMT_2
+#       .fmt = CFP_INPUTFILE_FMT_1
 #       .perms:
 #           .type = OCTAL | STR
 #           # This is just regex for a three digit octal number or a linux style perm-string e.g. 'drwxr-xr-x'
@@ -274,8 +274,8 @@ class FileType(Flag):
     CFP_INPUTFILE_TEXT_FMT_1 = 3
     CFP_INPUTFILE_TEXT_FMT_2 = 4
     CFP_INPUTFILE_BINARY = 5
-    CFP_OUTPUTFILE = 6
-    CFP_DIFF_FILE = 7
+    CFP_OUTPUTFILE_TEXT_FMT_1 = 6
+    CFP_EXPECTEDFILE_TXT_FMT_1 = 7
     SOURCE_FILE_GENERIC = 8
     SOURCE_FILE_PY2 = 9
     SOURCE_FILE_PY3 = 10

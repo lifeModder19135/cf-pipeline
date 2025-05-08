@@ -11,6 +11,10 @@ Welcome to cf pipeline's documentation!
    :caption: Contents:
 
    modules
+   cf-pipeline
+   cf-pipeline.SOURCE
+   cf-pipeline.SOURCE.modules
+
 
 
 Indices and tables

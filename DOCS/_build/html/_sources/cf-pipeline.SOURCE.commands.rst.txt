@@ -1,14 +1,6 @@
 cf\-pipeline.SOURCE.commands package
 ====================================
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   cf-pipeline.SOURCE.commands.cftestproblem
-
 Submodules
 ----------
 
@@ -17,29 +9,29 @@ cf\-pipeline.SOURCE.commands.cf\_getproblem module
 
 .. automodule:: cf-pipeline.SOURCE.commands.cf_getproblem
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
-cf\-pipeline.SOURCE.commands.cftest module
-------------------------------------------
+cf\-pipeline.SOURCE.commands.cf\_testproblem module
+---------------------------------------------------
 
-.. automodule:: cf-pipeline.SOURCE.commands.cftest
+.. automodule:: cf-pipeline.SOURCE.commands.cf_testproblem
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
-cf\-pipeline.SOURCE.commands.get\_problem module
-------------------------------------------------
+cf\-pipeline.SOURCE.commands.main module
+----------------------------------------
 
-.. automodule:: cf-pipeline.SOURCE.commands.get_problem
+.. automodule:: cf-pipeline.SOURCE.commands.main
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: cf-pipeline.SOURCE.commands
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
