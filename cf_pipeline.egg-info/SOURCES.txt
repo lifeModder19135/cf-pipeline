@@ -4,6 +4,7 @@ SOURCE/__init__.py
 SOURCE/commands/__init__.py
 SOURCE/commands/cf_getproblem.py
 SOURCE/commands/cf_testproblem.py
+SOURCE/commands/fetch_problem.py
 SOURCE/commands/main.py
 SOURCE/lib/__init__.py
 SOURCE/lib/libcfp_errors.py
