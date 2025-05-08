@@ -2,10 +2,9 @@
 #This is a test file of format CFP_INPUTFILE_TEXT_FMT_1. If is used for testing and for the example module cf_testproblem.
 File:
     .type = INFILE
-    .fmt = CFP_INPUTFILE_FMT_2
+    .fmt = CFP_INPUTFILE_TEXT_FMT_1
 Data:
     .cases
-        .given = True
         .numCases = 2
         .case
             .numlines = 2

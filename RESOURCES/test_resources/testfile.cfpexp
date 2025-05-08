@@ -1,0 +1,21 @@
+!DOCTYPE cfp-fileio-datadoc
+#This is a test file of format CFP_INPUTFILE_TEXT_FMT_1. If is used for testing and for the example module cf_testproblem.
+File:
+    .type = EXPFILE
+    .fmt = CFP_INPUTFILE_TEXT_FMT_1
+Data:
+    .case
+        .numlines = 2
+        .line
+            .value = 3
+            .value = 3
+        .line
+            .value = 3
+            .value = 3
+    .case
+        .line
+            .value = 3
+            .value = 3
+        .line
+            .value = 3
+            .value = 3

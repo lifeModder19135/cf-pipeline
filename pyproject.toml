@@ -24,6 +24,7 @@ Homepage = "https://github.com/lifemodder19135/cf-pipeline"
 cf-getproblem = "SOURCE.commands.cf_getproblem:getproblem"
 test-cmd = "SOURCE.commands.cf_getproblem:test"
 cf-pipeline = "SOURCE.commands.main:callcfpcommand"
+cf-testproblem = "SOURCE.commands.cf_testproblem:test_solution"
 
 [tool.setuptools.packages.find]
 include = [
