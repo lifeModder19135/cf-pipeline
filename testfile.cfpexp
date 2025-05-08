@@ -1,0 +1,49 @@
+!DOCTYPE cfp-fileio-datadoc
+# This file is still incomplete. To complete it, add your intended values after 
+# each empty '=' sign in the file.
+File:
+    .type = EXPFILE
+    .fmt = CFP_EXPECTEDFILE_TEXT_FMT_1
+Data:
+    .case
+        .numlines = 3
+        .line
+            .value = 
+            .value = 
+            .value = 
+        .line
+            .value = 
+            .value = 
+            .value = 
+        .line
+            .value = 
+            .value = 
+            .value = 
+    .case
+        .numlines = 3
+        .line
+            .value = 
+            .value = 
+            .value = 
+        .line
+            .value = 
+            .value = 
+            .value = 
+        .line
+            .value = 
+            .value = 
+            .value = 
+    .case
+        .numlines = 3
+        .line
+            .value = 
+            .value = 
+            .value = 
+        .line
+            .value = 
+            .value = 
+            .value = 
+        .line
+            .value = 
+            .value = 
+            .value = 

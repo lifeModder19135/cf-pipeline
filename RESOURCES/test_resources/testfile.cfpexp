@@ -1,5 +1,5 @@
 !DOCTYPE cfp-fileio-datadoc
-#This is a test file of format CFP_INPUTFILE_TEXT_FMT_1. If is used for testing and for the example module cf_testproblem.
+#This is a test file of format CFP_INPUTFILE_TEXT_FMT_1. If is used for testing the command cf-cf_testproblem.
 File:
     .type = EXPFILE
     .fmt = CFP_INPUTFILE_TEXT_FMT_1
