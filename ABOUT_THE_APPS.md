@@ -12,6 +12,9 @@ on the command line. All of the apps have this help option which outputs a short
 
 ## Apps List
 
+***NOTE:*** In the synopsis section, [] surrounds required args or options, and <> 
+surrounds the optional ones. Also, | means *or*.
+
 ### cf-fetchproblem
 
   **Synopsis**
@@ -23,7 +26,7 @@ on the command line. All of the apps have this help option which outputs a short
 ### cf-getproblem
 
   ***Synopsis***
-    cf-getproblem [CONTEST-ID] [LETTER-INDEX]
+    cf-getproblem [CONTEST-ID] [LETTER-INDEX] | <--help>
 
   ***Description***
     This is a simple command-line program created as an example of how to use 
@@ -35,18 +38,29 @@ on the command line. All of the apps have this help option which outputs a short
 ### cf-makefilefmt1
 
   ***Synopsis:***
+    cf-makefilefmt1 <-d | --dest [STRING]> [-t | --type [STRING]] [-c | --cases [INTEGER]] [-l | --lines [INTEGER]] [-v | --values [INTEGER]] <--help>
 
   ***Description:***
+    This command is used for building templates for cfp format 1 files (.cfpin,
+    .cfpout, and .cfpexp files, the kind used with cf-testproblem). To use, just
+    execute the command giving values for all of the  options. The options
+    describe how you want the file laid out. 
 
 ### cf-pipeline
 
   ***Synopsis:***
+    cf-pipeline <-v | -V | --version> | <-c | -C | --contribute> | <-u | -U | --usage> | <--help>
 
   ***Description:***
+    This command is meant for new users to cf-pipeline. using the various
+    options, you can get useful info on the version, usage info, and even info
+    on contributing to the project.
 
-### cf-testproblem
+### cf-testproblem 
 
   ***Synopsis:***
+    cf-testproblem [SOLUTIONFILE] [INPUTFILE] [OUTPUTFILE] | <--help>
 
   ***Description:***
-
+    This will test a codeforces solution against input provided in the format of
+    a cfpin file. For more details about cfpin files, see cfp_context.py.
