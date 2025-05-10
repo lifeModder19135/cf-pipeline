@@ -10,6 +10,8 @@ associated with an app, type
 
 on the command line. All of the apps have this help option which outputs a short description for the app, followed by a list of available options and arguments.
 
+Be sure to check this page often for new commands, as they are being created on a rapid basis!
+
 ## Apps List
 
 ***NOTE:*** In the synopsis section, [] surrounds required args or options, and <> 
