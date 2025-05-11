@@ -20,6 +20,14 @@ cf\-pipeline.SOURCE.commands.cf\_testproblem module
    :show-inheritance:
    :undoc-members:
 
+cf\-pipeline.SOURCE.commands.fetch\_problem module
+--------------------------------------------------
+
+.. automodule:: cf-pipeline.SOURCE.commands.fetch_problem
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 cf\-pipeline.SOURCE.commands.main module
 ----------------------------------------
 

@@ -7,13 +7,14 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../SOURCE'))
 sys.path.insert(0, os.path.abspath('../SOURCE/modules/'))
 sys.path.insert(0, os.path.abspath('../SOURCE/modules/cfp_context.py'))
-sys.path.insert(0, os.path.abspath('../../SOURCE'))
-# for x in os.walk('../SOURCE'):
-#   sys.path.insert(0, x[0])
+for x in os.walk('../SOURCE'):
+  sys.path.insert(0, x[0])
 
 from SOURCE.modules import cfp_config, cfp_contest, cfp_context, cfp_errors, cfp_logger, cfp_pathutils, cfp_problem, cfp_session, cfp_testcontext, cfp_user
+from SOURCE.commands import cf_getproblem, cf_testproblem, fetch_problem, main
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
