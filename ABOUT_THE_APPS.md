@@ -48,6 +48,15 @@ surrounds the optional ones. Also, | means *or*.
     execute the command giving values for all of the  options. The options
     describe how you want the file laid out. 
 
+### cf-openproblem
+
+  ***Synopsis:***
+    cf-openproblem [CONTEST_ID] [INDEX]
+
+  ***Description:***
+    This is a simple app for opening a problem's page in your default browser. As an 
+    example, if you run 'cf-openproblem 2108 D', your web browser will open to the page for problem D of contest 2108. Or instead you can run 'cf-openproblem -a' or '--all' to navigate directlt to the full list of problems.
+
 ### cf-pipeline
 
   ***Synopsis:***
