@@ -27,6 +27,7 @@ cf-pipeline = "SOURCE.commands.main:callcfpcommand"
 cf-fetchproblem = "SOURCE.commands.fetch_problem:fetch_problem"
 cf-testproblem = "SOURCE.commands.cf_testproblem:test_solution"
 cf-makefilefmt1 = "SOURCE.commands.cf_testproblem:create_fmt_1_file"
+cf-openproblem = "SOURCE.commands.cf_openproblem:open_problem"
 
 
 [tool.setuptools.packages.find]
