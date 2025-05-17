@@ -20,6 +20,14 @@ cf\-pipeline.constants module
    :show-inheritance:
    :undoc-members:
 
+cf\-pipeline.tasks module
+-------------------------
+
+.. automodule:: cf-pipeline.tasks
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Module contents
 ---------------
 

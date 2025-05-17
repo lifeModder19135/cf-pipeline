@@ -12,6 +12,14 @@ cf\-pipeline.SOURCE.commands.cf\_getproblem module
    :show-inheritance:
    :undoc-members:
 
+cf\-pipeline.SOURCE.commands.cf\_openproblem module
+---------------------------------------------------
+
+.. automodule:: cf-pipeline.SOURCE.commands.cf_openproblem
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 cf\-pipeline.SOURCE.commands.cf\_testproblem module
 ---------------------------------------------------
 
