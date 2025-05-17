@@ -2,7 +2,7 @@
 
 A command-line interface tool for automating Codeforces competitive programming workflows.
 
-![Version](https://img.shields.io/badge/version-0.0.5-blue)
+![Version](https://img.shields.io/badge/version-0.0.8-blue)
 ![Status](https://img.shields.io/badge/status-alpha-orange)
 
 ## Overview
@@ -18,9 +18,21 @@ CF Pipeline is a CLI application that streamlines interaction with the Codeforce
 
 ## Installation
 
+from github:
+
+ - fork and pull repository
+ - navigate to project in terminal
+ - from the top level of project, run
+
 ```bash
+pip install -e .
 pip install -r requirements.txt
-python setup.py install
+```
+
+or get it straight from pypi with
+
+```bash
+pip install cf-pipeline
 ```
 
 ## Usage
@@ -29,11 +41,15 @@ Basic commands:
 
 ```bash
 # Get a specific problem
-cfp get-problem <contest-id> <problem-index>
+cf-getproblem <contest-id> <problem-index>
 
 # Test your solution against problem test cases
-cfp test-solution <solution-file> <contest-id> <problem-index>
+cf-testproblem <solution-file> <contest-id> <problem-index>
+
+# plus many more.
 ```
+
+for a complete list of commands, see [here](https://github.com/lifeModder19135/cf-pipeline/blob/dev-master/ABOUT_THE_APPS.md)
 
 ## Architecture
 
