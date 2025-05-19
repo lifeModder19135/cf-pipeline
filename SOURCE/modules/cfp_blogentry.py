@@ -90,29 +90,30 @@ class BlogEntry:
     def rating(self, r):
         self.__rating = r
 
-    def __init__(self, id, origloc, cts, handle, title, content, loc, mts, avh, tags, rating):
-        self.id = id
-        self.originalLocale = origloc
-        self.creationTimeSeconds = cts
-        self.authorHandle = handle
-        self.title = title
-        self.content = content
-        self.locale = loc
-        self.modificationTimeSeconds = mts
-        self.allowViewHistory = avh
-        self.tags = tags
+    def __init__(self, originalLocale, allowViewHistory, creationTimeSeconds, rating, authorHandle, modificationTimeSeconds, id, title, locale, tags):
+        self.originalLocale = originalLocale
+        self.allowViewHistory = allowViewHistory
+        self.creationTimeSeconds = creationTimeSeconds
         self.rating = rating
-
+        self.authorHandle = authorHandle
+        self.modificationTimeSeconds = modificationTimeSeconds
+        self.id = id
+        self.title = title
+        self.locale = locale
+        self.tags = tags
+        
     @classmethod
     def from_json(cls, jstr: str):
+        """Takes in a single json blogentry object and transforms it into a BlogEntry Python object before returning that object"""
         jdct = loads(jstr)
         return cls(**jdct)
     
     @classmethod
     def list_from_json(cls, jstr: str):
-        """Takes in a json list of blog entry objects and returns a python list of BlogEntry objects"""
+        """Takes in a json list of blog entry objects (the list handed back from the codeforces api) and returns a python list of BlogEntry objects"""
         output_list = []
-        py_list = loads(jstr)
+        json = loads(jstr)
+        py_list = json['result']
         for blogentry in py_list:
             output_list.append(BlogEntry(**blogentry))
         return output_list
