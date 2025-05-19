@@ -37,7 +37,7 @@ def test_blogentry_from_json_test():
     assert be.allowViewHistory == False
 
 def test_blogentry_list_from_json_test():
-    with open('/home/ntolb/CODING_PROJECTS/python_workspaces/0-vscode_ws/cf-pipeline/RESOURCES/test_resources/user.blogEntries?handle=Fefer_Ivan', 'r') as file:
+    with open('./RESOURCES/test_resources/user.blogEntries?handle=Fefer_Ivan', 'r') as file:
         json_obj = json.load(file)
         json_str = json.dumps(json_obj)
         be = BlogEntry.list_from_json(json_str)
