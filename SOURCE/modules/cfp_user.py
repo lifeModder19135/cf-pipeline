@@ -1,15 +1,14 @@
 from pathlib import Path, PosixPath, WindowsPath
 from SOURCE.modules.cfp_errors import CfpTypeError
+from SOURCE.modules.cfp_pathutils import cfp_url
+from SOURCE.modules.cfp_blogentry import BlogEntry
 from typing import Union
+from requests import get
+from json import loads
 
 
 class User:
-    
-    def get_blogposts():
-        pass
-    
-    def set_blogposts():
-        pass
+    """This is a class for holding user data. It holds the same fields as a codeforces api User object. This class contains convinience methods for creating instances from json strings and directly from the responses retuned from the codeforces api."""
    
     @property 
     def handle(self) -> str:
@@ -187,7 +186,14 @@ class User:
 #    titlePhoto: str = '' # User's title photo URL.    
     
     
-    def __init__(self, handle: str, email: str, vkId: str, openId: str, firstName: str, lastName: str, country: str, city: str, organization: str, contribution: int,rank: str, rating: int, maxRank: str, maxRating: int, lastOnlineTimeSeconds: int, registrationTimeSeconds: int, friendOfCount: int, avatar: str, titlePhoto: str):
+    def __init__(self, lastName: str=None, country: str=None, lastOnlineTimeSeconds: int=None, 
+                 city: str=None, rating: int=None, friendOfCount: int=None,
+                 titlePhoto: str=None, handle: str=None, avatar: str=None,
+                 firstName: str=None, contribution: int=None, organization: str=None,
+                 rank: str=None, maxRating: int=None,  registrationTimeSeconds: int=None,
+                 maxRank: str=None, email: str=None, vkId: str=None, 
+                 openId: str=None,
+                 ):
         self.handle = handle
         self.email = email
         self.vkid = vkId
@@ -206,5 +212,46 @@ class User:
         self.registration_time_seconds = registrationTimeSeconds
         self.friend_of_count = friendOfCount
         self.avatar = avatar
-        self.title_photo = titlePhoto
+        self.title_photo = Path(titlePhoto)
+
+    @classmethod
+    def from_json(cls, string: str):
+        """This method takes in a string of json data (a json user object) and returns a User object with the same data."""
+        jdict = loads(string)
+        return cls(**jdict)
     
+    @classmethod
+    def from_json_response(cls, jstr: str):
+        """This method takes in a response json object (the object that is returned by the codeforces api) and returns either a single User object (if json list only has 1 user object), a list of User objects (if json list has multiple user objects), or None (if json list has 0 user objects)."""
+        jdict_list = loads(jstr)
+        lst = [cls(**x) for x in jdict_list['result']]
+        if len(lst) == 0:
+            return None
+        elif len(lst) == 1:
+            return lst[0]
+        else:
+            return lst
+
+        
+    @classmethod
+    def get_user_by_handle(cls, handle: str, check_historic_handles: bool=False):
+        """This method takes in a user handle (string) and returns a User objet for user with that handle. There is also an optional argument check_historic_handles which sets whether you want to search users that used to have that handle. The default value is False."""
+        query = cfp_url('https://codeforces.com/api/user.info')
+        query.query = 'handle=' + handle + '&checkHistoricHandles=' + check_historic_handles
+        newquery = query.construct()
+        response = get(newquery)
+        return cls.from_json(response)
+
+    
+    def get_blogposts(self, keyword: str=None) -> list:
+        """This method returns a list of BlogPost objects representing the blogposts for this user. There is an optional argument \'keyword\'. If set, the method will only return blogposts containing keyword in the title."""
+        query = cfp_url('https://codeforces.com/api/user.blogEntries')
+        query.query = 'handle=' + self.handle
+        newquery = query.construct()
+        result = get(newquery)
+        blog_list = BlogEntry.list_from_json(result.text)
+        new_list = [x for x in blog_list if keyword == None or keyword in x.title]
+        return new_list
+    
+    def set_blogposts():
+        pass
