@@ -72,7 +72,7 @@ class ConfigSection:
                 elif action_values_list[0] == Action.EMPTY:
                     self.__config_kvs = []   
             else:
-                raise CfpTypeError
+                raise CfpUserInputError
         else: 
             raise CfpUserInputError
 
@@ -90,10 +90,11 @@ class ConfigSection:
         self.values = [Action.OVERWRITE, new_vals]
         return True
 class Configuration(object):
+    """This class represents a configuration, linked to a config file, made up primarily of ConfigSection objects representing the sections of that configuration."""
 
     @property
     def sections(self) -> 'list[ConfigSection]':
-        """This is a list of ConfigSection objects, containing the names of all the sections of the config."""
+        """This is a list of ConfigSection objects, containing all the sections of the config."""
         if not self.__sectslist_:
             self.__sectslist_ = []
         return self.__sectslist_
