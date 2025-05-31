@@ -84,6 +84,25 @@ def test_user_from_json_response_multiple_objects_test():
     assert users[0].firstname == 'Dmitriy'
     assert users[1].firstname == 'Ivan'
 
-def test_user_get_blogposts_test():
-    pass
+def test_user_get_user_by_handle_test():
+    user = User.get_user_by_handle('DmitriyH', check_historic_handles=True)
+    assert user.handle == 'DmitriyH'
+    assert user.firstname == 'Dmitriy'
+    assert user.lastname == 'Khodyrev'
+
+def test_user_get_user_by_handle_xtra_arg_omitted_test():
+    user = User.get_user_by_handle('Dmitriy')
+    assert user.handle == 'Dmitriy'
+    assert user.registration_time_seconds == 1284545124
+
+def test_user_get_blogposts_no_keyword_test():
+    user = User.get_user_by_handle('Fefer_Ivan')
+    blogposts = user.get_blogposts()
+    assert blogposts[0].authorHandle == 'Fefer_Ivan'
+
+def test_user_get_blogposts_with_keyword_test():
+    user = User.get_user_by_handle('Fefer_Ivan')
+    blogposts = user.get_blogposts(keyword='Stankevich')
+    assert blogposts[0].authorHandle == 'Fefer_Ivan'
+    assert blogposts[0].title == '<p>Andrew Stankevich Contests — 46 contests later</p>'
 

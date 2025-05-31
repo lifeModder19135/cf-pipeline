@@ -1,6 +1,6 @@
 from pathlib import Path, PosixPath, WindowsPath
 from SOURCE.modules.cfp_errors import CfpTypeError
-from SOURCE.modules.cfp_pathutils import cfp_url
+from SOURCE.modules.cfp_pathutils import CfpUrl
 from SOURCE.modules.cfp_blogentry import BlogEntry
 from typing import Union
 from requests import get
@@ -223,8 +223,8 @@ class User:
     @classmethod
     def from_json_response(cls, jstr: str):
         """This method takes in a response json object (the object that is returned by the codeforces api) and returns either a single User object (if json list only has 1 user object), a list of User objects (if json list has multiple user objects), or None (if json list has 0 user objects)."""
-        jdict_list = loads(jstr)
-        lst = [cls(**x) for x in jdict_list['result']]
+        jdict = loads(jstr)
+        lst = [cls(**x) for x in jdict['result']]
         if len(lst) == 0:
             return None
         elif len(lst) == 1:
@@ -236,16 +236,16 @@ class User:
     @classmethod
     def get_user_by_handle(cls, handle: str, check_historic_handles: bool=False):
         """This method takes in a user handle (string) and returns a User objet for user with that handle. There is also an optional argument check_historic_handles which sets whether you want to search users that used to have that handle. The default value is False."""
-        query = cfp_url('https://codeforces.com/api/user.info')
-        query.query = 'handle=' + handle + '&checkHistoricHandles=' + check_historic_handles
+        query = CfpUrl('https://codeforces.com/api/user.info')
+        query.query = 'handles=' + handle + '&checkHistoricHandles=' + str(check_historic_handles)
         newquery = query.construct()
         response = get(newquery)
-        return cls.from_json(response)
+        return cls.from_json_response(response.text)
 
     
     def get_blogposts(self, keyword: str=None) -> list:
         """This method returns a list of BlogPost objects representing the blogposts for this user. There is an optional argument \'keyword\'. If set, the method will only return blogposts containing keyword in the title."""
-        query = cfp_url('https://codeforces.com/api/user.blogEntries')
+        query = CfpUrl('https://codeforces.com/api/user.blogEntries')
         query.query = 'handle=' + self.handle
         newquery = query.construct()
         result = get(newquery)
