@@ -5,11 +5,12 @@ from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError,
 from enum import Enum, Flag
 
 class Action(Flag):
-    """Represents possible actions that can be used on a ConfigFile.sections list and ConfFileSection.keys_values_dict"""
+    """Represents possible actions that can be used on a ConfigFile.sections list and ConfigSection.keys_values_dict"""
     UPDATE = 1
     OVERWRITE = 2
     EMPTY = 3
     REFRESH = 4
+    INIT = 5
 
 class AppConfigurationOptions(Enum):
     """
@@ -17,8 +18,8 @@ class AppConfigurationOptions(Enum):
     """
     pass
 @dataclass
-class ConfFileSection:
-    """This class represents a section of a config file. Config options that are related should be located together in a section, represented as keys and values in the keys_vals_dict property of a ConfFileSection object."""
+class ConfigSection:
+    """This class represents a section of a config file. Config options that are related should be located together in a section, represented as keys and values in the keys_vals_dict property of a ConfigSection object."""
 
     __name_=''
     __config_kvs = {}
@@ -42,22 +43,24 @@ class ConfFileSection:
         self.__descr = val
 
     @property
-    def keys_vals_dict(self) -> str:
+    def values(self) -> dict:
         """This is where the configuration options are stored as keys and values."""
         return self.__config_kvs
 
-    @keys_vals_dict.setter
-    def keys_vals_dict(self, action_values_list) -> None:
+    @values.setter
+    def values(self, action_values_list) -> None:
         """
         The param passed into this function needs to be a list with exactly 2 items. The first must be an Action (see the Flag enum above). The second MUST be a dict containing the keys and values to either add to the list (Action.UPDATE) or replace the current list (Action.OVERWRITE)
         """
         input_bad = False
-        if type(action_values_list) == list and len(action_values_list) == 2 and action_values_list[0] == Action.OVERWRITE and type(action_values_list[1]) == dict or type(action_values_list) == list and len(action_values_list) == 2 and action_values_list[0] == Action.UPDATE and type(action_values_list[1]) == dict or type(action_values_list) == list and action_values_list[0] == Action.EMPTY and len(action_values_list) == 1:
+        if type(action_values_list) == list and len(action_values_list) == 2 and action_values_list[0] == Action.OVERWRITE and type(action_values_list[1]) == dict or type(action_values_list) == list and len(action_values_list) == 2 and action_values_list[0] == Action.UPDATE and type(action_values_list[1]) == dict or type(action_values_list) == list and action_values_list[0] == Action.EMPTY and len(action_values_list) == 1 or type(action_values_list) == list and len(action_values_list) == 2 and action_values_list[0] == Action.INIT and type(action_values_list[1]) == dict:
             for k,v in action_values_list[1].items():
                 if type(k) != str or type(v) != str:
                     input_bad = True
             if input_bad == False:
                 if action_values_list[0] == Action.OVERWRITE:
+                    self.__config_kvs = action_values_list[1]
+                elif action_values_list[0] == Action.INIT:
                     self.__config_kvs = action_values_list[1]
                 elif action_values_list[0] == Action.UPDATE:
                     for k,v in action_values_list[1].items():
@@ -69,22 +72,28 @@ class ConfFileSection:
                 elif action_values_list[0] == Action.EMPTY:
                     self.__config_kvs = []   
             else:
-                raise CfpUserInputError
+                raise CfpTypeError
         else: 
             raise CfpUserInputError
 
-    def __init__(self, name: str, description: str, action: Action, keys_vals_dict: dict={}):
+    def __init__(self, name: str, description: str, keys_vals_dict: dict={}):
 
         self.name = name
         self.description = description
-        self.keys_vals_dict = [action, keys_vals_dict]
+        self.values = [Action.INIT, keys_vals_dict]
 
-class ConfigFile(object):
-    """This is the class representation of a config file. It contains metadata, including the path to the file, and a list of ConfFileSection objects, which make up the content of the file."""
+    def update(self, new_vals: dict):
+        self.values = [Action.UPDATE, new_vals]
+        return True
+
+    def overwrite(self, new_vals: dict):
+        self.values = [Action.OVERWRITE, new_vals]
+        return True
+class Configuration(object):
 
     @property
-    def sections(self) -> 'list[ConfFileSection]':
-        """This is a list of ConfFileSection objects, containing the names of all the sections of the config."""
+    def sections(self) -> 'list[ConfigSection]':
+        """This is a list of ConfigSection objects, containing the names of all the sections of the config."""
         if not self.__sectslist_:
             self.__sectslist_ = []
         return self.__sectslist_
@@ -96,7 +105,7 @@ class ConfigFile(object):
         The paramater is a list with either 1 or 2 items.
         the first item is of type Action. If it is Action.EMPTY, it will be the only item. 
         Anything else will have a second item. This must be a list.
-        This is a list of 0 ar more ConfFileSection objects to append to the sections list.
+        This is a list of 0 ar more ConfigSection objects to append to the sections list.
         The action item holds the action taken on the __sectslist_.
         Possible actions are:
           - update: append args to __sectslist_
@@ -112,7 +121,7 @@ class ConfigFile(object):
         if action_and_args[0] == Action.UPDATE:
             if type(action_and_args[1]) == list:
                 for a in action_and_args[1]:
-                    if type(a) == ConfFileSection:
+                    if type(a) == ConfigSection:
                         self.__sectslist_.append(a)
                     else:
                         raise CfpTypeError()
@@ -121,7 +130,7 @@ class ConfigFile(object):
         elif action_and_args[0] == Action.OVERWRITE:
             self.__sectslist_ = []
             for a in action_and_args[1]:
-                if type(a) == ConfFileSection:
+                if type(a) == ConfigSection:
                     self.__sectslist_.append(a)
         elif action_and_args[0] == Action.EMPTY:
             self.__sectslist_ = []
@@ -129,9 +138,14 @@ class ConfigFile(object):
             self.__secnames = self.__get_section_names_from_conffile()
             for name in self.__secnames:
                 pass
+        elif action_and_args[0] == Action.INIT:
+            self.__sectslist_ = []
+            for a in action_and_args[1]:
+                if type(a) == ConfigSection:
+                    self.__sectslist_.append(a)
         else:
             raise CfpUserInputError
-
+        
     @property
     def location_dirpath(self) -> str:
         """This is the absolute path to the directory of the config file on the end user's system. 'location_dirpath' + 'filename' should be the absolute path in full."""
@@ -150,14 +164,20 @@ class ConfigFile(object):
     def filename(self, fname) -> None:
         self.__file_name = fname
 
-    def __init__(self, location_dirpath: str, filename: str, action_sects_list: list=[]):
-        self.sections = action_sects_list
+
+    def __init__(self, location_dirpath: str, filename: str, sects_list: list=[]):
+        self.sections = [Action.INIT, sects_list]
         self.filename = filename
         self.location_dirpath = location_dirpath
 
     def __get_section_names_from_conffile(self) -> "list[tuple]":
         sects_ls = []
-        _filelocation = '/'.join(self.location_path(),self.filename())
+        if os.name == 'posix':
+            slash = '/'
+        else:
+            slash = '\\'
+        lst = [self.location_dirpath, self.filename]
+        _filelocation = slash.join(lst)
         with open(_filelocation, 'r') as file:
             for i, line in enumerate(file):
                 cleanln = line.lstrip().rstrip()
@@ -166,36 +186,65 @@ class ConfigFile(object):
                     sects_ls.append(sectup)
         return sects_ls
 
-    def __get_section_kvs_from_conffile(self) -> "list[tuple]":
+    def __get_section_kvs_from_conffile(self, section_name: str) -> "list[tuple]":
         """
         retrieves a section from a conf file and returnsit as a python dictionary
         TODO: fix it so it works
         """
-        __kv_dict = {}
+
+        # if section_entered is True, the [[section_name]] line has already been reached, so the next [[section]] line will be the end of the section.
+        section_entered = False
+
         if os.name == 'posix' or os.name == 'java':
-            self._filelocation = '/'.join(self.location_path(),self.filename())
-        elif os.name == 'nt':
-            self._filelocation = '\\'.join(self.location_path(),self.filename())
-        with open(self._filelocation, 'r') as file:
+            slash = '/'
+        else:
+            slash = '\\'
+        
+        lst = [self.location_dirpath, self.filename]
+        path = slash.join(lst)
+        tuples_list = []
+
+        with open(path, 'r') as file:
             for i, line in enumerate(file):
-                cleanln = line.lstrip().rstrip()
-                if cleanln.startswith("[[") and cleanln.endswith("]]"):
-                        pass
-                else:
-                    k_eq_v_list = cleanln.split()
-                    size = len(k_eq_v_list)
-                    if size >= 3:
-                        if k_eq_v_list[1] == '=':
-                            # need to finish
-                            key = k_eq_v_list[0]
-                            val_str = ''
-                            for word in k_eq_v_list:
-                                if word >= 2:
-                                    val_str = val_str + ' ' + word
-                        else:
-                            raise CfpConfigurationError('There is a formatting error in your config file. Note that all l_values need to be one word, and there must be a space on each side of the "=", so that each line looks like this: "oneword = one or more words"')
+                cleanln = line.strip()
+            
+                pattern = '[[' + section_name + ']]'
+                if cleanln == pattern:
+                    section_entered == True
+
+                if section_entered == True:
+                    if cleanln.startswith('[['):
+                        return tuples_list
                     else:
-                        pass
+                        split = cleanln.split('=')
+                        if len(split) <= 1:
+                            raise CfpUserInputError('The format of your config file has 1 or more errors. Every line must either start with "[[" or be of the form "key = value. No blank lines!!"')
+                        tup = (split[0].strip, split[1].strip)
+                        tuples_list.append(tup)
+
+            return tuples_list
+
+
+
+            # for i, line in enumerate(file):
+            #     cleanln = line.lstrip().rstrip()
+            #     if cleanln.startswith("[[") and cleanln.endswith("]]"):
+            #             pass
+            #     else:
+            #         k_eq_v_list = cleanln.split()
+            #         size = len(k_eq_v_list)
+            #         if size >= 3:
+            #             if k_eq_v_list[1] == '=':
+            #                 # need to finish
+            #                 key = k_eq_v_list[0]
+            #                 val_str = ''
+            #                 for word in k_eq_v_list:
+            #                     if word >= 2:
+            #                         val_str = val_str + ' ' + word
+            #             else:
+            #                 raise CfpConfigurationError('There is a formatting error in your config file. Note that all l_values need to be one word, and there must be a space on each side of the "=", so that each line looks like this: "oneword = one or more words"')
+            #         else:
+                        # pass
 
     def __write_dict_to_conf_file(self, input_dict:dict, filelocation='use_obj_attributes'):
         """
@@ -229,7 +278,7 @@ class ConfigFile(object):
 
     def __write_section_to_conf_file():
         """
-        A private function that takes in a ConfFileSection and writes it to a conf file.
+        A private function that takes in a ConfigSection and writes it to a conf file.
         TODO: write me
         """
         pass
