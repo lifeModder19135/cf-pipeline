@@ -3,7 +3,7 @@ import os, typing
 # from SOURCE.lib import libcfapi_utils
 from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpConfigurationError, CfpMethodInputError, CfpOSError, CfpPermissionDeniedError, CfpEncodingError, CfpValueError
 from enum import Enum, Flag
-from pathlib import Path
+from os import path
 
 class Action(Flag):
     """Represents possible actions that can be used on a ConfigFile.sections list and ConfigSection.keys_values_dict"""
@@ -178,7 +178,7 @@ class Configuration(object):
         """
         slash = self.__get_slash_type()
         filepath = self.location_dirpath + slash + self.filename
-        if Path.exists(filepath):
+        if path.exists(filepath):
             return True
         else:
             try:
