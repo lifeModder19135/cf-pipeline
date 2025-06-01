@@ -89,3 +89,11 @@ class CfpOSError(OSError):
     """
     def __init__(self, *args, **kwargs):
         super().__init__( *args, **kwargs)
+
+class CfpEncodingError(UnicodeEncodeError):
+    """
+    Called when there is a problem with encoding in general.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
+        
