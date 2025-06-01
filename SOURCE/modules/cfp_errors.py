@@ -82,3 +82,10 @@ class CfpTimeoutError(CfpRuntimeError):
     """
     def __init__(self, *args, **kwargs):
         super().__init__( *args, **kwargs)
+
+class CfpOSError(OSError):
+    """
+    Called when there is a problem with the OS.
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__( *args, **kwargs)
