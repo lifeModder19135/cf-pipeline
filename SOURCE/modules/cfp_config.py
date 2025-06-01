@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 import os, typing
 # from SOURCE.lib import libcfapi_utils
-from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpConfigurationError, CfpMethodInputError
+from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpConfigurationError, CfpMethodInputError, CfpOSError, CfpPermissionDeniedError, CfpEncodingError, CfpValueError
 from enum import Enum, Flag
+from pathlib import Path
 
 class Action(Flag):
     """Represents possible actions that can be used on a ConfigFile.sections list and ConfigSection.keys_values_dict"""
@@ -171,6 +172,60 @@ class Configuration(object):
         self.filename = filename
         self.location_dirpath = location_dirpath
 
+    def create_config_file(self) -> bool:
+        """
+        If config file does not exist, this creates it and returns True. If it does exist, it just returns True. If it does not exist and cannot be created, it raises an error.
+        """
+        slash = self.__get_slash_type()
+        filepath = self.location_dirpath + slash + self.filename
+        if Path.exists(filepath):
+            return True
+        else:
+            try:
+                with open(filepath, 'x'):
+                    pass
+            except PermissionError:
+                raise CfpPermissionDeniedError
+            except OSError:
+                raise CfpOSError
+            except UnicodeError:
+                raise CfpEncodingError
+            except TypeError:
+                raise CfpTypeError
+            except ValueError:
+                raise CfpValueError
+            return True
+
+    def add_section_to_config_file(self, section_name: str, kv_list: list[str]) -> bool:
+        """
+        Either writes a section to the end of the config file with \'section_name\' as the name and each line in \'kv_list\' on its own line, or raises an error if it cannot be written. Each line must be of the format \'key = value\' or else an CfpMethodInputError will be raised.
+        """
+        try:
+            slash = self.__get_slash_type()
+            filepath = self.location_dirpath + slash + self.filename
+            with open(filepath, 'w') as file:
+                name_str = '[[' + section_name + ']]\n'
+                file.write(name_str)
+                for line in kv_list:
+                    if '=' in line:
+                        file.write(line + '\n')
+                    else:
+                        raise CfpMethodInputError('One or more lines passed to this method are formatted incorrectly. They must be of the form \'key = value\'.')
+        except PermissionError:
+            raise CfpPermissionDeniedError
+        except OSError:
+            raise CfpOSError
+        except UnicodeError:
+            raise CfpEncodingError
+        except TypeError:
+            raise CfpTypeError
+        except ValueError:
+            raise CfpValueError
+        return True
+
+    def get_section_from_config_file(self)  -> ConfigSection:
+        pass
+
     def __get_section_names_from_conffile(self) -> "list[tuple]":
         sects_ls = []
         if os.name == 'posix':
@@ -225,7 +280,14 @@ class Configuration(object):
 
             return tuples_list
 
-
+    def __get_slash_type(self):
+        if os.name == 'posix' or os.name == 'java':
+            slash = '/'
+        elif os.name == 'nt':
+            slash = '\\'
+        else:
+            raise AppConfigurationOptions
+        return slash
 
             # for i, line in enumerate(file):
             #     cleanln = line.lstrip().rstrip()
