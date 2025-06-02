@@ -33,53 +33,52 @@ def test_create_configuration_test():
 
 def test_configuration__get_slash_type_linux_test(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(os, 'name', 'posix')
-    section_1 = ConfigSection('test section 1', 'a test section', {'test_key': 'test_value'})
-    section_2 = ConfigSection('test section 2', 'a test section', {'test_key': 'test_value'})
-    conf = Configuration('/test/path', 'test.py', [section_1, section_2])
+    slash1 = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash1 + 'test_resources')
+    conf = Configuration(dirpath, 'test_config_file_2', [])
     slash = conf._Configuration__get_slash_type()
     assert slash == '/'
 
 def test_configuration__get_slash_type_windows_test(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(os, 'name', 'nt')
-    section_1 = ConfigSection('test section 1', 'a test section', {'test_key': 'test_value'})
-    section_2 = ConfigSection('test section 2', 'a test section', {'test_key': 'test_value'})
-    conf = Configuration('/test/path', 'test.py', [section_1, section_2])
+    slash1 = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash1 + 'test_resources')
+    conf = Configuration(dirpath, 'test_config_file_2', [])
     slash = conf._Configuration__get_slash_type()
     assert slash == '\\'
 
 def test_configuration_create_config_file_doesnt_exist_test():
-    fullpath = os.path.abspath('RESOURCES/test_resources/test_config_file_2')
+    slash = get_slash()
+    fullpath = os.path.abspath('RESOURCES' + slash + 'test_resources' + slash + 'test_config_file_2')
     if os.path.exists(fullpath):
         os.remove(fullpath)
     section_1 = ConfigSection('test section 1', 'a test section', {'test_key': 'test_value'})
     section_2 = ConfigSection('test section 2', 'a test section', {'test_key': 'test_value'})
-    conf = Configuration(os.path.abspath('RESOURCES/test_resources/'), 'test_config_file_2', [section_1, section_2])
+    conf = Configuration(os.path.abspath('RESOURCES' + slash + 'test_resources'), 'test_config_file_2', [section_1, section_2])
     exists = conf.create_config_file()
     assert exists == True
     assert os.path.exists(fullpath)
 
 def test_configuration_create_config_file_exists_test():
-    fullpath = os.path.abspath('RESOURCES/test_resources/test_config_file_2')
+    slash = get_slash()
+    fullpath = os.path.abspath('RESOURCES' + slash + 'test_resources' + slash + 'test_config_file_2')
     if not os.path.exists(fullpath):
         with open(fullpath, 'x'):
             pass
-    section_1 = ConfigSection('test section 1', 'a test section', {'test_key': 'test_value'})
-    section_2 = ConfigSection('test section 2', 'a test section', {'test_key': 'test_value'})
-    conf = Configuration(os.path.abspath('RESOURCES/test_resources/'), 'test_config_file_2', [section_1, section_2])
+    conf = Configuration(os.path.abspath('RESOURCES' + slash + 'test_resources'), 'test_config_file_2', [])
     exists = conf.create_config_file()
     assert exists == True
     assert os.path.exists(fullpath)
 
 def test_configuration_add_section_to_config_file_test():
-    fullpath = os.path.abspath('RESOURCES/test_resources/test_config_file_2')
+    slash = get_slash()
+    fullpath = os.path.abspath('RESOURCES' + slash + 'test_resources' + slash + 'test_config_file_2')
     if not os.path.exists(fullpath):
         with open(fullpath, 'x'):
             pass
     secname = 'test_section'
     valslist = ['key1 = val1', 'key2 = val2']
-    section_1 = ConfigSection('test section 1', 'a test section', {'test_key': 'test_value'})
-    section_2 = ConfigSection('test section 2', 'a test section', {'test_key': 'test_value'})
-    conf = Configuration(os.path.abspath('RESOURCES/test_resources/'), 'test_config_file_2', [section_1, section_2])
+    conf = Configuration(os.path.abspath('RESOURCES/test_resources/'), 'test_config_file_2', [])
     written = conf.add_section_to_config_file(secname, valslist)
     assert written == True
     with open(fullpath, 'r') as file:
@@ -87,15 +86,14 @@ def test_configuration_add_section_to_config_file_test():
     os.remove(fullpath)
 
 def test_configuration_add_section_to_config_file_fails_correctly_test():
-    fullpath = os.path.abspath('RESOURCES/test_resources/test_config_file_2')
+    slash = get_slash()
+    fullpath = os.path.abspath('RESOURCES' + slash + 'test_resources' + slash + 'test_config_file_2')
     if not os.path.exists(fullpath):
         with open(fullpath, 'x'):
             pass
     secname = 'test_section'
     valslist = ['key1 = val1', 'key2 = val2', 'bad value']
-    section_1 = ConfigSection('test section 1', 'a test section', {'test_key': 'test_value'})
-    section_2 = ConfigSection('test section 2', 'a test section', {'test_key': 'test_value'})
-    conf = Configuration(os.path.abspath('RESOURCES/test_resources/'), 'test_config_file_2', [section_1, section_2])
+    conf = Configuration(os.path.abspath('RESOURCES/test_resources/'), 'test_config_file_2', [])
     with pytest.raises(CfpMethodInputError):
         written = conf.add_section_to_config_file(secname, valslist)
     os.remove(fullpath)
