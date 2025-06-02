@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import os, typing
 # from SOURCE.lib import libcfapi_utils
-from .cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpConfigurationError, CfpMethodInputError, CfpOSError, CfpPermissionDeniedError, CfpEncodingError, CfpValueError
+from SOURCE.modules.cfp_errors import CfpInitializationError, CfpTypeError, CfpUserInputError, CfpOverwriteNotAllowedError, CfpConfigurationError, CfpMethodInputError, CfpOSError, CfpPermissionDeniedError, CfpEncodingError, CfpValueError
 from enum import Enum, Flag
 from os import path
 
@@ -213,8 +213,8 @@ class Configuration(object):
                         raise CfpMethodInputError('One or more lines passed to this method are formatted incorrectly. They must be of the form \'key = value\'.')
         except PermissionError:
             raise CfpPermissionDeniedError
-        except OSError:
-            raise CfpOSError
+        # except OSError:
+        #     raise CfpOSError
         except UnicodeError:
             raise CfpEncodingError
         except TypeError:
@@ -223,15 +223,47 @@ class Configuration(object):
             raise CfpValueError
         return True
 
-    def get_section_from_config_file(self)  -> ConfigSection:
-        pass
+    def get_section_from_config_file(self, section_name: str, description='A config section')  -> ConfigSection:
+        in_section: bool = False
+        slash: str = self.__get_slash_type()
+        fullpath: str = self.location_dirpath + slash + self.filename
+        section = ConfigSection(name=section_name,description=description,keys_vals_dict={})
+        values_dict = {}
+        exists = False
+ 
+        with open(fullpath, 'r') as file:
+            for line in file:
+                secname_line = '[[' + section_name + ']]\n'
+                if line == secname_line:
+                    exists = True
+                    in_section = True
+                    continue
+
+                if in_section == True:
+                    if line.startswith('[['):
+                        section.update(values_dict)
+                        return section
+                    else:
+                        if '=' in line:
+                            ls = line.split('=')
+                            if len(ls) != 2:
+                                raise CfpValueError('One or more lines in your format fie are incorrectly formatted.')
+                            else:
+                                key = ls[0].strip(' ')
+                                val = ls[1].strip(' ')
+                                val = val.strip('\n')
+                                values_dict[key] = val
+                        else:
+                            raise CfpValueError('One or more lines in your format fie are incorrectly formatted.')
+            if exists == False:
+                return False
+            else:
+                section.update(values_dict)
+                return section
 
     def __get_section_names_from_conffile(self) -> "list[tuple]":
+        slash = self.__get_slash_type()
         sects_ls = []
-        if os.name == 'posix':
-            slash = '/'
-        else:
-            slash = '\\'
         lst = [self.location_dirpath, self.filename]
         _filelocation = slash.join(lst)
         with open(_filelocation, 'r') as file:
@@ -345,20 +377,8 @@ class Configuration(object):
         TODO: write me
         """
         pass
-            
-        
-                            
 
-# class AppConfiguration(typing.__dict__):
-#     """
-#     dict with config section names and inner dictionaries containing config opptions and values
-#     """
-#     # TODO:
-#     #    - needs logic to check inner dicts and set values to class properties
-#     #    - need to define properties
-
-#     def __init__(self, conf_dict:dict=None, **kvpairs):
-#         if conf_dict == None:
-#             super().__init__(**kvpairs)
-#         else:
-#             super().__init__(conf_dict, **kvpairs)
+if __name__ == '__main__':
+    conf = Configuration(os.path.abspath('RESOURCES/test_resources'), 'test_config_file_2', [])
+    section = conf.get_section_from_config_file('test_section')
+    pass  

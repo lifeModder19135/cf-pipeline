@@ -3,6 +3,12 @@ from SOURCE.modules.cfp_errors import CfpMethodInputError
 import os
 import pytest
 
+def get_slash():
+    if os.name == 'posix' or os.name == 'java':
+        return '/'
+    else:
+        return '\\'
+
 def test_create_configsection_test():
 
     section = ConfigSection('test section', 'a test section', {'test_key': 'test_value'})
@@ -25,7 +31,7 @@ def test_create_configuration_test():
     assert type(conf.sections[0]) == ConfigSection
     assert type(conf.sections[1]) == ConfigSection
 
-def test_configuration__get_slash_type_linux_test(monkeypatch):
+def test_configuration__get_slash_type_linux_test(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(os, 'name', 'posix')
     section_1 = ConfigSection('test section 1', 'a test section', {'test_key': 'test_value'})
     section_2 = ConfigSection('test section 2', 'a test section', {'test_key': 'test_value'})
@@ -33,7 +39,7 @@ def test_configuration__get_slash_type_linux_test(monkeypatch):
     slash = conf._Configuration__get_slash_type()
     assert slash == '/'
 
-def test_configuration__get_slash_type_windows_test(monkeypatch):
+def test_configuration__get_slash_type_windows_test(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(os, 'name', 'nt')
     section_1 = ConfigSection('test section 1', 'a test section', {'test_key': 'test_value'})
     section_2 = ConfigSection('test section 2', 'a test section', {'test_key': 'test_value'})
@@ -95,4 +101,18 @@ def test_configuration_add_section_to_config_file_fails_correctly_test():
     os.remove(fullpath)
 
 def test_configuration_get_section_from_config_file_test():
-    pass
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    fullpath = dirpath + slash + 'test_config_file_2'
+    with open(fullpath, 'w') as file:
+        file.write('[[test_section]]\n')
+        file.write('key1 = value 1\n')
+        file.write('key2 = value 2\n')
+    conf = Configuration(os.path.abspath('RESOURCES/test_resources/'), 'test_config_file_2', [])
+    sect = conf.get_section_from_config_file(section_name='test_section', description='desc')
+    assert sect.name == 'test_section'
+    assert sect.description == 'desc'
+    assert sect.values['key1'] == 'value 1'
+    assert sect.values['key2'] == 'value 2'
+    os.remove(fullpath)
+
