@@ -167,10 +167,28 @@ class Configuration(object):
         self.__file_name = fname
 
 
-    def __init__(self, location_dirpath: str, filename: str, sects_list: list=[]):
+    def __init__(self, location_dirpath: str, filename: str, sects_list: list[ConfigSection]=[]):
         self.sections = [Action.INIT, sects_list]
         self.filename = filename
         self.location_dirpath = location_dirpath
+        slash = self.__get_slash_type()
+        fullpath = location_dirpath + slash + self.filename
+        if not os.path.exists(fullpath):
+            self.create_config_file()
+        names = self.get_section_names_from_conffile()
+        for section in sects_list:
+            if section.name not in names:
+                kv_list = []
+                for key in section.values:
+                    string = str(key) + ' = ' + str(section.values[key])
+                    kv_list.append(string)
+                self.add_section_to_config_file(section_name=section.name, kv_list=kv_list)
+                names.append(section.name)
+        sec_ls = []
+        for name in names:
+            sec = self.get_section_from_config_file(name)
+            sec_ls.append(sec)
+        self.sections = [Action.OVERWRITE, sec_ls]
 
     def create_config_file(self) -> bool:
         """
@@ -203,7 +221,7 @@ class Configuration(object):
         try:
             slash = self.__get_slash_type()
             filepath = self.location_dirpath + slash + self.filename
-            with open(filepath, 'w') as file:
+            with open(filepath, 'a') as file:
                 name_str = '[[' + section_name + ']]\n'
                 file.write(name_str)
                 for line in kv_list:
@@ -261,17 +279,17 @@ class Configuration(object):
                 section.update(values_dict)
                 return section
 
-    def __get_section_names_from_conffile(self) -> "list[tuple]":
+    def get_section_names_from_conffile(self) -> list[str]:
         slash = self.__get_slash_type()
         sects_ls = []
         lst = [self.location_dirpath, self.filename]
-        _filelocation = slash.join(lst)
-        with open(_filelocation, 'r') as file:
+        fullpath = slash.join(lst)
+        with open(fullpath, 'r') as file:
             for i, line in enumerate(file):
                 cleanln = line.lstrip().rstrip()
                 if cleanln.startswith("[[") and cleanln.endswith("]]"):
-                    sectup = (i,cleanln[2:-2])
-                    sects_ls.append(sectup)
+                    secname = cleanln[2:-2]
+                    sects_ls.append(secname)
         return sects_ls
 
     def __get_section_kvs_from_conffile(self, section_name: str) -> "list[tuple]":
@@ -376,9 +394,5 @@ class Configuration(object):
         A private function that takes in a ConfigSection and writes it to a conf file.
         TODO: write me
         """
-        pass
+        pass 
 
-if __name__ == '__main__':
-    conf = Configuration(os.path.abspath('RESOURCES/test_resources'), 'test_config_file_2', [])
-    section = conf.get_section_from_config_file('test_section')
-    pass  

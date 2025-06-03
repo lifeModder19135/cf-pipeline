@@ -10,7 +10,6 @@ def get_slash():
         return '\\'
 
 def test_create_configsection_test():
-
     section = ConfigSection('test section', 'a test section', {'test_key': 'test_value'})
     assert type(section) == ConfigSection
     assert section.name == 'test section'
@@ -23,13 +22,27 @@ def test_update_configsection_test():
     assert section.values['test_key_2'] == 'test_value_2'
 
 def test_create_configuration_test():
-    section_1 = ConfigSection('test section 1', 'a test section', {'test_key': 'test_value'})
-    section_2 = ConfigSection('test section 2', 'a test section', {'test_key': 'test_value'})
-    conf = Configuration('/test/path', 'test.py', [section_1, section_2])
-    assert conf.location_dirpath == '/test/path'
-    assert conf.filename == 'test.py'
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    fullpath = dirpath + slash + 'test_config_file_2'
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+    section_1 = ConfigSection('test_section_1', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    section_2 = ConfigSection('test_section_2', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    conf = Configuration(dirpath, 'test_config_file_2', [section_1, section_2])
+    assert conf.location_dirpath == dirpath
+    assert conf.filename == 'test_config_file_2'
     assert type(conf.sections[0]) == ConfigSection
     assert type(conf.sections[1]) == ConfigSection
+    with open(fullpath, 'r') as file:
+        assert file.readline() == '[[test_section_1]]\n'
+        assert file.readline() == 'key1 = value 1\n'
+        assert file.readline() == 'key2 = value 2\n'
+        assert file.readline() == '[[test_section_2]]\n'
+        assert file.readline() == 'key1 = value 1\n'
+        assert file.readline() == 'key2 = value 2\n'
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
 
 def test_configuration__get_slash_type_linux_test(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(os, 'name', 'posix')
@@ -38,6 +51,10 @@ def test_configuration__get_slash_type_linux_test(monkeypatch: pytest.MonkeyPatc
     conf = Configuration(dirpath, 'test_config_file_2', [])
     slash = conf._Configuration__get_slash_type()
     assert slash == '/'
+    rempath = 'RESOURCES\\test_resources\\test_config_file_2'
+    if os.path.exists(rempath):
+        os.remove(rempath)
+
 
 def test_configuration__get_slash_type_windows_test(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(os, 'name', 'nt')
@@ -46,6 +63,9 @@ def test_configuration__get_slash_type_windows_test(monkeypatch: pytest.MonkeyPa
     conf = Configuration(dirpath, 'test_config_file_2', [])
     slash = conf._Configuration__get_slash_type()
     assert slash == '\\'
+    rempath = 'RESOURCES\\test_resources\\test_config_file_2'
+    if os.path.exists(rempath):
+        os.remove(rempath)
 
 def test_configuration_create_config_file_doesnt_exist_test():
     slash = get_slash()
@@ -58,6 +78,8 @@ def test_configuration_create_config_file_doesnt_exist_test():
     exists = conf.create_config_file()
     assert exists == True
     assert os.path.exists(fullpath)
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
 
 def test_configuration_create_config_file_exists_test():
     slash = get_slash()
@@ -69,6 +91,8 @@ def test_configuration_create_config_file_exists_test():
     exists = conf.create_config_file()
     assert exists == True
     assert os.path.exists(fullpath)
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
 
 def test_configuration_add_section_to_config_file_test():
     slash = get_slash()
@@ -83,7 +107,8 @@ def test_configuration_add_section_to_config_file_test():
     assert written == True
     with open(fullpath, 'r') as file:
         assert file.readline() == '[[test_section]]\n'
-    os.remove(fullpath)
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
 
 def test_configuration_add_section_to_config_file_fails_correctly_test():
     slash = get_slash()
@@ -96,7 +121,8 @@ def test_configuration_add_section_to_config_file_fails_correctly_test():
     conf = Configuration(os.path.abspath('RESOURCES/test_resources/'), 'test_config_file_2', [])
     with pytest.raises(CfpMethodInputError):
         written = conf.add_section_to_config_file(secname, valslist)
-    os.remove(fullpath)
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
 
 def test_configuration_get_section_from_config_file_test():
     slash = get_slash()
@@ -106,11 +132,34 @@ def test_configuration_get_section_from_config_file_test():
         file.write('[[test_section]]\n')
         file.write('key1 = value 1\n')
         file.write('key2 = value 2\n')
-    conf = Configuration(os.path.abspath('RESOURCES/test_resources/'), 'test_config_file_2', [])
+    conf = Configuration(dirpath, 'test_config_file_2', [])
     sect = conf.get_section_from_config_file(section_name='test_section', description='desc')
     assert sect.name == 'test_section'
     assert sect.description == 'desc'
     assert sect.values['key1'] == 'value 1'
     assert sect.values['key2'] == 'value 2'
-    os.remove(fullpath)
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+
+def test_configuration_get_section_names_from_conffile_test():
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    fullpath = dirpath + slash + 'test_config_file_2'
+    with open(fullpath, 'w') as file:
+        file.write('[[test_section_1]]\n')
+        file.write('key1 = value 1\n')
+        file.write('key2 = value 2\n')
+        file.write('[[test_section_2]]\n')
+        file.write('key1 = value 1\n')
+        file.write('key2 = value 2\n')
+        file.write('[[test_section_3]]\n')
+        file.write('key1 = value 1\n')
+        file.write('key2 = value 2\n')
+    conf = Configuration(dirpath, 'test_config_file_2', [])
+    secnames = conf.get_section_names_from_conffile()
+    assert secnames[0] == 'test_section_1'
+    assert secnames[1] == 'test_section_2'
+    assert secnames[2] == 'test_section_3'
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
 
