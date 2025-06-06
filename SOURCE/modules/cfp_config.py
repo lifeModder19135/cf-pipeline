@@ -12,6 +12,7 @@ class Action(Flag):
     EMPTY = 3
     REFRESH = 4
     INIT = 5
+    REMOVE = 6
 
 class AppConfigurationOptions(Enum):
     """
@@ -118,7 +119,7 @@ class Configuration(object):
         #TODO: finish me
         # if not self.__sectslist_:
         #     self.__sectslist_ = []
-        if not hasattr(self, '__sectslist_'):
+        if not hasattr(self, '_Configuration__sectslist_'):
             self.__sectslist_ = []
         if action_and_args[0] == Action.UPDATE:
             if type(action_and_args[1]) == list:
@@ -134,6 +135,8 @@ class Configuration(object):
             for a in action_and_args[1]:
                 if type(a) == ConfigSection:
                     self.__sectslist_.append(a)
+                else:
+                    raise CfpTypeError('action_and_args list must contain 1 Action and a list of ConfigSection objects.')
         elif action_and_args[0] == Action.EMPTY:
             self.__sectslist_ = []
         elif action_and_args[0] == Action.REFRESH:
@@ -145,6 +148,8 @@ class Configuration(object):
             for a in action_and_args[1]:
                 if type(a) == ConfigSection:
                     self.__sectslist_.append(a)
+                else:
+                    raise CfpTypeError('action_and_args list must contain 1 Action and a list of ConfigSection objects.')
         else:
             raise CfpUserInputError
         
@@ -291,6 +296,54 @@ class Configuration(object):
                     secname = cleanln[2:-2]
                     sects_ls.append(secname)
         return sects_ls
+    
+    def add_section(self, section_name: str, section_desc: str, content: dict) -> bool:
+        """
+        adds a section to both sections property and config file.
+        """
+        pass
+
+    def remove_section(self, section_name: str) -> bool:
+        """
+        removes a section from both sections property and config file.
+        """
+        pass
+    
+    def update_sections(self) -> bool:
+        """
+        This method syncs the sections property to the config file. If a section is in the config file and not in sections, it is added. If a section is in sections and not in the config file it is removed.
+        """
+        pass
+
+        # populate secname lists
+        config_secnames = []
+        conffile_secnames = self.get_section_names_from_conffile()
+        for section in self.sections:
+            config_secnames.append(section.name)
+
+        # add extra sections from file to sections
+        for name in conffile_secnames:
+            if name not in config_secnames:
+                sec = self.get_section_from_config_file(name)
+                self.sections = [Action.UPDATE, [sec]]
+
+        # delete sections not in conf file from sections
+        for name in config_secnames:
+            if name not in conffile_secnames:
+                # delete section:
+                for i, section in enumerate(self.__sectslist_, start=0):
+                    if section.name == name:
+                        self.__sectslist_.pop(i)
+                        
+        return True
+
+        
+
+    def update_conffile(self) -> bool:
+        """
+        This method syncs the config file to the sections property. If a section is not in the config file but is in sections, it is written to the file. If a section is in the config file but is not in sections, it is removed from the file. 
+        """
+        pass
 
     def __get_section_kvs_from_conffile(self, section_name: str) -> "list[tuple]":
         """

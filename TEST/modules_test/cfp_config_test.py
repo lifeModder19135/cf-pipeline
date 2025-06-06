@@ -1,4 +1,4 @@
-from SOURCE.modules.cfp_config import ConfigSection, Configuration
+from SOURCE.modules.cfp_config import ConfigSection, Configuration, Action
 from SOURCE.modules.cfp_errors import CfpMethodInputError
 import os
 import pytest
@@ -162,4 +162,33 @@ def test_configuration_get_section_names_from_conffile_test():
     assert secnames[2] == 'test_section_3'
     if os.path.exists(fullpath):
         os.remove(fullpath)
+
+def test_configuration_update_sections_test():
+    # create config object
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    filename = 'test_config_file_2'
+    fullpath = dirpath + slash + filename
+    sec1 = ConfigSection('section_1', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    sec2 = ConfigSection('section_2', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    conf = Configuration(dirpath, filename, [sec1, sec2])
+
+    # add extra sections (to object only, not file, should be deleted on sync)
+    sec3 = ConfigSection('new_obj_section', 'a new section', {'val_1': 'new', 'val2': 'section'})
+    sec4 = ConfigSection('second_new_obj_section', 'a new section', {'val_1': 'new', 'val2': 'section'})
+    conf.sections = [Action.UPDATE, [sec3, sec4]]
+
+    # write new sections to config file
+    with open(fullpath, 'a') as file:
+        file.write('[[new_file_section]]\n')
+        file.write('new_key = new value\n')
+        file.write('other_key = other value\n')
+        file.write('third_key = third value\n')
+
+    # run method to sync
+    conf.update_sections()
+
+    # assert that the two are in sync
+    assert len(conf.sections) == 3
+    assert conf.sections[2].name == 'new_file_section'
 
