@@ -163,6 +163,12 @@ def test_configuration_get_section_names_from_conffile_test():
     if os.path.exists(fullpath):
         os.remove(fullpath)
 
+def test_configuration_add_section_test():
+    pass
+
+def test_configuration_remove_section_test():
+    pass
+
 def test_configuration_update_sections_test():
     # create config object
     slash = get_slash()
@@ -191,4 +197,108 @@ def test_configuration_update_sections_test():
     # assert that the two are in sync
     assert len(conf.sections) == 3
     assert conf.sections[2].name == 'new_file_section'
+
+    # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+
+def test_configuration_update_conffile_test():
+    pass
+
+def test_configuration_add_section_from_sections_to_config_file_test():
+
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    filename = 'test_config_file_3'
+    fullpath = dirpath + slash + filename
+
+    # make sure config file doesn't esist
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+
+    # create Configuration obj and config file
+    sec1 = ConfigSection('section_1', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    sec2 = ConfigSection('section_2', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    conf = Configuration(dirpath, filename, [sec1, sec2])
+
+    # add section to Configuration only, not file
+    sec3 = ConfigSection('new_obj_section', 'a new section', {'val_1': 'new', 'val2': 'section'})
+    conf.sections = [Action.UPDATE, [sec3]]
+
+    # use method to add sec3 to config file
+    added = conf._Configuration__add_section_from_sections_to_config_file('new_obj_section')
+
+    # assert that section is added to file
+    with open(fullpath, 'r') as file:
+        fi = file.readlines()
+        assert len(fi) == 9
+
+    # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+
+def test_configuration_add_config_file_section_to_sections_test():
+    pass
+
+def test_configuration_remove_section_from_sections_test():
+    pass
+
+def test_configuration_remove_section_from_conf_file_test():
+
+    # create Configuration obj and config file
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    filename = 'test_config_file_2'
+    fullpath = dirpath + slash + filename
+    sec1 = ConfigSection('section_1', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    sec2 = ConfigSection('section_2', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    conf = Configuration(dirpath, filename, [sec1, sec2])
+
+    # run tested method on first section
+    deleted = conf._Configuration__remove_section_from_conf_file('section_1')
+
+    # assert that method ran successfully and section was deleted
+    assert deleted == True
+    with open(fullpath, 'r') as file:
+        assert file.readline() == '[[section_2]]\n'
+
+    # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+
+def test_configuration_write_dict_to_conf_file_test():
+    pass
+
+def test_configuration_write_section_to_conf_file_test():
+    pass
+
+# def test_configuration_add_section_new_obj_test():
+
+#     # create Configuration obj and config file
+#     slash = get_slash()
+#     dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+#     filename = 'test_config_file_3'
+#     fullpath = dirpath + slash + filename
+#     sec1 = ConfigSection('section_1', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+#     sec2 = ConfigSection('section_2', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+#     conf = Configuration(dirpath, filename, [sec1, sec2])
+
+#     # use method to add section
+#     updated = conf.add_section('new_section', 'a new config section', {'new_key1': 'new_val1', 'new_key2': 'new_val2'})
+
+#     # assert that section was added to both sections and file
+#     assert updated == True
+#     assert len(conf.sections) == 3
+#     with open(fullpath, 'r') as file:
+#         lines = file.readlines()
+#         assert len(lines) == 9
+
+# def test_configuration_add_section_existing_obj_test():
+#     slash = get_slash()
+#     dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+#     filename = 'test_config_file_3'
+#     fullpath = dirpath + slash + filename
+#     sec1 = ConfigSection('section_1', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+#     sec2 = ConfigSection('section_2', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+#     conf = Configuration(dirpath, filename, [sec1, sec2])
 

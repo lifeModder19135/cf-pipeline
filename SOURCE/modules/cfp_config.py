@@ -297,23 +297,66 @@ class Configuration(object):
                     sects_ls.append(secname)
         return sects_ls
     
-    def add_section(self, section_name: str, section_desc: str, content: dict) -> bool:
+    def add_section(self, section_name: str=None, section_desc: str=None, content: dict=None, section_obj: ConfigSection=None) -> bool:
         """
         adds a section to both sections property and config file.
         """
-        pass
+
+        slash = self.__get_slash_type()
+        fullpath = self.location_dirpath + slash + self.filename
+
+        # for adding a previously created ConfigSection instance
+        if section_obj != None and section_name == None and section_desc == None and content == None:
+            
+            # add obj to sections
+            self.sections = [Action.UPDATE, [section_obj]]
+
+            # if last step succeeded, write section to file. Otherwise, raise error
+            success = False
+            for sect in self.sections:
+                if sect.name == section_obj.name:
+                    success = True
+            if success == True:
+                self.__add_section_from_sections_to_config_file(section_obj.name)
+                return True
+
+        # for creating a new ConfigSection instance
+        elif section_name != None and section_desc != None and content != None and section_obj == None:
+        
+            # add section to sections
+            sect = ConfigSection(section_name, section_desc, content)
+            self.sections = [Action.UPDATE, [sect]]
+
+            # use __add_section_to_config_file to add to file
+            self.__add_section_from_sections_to_config_file(section_name)
+
+            return True
+        
+        else:
+            raise CfpMethodInputError('This method only takes in either a ConfigSection instance for \'section_obj\' of else information to create a new DonfigSection Instance (name, description, and content).')
 
     def remove_section(self, section_name: str) -> bool:
         """
         removes a section from both sections property and config file.
         """
-        pass
+
+        place: int = None
+
+        # remove section from sections
+        for i, section in enumerate(self.sections, start=0):
+            if section.name == section_name:
+                place = i
+        self.sections.pop(place)
+
+        # remove section from config file
+        self.__remove_section_from_conf_file(section_name)
+
+        return True
     
     def update_sections(self) -> bool:
         """
         This method syncs the sections property to the config file. If a section is in the config file and not in sections, it is added. If a section is in sections and not in the config file it is removed.
         """
-        pass
 
         # populate secname lists
         config_secnames = []
@@ -343,7 +386,102 @@ class Configuration(object):
         """
         This method syncs the config file to the sections property. If a section is not in the config file but is in sections, it is written to the file. If a section is in the config file but is not in sections, it is removed from the file. 
         """
+
+        slash = self.__get_slash_type()
+        fullpath = self.location_dirpath + slash + self.filename
+        firstline = ''
+        lastline = ''
+        
+        # populate secname lists
+        config_secnames = []
+        conffile_secnames = self.get_section_names_from_conffile()
+        for section in self.sections:
+            config_secnames.append(section.name)
+
+        # write to file any sections in sections but not file
+        for name in config_secnames:
+            if name not in conffile_secnames:
+                sect = self.get_section_from_config_file(name)
+                self.sections.append(sect)
+
+        # remove from file any sections in file only
+        for name in conffile_secnames:
+            if name not in config_secnames:
+                with open(fullpath, 'r+') as file:
+                    for i, line in enumerate(file, start=0):
+                        if line == '[[' + name + ']]\n':
+                            in_section = True
+                            firstline = i
+                            continue
+                        if in_section:
+                            if line.startswith('[['):
+                                in_section = False
+                                lastline = i
+                with open(fullpath, 'r+') as file:
+                    f = file.readlines()
+                    file.truncate()
+                    file.writelines(f[:firstline])
+                    file.write(f[lastline:])
+
+    
+        
+
+    def __add_section_from_sections_to_config_file(self, section_name: str) -> bool:
+        """
+        if section name is the name of a section in self.sections and is not in config file, this method adds it to file.
+        """
+        slash = self.__get_slash_type()
+        fullpath = self.location_dirpath + slash + self.filename
+
+        # check to see if section is already in config file. If so, method just returns True
+        file_sectnames = self.get_section_names_from_conffile()
+        if section_name in file_sectnames:
+            return True
+        
+        # otherwise, write section to file
+        else:
+            with open(fullpath, 'a') as file:
+                for section in self.sections:
+                    if section.name == section_name:
+                        file.write('[[' + section_name + ']]\n')
+                        for key in section.values:
+                            string = str(key) + ' = ' + str(section.values[key]) + '\n'
+                            file.write(string)
+            return True
+        
+
+    def __add_config_file_section_to_sections(self, section_name: str) -> bool:
+        sect = self.get_section_from_config_file(section_name)
+        self.sections = [Action.UPDATE, [sect]]
+        return True
+    
+    def __remove_section_from_sections(self, section_name: str) -> bool:
         pass
+
+
+    def __remove_section_from_conf_file(self, section_name: str) -> bool:
+        slash = self.__get_slash_type()
+        fullpath = self.location_dirpath + slash + self.filename
+        firstline = 0
+        lastline = 0
+        in_section = False
+        with open(fullpath, 'r+') as file:
+            for i, line in enumerate(file):
+                if line == '[[' + section_name + ']]\n':
+                    in_section = True
+                    firstline = i
+                    continue
+                if in_section:
+                    if line.startswith('[['):
+                        lastline = i - 1
+                        break
+        with open(fullpath, 'r+') as file:
+            f = file.readlines()
+            file.seek(0, 0)
+            file.truncate()
+            file.writelines(f[0:firstline])
+            file.writelines(f[lastline + 1:])
+            return True
 
     def __get_section_kvs_from_conffile(self, section_name: str) -> "list[tuple]":
         """
@@ -391,26 +529,6 @@ class Configuration(object):
         else:
             raise AppConfigurationOptions
         return slash
-
-            # for i, line in enumerate(file):
-            #     cleanln = line.lstrip().rstrip()
-            #     if cleanln.startswith("[[") and cleanln.endswith("]]"):
-            #             pass
-            #     else:
-            #         k_eq_v_list = cleanln.split()
-            #         size = len(k_eq_v_list)
-            #         if size >= 3:
-            #             if k_eq_v_list[1] == '=':
-            #                 # need to finish
-            #                 key = k_eq_v_list[0]
-            #                 val_str = ''
-            #                 for word in k_eq_v_list:
-            #                     if word >= 2:
-            #                         val_str = val_str + ' ' + word
-            #             else:
-            #                 raise CfpConfigurationError('There is a formatting error in your config file. Note that all l_values need to be one word, and there must be a space on each side of the "=", so that each line looks like this: "oneword = one or more words"')
-            #         else:
-                        # pass
 
     def __write_dict_to_conf_file(self, input_dict:dict, filelocation='use_obj_attributes'):
         """
