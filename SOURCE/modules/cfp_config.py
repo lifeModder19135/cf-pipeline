@@ -402,33 +402,14 @@ class Configuration(object):
         # write to file any sections in sections but not file
         for name in config_secnames:
             if name not in conffile_secnames:
-                sect = self.get_section_from_config_file(name)
-                self.sections.append(sect)
-
+                self.__add_section_from_sections_to_config_file(name)
+                
         # remove from file any sections in file only
         for name in conffile_secnames:
             if name not in config_secnames:
-                with open(fullpath, 'r+') as file:
-                    for i, line in enumerate(file, start=0):
-                        if line == '[[' + name + ']]\n':
-                            in_section = True
-                            firstline = i
-                            continue
-                        if in_section:
-                            if line.startswith('[['):
-                                in_section = False
-                                lastline = i
-                with open(fullpath, 'r+') as file:
-                    f = file.readlines()
-                    file.seek(0, 0)
-                    file.truncate()
-                    file.writelines(f[:firstline])
-                    file.writelines(f[lastline:])
+                self.__remove_section_from_conf_file(name)
         
-        return True
-
-    
-        
+        return True    
 
     def __add_section_from_sections_to_config_file(self, section_name: str) -> bool:
         """
