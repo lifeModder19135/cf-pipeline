@@ -440,8 +440,7 @@ class Configuration(object):
                         for key in section.values:
                             string = str(key) + ' = ' + str(section.values[key]) + '\n'
                             file.write(string)
-            return True
-        
+            return True 
 
     def __add_config_file_section_to_sections(self, section_name: str) -> bool:
         sect = self.get_section_from_config_file(section_name)
@@ -449,8 +448,13 @@ class Configuration(object):
         return True
     
     def __remove_section_from_sections(self, section_name: str) -> bool:
-        pass
+        """removes section with section_name as its name from sections list"""
+        for section in self.sections:
+            if section.name == section_name:
+                self.sections = [Action.REMOVE, [section]]
+                break
 
+        return True
 
     def __remove_section_from_conf_file(self, section_name: str) -> bool:
         slash = self.__get_slash_type()
@@ -565,5 +569,4 @@ class Configuration(object):
 
     def __check_sections_for_duplicate_sections(self):
         pass
-        
 
