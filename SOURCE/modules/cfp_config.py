@@ -150,6 +150,14 @@ class Configuration(object):
                     self.__sectslist_.append(a)
                 else:
                     raise CfpTypeError('action_and_args list must contain 1 Action and a list of ConfigSection objects.')
+        elif action_and_args[0] == Action.REMOVE:
+            for a in action_and_args[1]:
+                if type(a) == ConfigSection:
+                    for section in self.sections:
+                        if a.name == section.name:
+                            self.__sectslist_.remove(section)
+                else:
+                    raise CfpTypeError('The arguments presented to this method with Action.REMOVE must be ConfigSection objects with names identical to objects that are currently in sections')
         else:
             raise CfpUserInputError
         
