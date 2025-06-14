@@ -44,6 +44,111 @@ def test_create_configuration_test():
     if os.path.exists(fullpath):
         os.remove(fullpath)
 
+def test_configuration_sections_setter_update_test():
+
+    # create object
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    fullpath = dirpath + slash + 'test_config_file_2'
+    section_1 = ConfigSection('test_section_1', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    section_2 = ConfigSection('test_section_2', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    conf = Configuration(dirpath, 'test_config_file_2', [section_1, section_2])
+
+    # update sections with setter
+    section_3 = ConfigSection('test_section_3', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    conf.sections = [Action.UPDATE, [section_3]]
+
+    # assert section was added
+    assert len(conf.sections) == 3
+
+    # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+
+def test_configuration_sections_setter_overwrite_test():
+    
+    # create object
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    fullpath = dirpath + slash + 'test_config_file_2'
+    section_1 = ConfigSection('test_section_1', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    section_2 = ConfigSection('test_section_2', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    conf = Configuration(dirpath, 'test_config_file_2', [section_1, section_2])
+
+    # overwrite sections with setter
+    section_3 = ConfigSection('test_section_3', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    conf.sections = [Action.OVERWRITE, [section_3]]
+
+    # assert that section was removed
+    assert len(conf.sections) == 1
+    assert conf.sections[0].name == 'test_section_3'
+
+    # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+
+def test_configuration_sections_setter_empty_test():
+
+    # create object
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    fullpath = dirpath + slash + 'test_config_file_2'
+    section_1 = ConfigSection('test_section_1', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    section_2 = ConfigSection('test_section_2', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    conf = Configuration(dirpath, 'test_config_file_2', [section_1, section_2])
+
+    conf.sections = [Action.EMPTY]
+
+    # assert sections is emptied
+    assert conf.sections == []
+
+    # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+
+def test_configuration_sections_setter_init_test():
+    
+    # create object
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    fullpath = dirpath + slash + 'test_config_file_2'
+    section_1 = ConfigSection('test_section_1', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    section_2 = ConfigSection('test_section_2', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    conf = Configuration(dirpath, 'test_config_file_2', [section_1, section_2])
+
+    # overwrite sections with setter
+    section_3 = ConfigSection('test_section_3', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    conf.sections = [Action.INIT, [section_3]]
+
+    # assert that section was removed
+    assert len(conf.sections) == 1
+    assert conf.sections[0].name == 'test_section_3'
+
+    # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+
+def test_configuration_sections_setter_remove_test():
+
+    # create object
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    fullpath = dirpath + slash + 'test_config_file_2'
+    section_1 = ConfigSection('test_section_1', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    section_2 = ConfigSection('test_section_2', 'a test section', {'key1': 'value 1', 'key2': 'value 2'})
+    conf = Configuration(dirpath, 'test_config_file_2', [section_1, section_2])
+
+    # remove section with setter
+    conf.sections = [Action.REMOVE, [section_1]]
+
+    # assert that section was removed
+    assert len(conf.sections) == 1
+    assert conf.sections[0].name == 'test_section_2'
+
+    # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+
 def test_configuration__get_slash_type_linux_test(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(os, 'name', 'posix')
     slash1 = get_slash()
@@ -402,6 +507,4 @@ def test_configuration_write_dict_to_conf_file_test():
 
 def test_configuration_write_section_to_conf_file_test():
     pass
-
-
 
