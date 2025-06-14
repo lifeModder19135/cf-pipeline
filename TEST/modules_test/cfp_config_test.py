@@ -234,10 +234,37 @@ def test_configuration_add_section_wrong_params_test():
     with pytest.raises(CfpMethodInputError):
         test = conf.add_section(section_name='name', section_obj=sec3)
 
+    # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+
 def test_configuration_remove_section_test():
-    pass
+
+    # create config object
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    filename = 'test_config_file_2'
+    fullpath = dirpath + slash + filename
+    sec1 = ConfigSection('section_1', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    sec2 = ConfigSection('section_2', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    conf = Configuration(dirpath, filename, [sec1, sec2])
+    
+    # use method to remove section
+    removed = conf.remove_section('section_1')
+
+    #assert section was removed from both sections and file
+    assert removed == True
+    assert len(conf.sections) == 1
+    with open(fullpath) as file:
+        lines = file.readlines()
+        assert len(lines) == 3
+
+       # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
 
 def test_configuration_update_sections_test():
+
     # create config object
     slash = get_slash()
     dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
@@ -271,7 +298,43 @@ def test_configuration_update_sections_test():
         os.remove(fullpath)
 
 def test_configuration_update_conffile_test():
-    pass
+    
+    # create config object
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    filename = 'test_config_file_4'
+    fullpath = dirpath + slash + filename
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+    sec1 = ConfigSection('section_1', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    sec2 = ConfigSection('section_2', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    conf = Configuration(dirpath, filename, [sec1, sec2])
+
+    # add extra sections (to object only, not file, should be deleted on sync)
+    sec3 = ConfigSection('new_obj_section', 'a new section', {'val_1': 'new', 'val2': 'section'})
+    sec4 = ConfigSection('second_new_obj_section', 'a new section', {'val_1': 'new', 'val2': 'section'})
+    conf.sections = [Action.UPDATE, [sec3, sec4]]
+
+    # write new section to config file
+    with open(fullpath, 'a') as file:
+        file.write('[[new_file_section]]\n')
+        file.write('new_key = new value\n')
+        file.write('other_key = other value\n')
+        file.write('third_key = third value\n') 
+
+    # run method to sync conf file
+    synced = conf.update_conffile()
+
+    # assert that sec3 and sec4 are added to conf file and that file-only section is deleted
+    assert synced == True
+    with open(fullpath, 'r') as file:
+        lines = file.readlines()
+        assert len(lines) == 12
+        assert lines[6] == '[[new_obj_section]]\n'
+
+    # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
 
 def test_configuration_add_section_from_sections_to_config_file_test():
 
