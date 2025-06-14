@@ -389,8 +389,9 @@ class Configuration(object):
 
         slash = self.__get_slash_type()
         fullpath = self.location_dirpath + slash + self.filename
-        firstline = ''
-        lastline = ''
+        firstline: int = 0
+        lastline: int = -1
+        in_section = False
         
         # populate secname lists
         config_secnames = []
@@ -419,9 +420,12 @@ class Configuration(object):
                                 lastline = i
                 with open(fullpath, 'r+') as file:
                     f = file.readlines()
+                    file.seek(0, 0)
                     file.truncate()
                     file.writelines(f[:firstline])
-                    file.write(f[lastline:])
+                    file.writelines(f[lastline:])
+        
+        return True
 
     
         
@@ -560,10 +564,17 @@ class Configuration(object):
             else:
                 raise CfpMethodInputError('First kv in input dict must be a section identifier')
 
-    def __write_section_to_conf_file():
+    def __write_section_to_conf_file(self):
         """
         A private function that takes in a ConfigSection and writes it to a conf file.
         TODO: write me
         """
-        pass 
+        pass
+
+    def __check_file_for_duplicate_sections(self):
+        pass
+
+    def __check_sections_for_duplicate_sections(self):
+        pass
+        
 
