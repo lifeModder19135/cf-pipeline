@@ -325,7 +325,7 @@ class Configuration(object):
                 if sect.name == section_obj.name:
                     success = True
             if success == True:
-                self.__add_section_from_sections_to_config_file(section_obj.name)
+                self.__add_section_from_sections_to_conffile(section_obj.name)
                 return True
 
         # for creating a new ConfigSection instance
@@ -336,7 +336,7 @@ class Configuration(object):
             self.sections = [Action.UPDATE, [sect]]
 
             # use __add_section_to_config_file to add to file
-            self.__add_section_from_sections_to_config_file(section_name)
+            self.__add_section_from_sections_to_conffile(section_name)
 
             return True
         
@@ -357,7 +357,7 @@ class Configuration(object):
         self.sections.pop(place)
 
         # remove section from config file
-        self.__remove_section_from_conf_file(section_name)
+        self.__remove_section_from_conffile(section_name)
 
         return True
     
@@ -410,16 +410,16 @@ class Configuration(object):
         # write to file any sections in sections but not file
         for name in config_secnames:
             if name not in conffile_secnames:
-                self.__add_section_from_sections_to_config_file(name)
+                self.__add_section_from_sections_to_conffile(name)
                 
         # remove from file any sections in file only
         for name in conffile_secnames:
             if name not in config_secnames:
-                self.__remove_section_from_conf_file(name)
+                self.__remove_section_from_conffile(name)
         
         return True    
 
-    def __add_section_from_sections_to_config_file(self, section_name: str) -> bool:
+    def __add_section_from_sections_to_conffile(self, section_name: str) -> bool:
         """
         if section name is the name of a section in self.sections and is not in config file, this method adds it to file.
         """
@@ -442,7 +442,7 @@ class Configuration(object):
                             file.write(string)
             return True 
 
-    def __add_config_file_section_to_sections(self, section_name: str) -> bool:
+    def __add_conffile_section_to_sections(self, section_name: str) -> bool:
         sect = self.get_section_from_config_file(section_name)
         self.sections = [Action.UPDATE, [sect]]
         return True
@@ -456,7 +456,7 @@ class Configuration(object):
 
         return True
 
-    def __remove_section_from_conf_file(self, section_name: str) -> bool:
+    def __remove_section_from_conffile(self, section_name: str) -> bool:
         slash = self.__get_slash_type()
         fullpath = self.location_dirpath + slash + self.filename
         firstline = 0
@@ -489,10 +489,7 @@ class Configuration(object):
         # if section_entered is True, the [[section_name]] line has already been reached, so the next [[section]] line will be the end of the section.
         section_entered = False
 
-        if os.name == 'posix' or os.name == 'java':
-            slash = '/'
-        else:
-            slash = '\\'
+        slash = self.__get_slash_type()
         
         lst = [self.location_dirpath, self.filename]
         path = slash.join(lst)
@@ -527,7 +524,7 @@ class Configuration(object):
             raise AppConfigurationOptions
         return slash
 
-    def __write_dict_to_conf_file(self, input_dict:dict, filelocation='use_obj_attributes'):
+    def __write_dict_to_conffile(self, input_dict:dict, filelocation='use_obj_attributes'):
         """
         This is a private function that takes a python dictionary and writes it to a conf file. It must be formatted as described below.
         TODO: fix me
@@ -557,7 +554,7 @@ class Configuration(object):
             else:
                 raise CfpMethodInputError('First kv in input dict must be a section identifier')
 
-    def __write_section_to_conf_file(self):
+    def __write_section_to_conffile(self):
         """
         A private function that takes in a ConfigSection and writes it to a conf file.
         TODO: write me
