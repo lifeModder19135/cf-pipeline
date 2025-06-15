@@ -441,7 +441,7 @@ def test_configuration_update_conffile_test():
     if os.path.exists(fullpath):
         os.remove(fullpath)
 
-def test_configuration_add_section_from_sections_to_config_file_test():
+def test_configuration_add_section_from_sections_to_conffile_test():
 
     slash = get_slash()
     dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
@@ -462,7 +462,7 @@ def test_configuration_add_section_from_sections_to_config_file_test():
     conf.sections = [Action.UPDATE, [sec3]]
 
     # use method to add sec3 to config file
-    added = conf._Configuration__add_section_from_sections_to_config_file('new_obj_section')
+    added = conf._Configuration__add_section_from_sections_to_conffile('new_obj_section')
 
     # assert that section is added to file
     with open(fullpath, 'r') as file:
@@ -473,13 +473,60 @@ def test_configuration_add_section_from_sections_to_config_file_test():
     if os.path.exists(fullpath):
         os.remove(fullpath)
 
-def test_configuration_add_config_file_section_to_sections_test():
-    pass
+def test_configuration_add_conffile_section_to_sections_test():
+    
+    # create config object
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    filename = 'test_config_file_2'
+    fullpath = dirpath + slash + filename
+    sec1 = ConfigSection('section_1', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    sec2 = ConfigSection('section_2', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    conf = Configuration(dirpath, filename, [sec1, sec2])
+
+    # write new section to config file
+    with open(fullpath, 'a') as file:
+        file.write('[[new_file_section]]\n')
+        file.write('new_key = new value\n')
+        file.write('other_key = other value\n')
+        file.write('third_key = third value\n')
+
+    # use method to add new_file_section to sections
+    added = conf._Configuration__add_conffile_section_to_sections('new_file_section')
+
+    # assert new_file_section was added
+    assert added == True
+    assert len(conf.sections) == 3
+    assert conf.sections[2].name == 'new_file_section'
+
+    # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
 
 def test_configuration_remove_section_from_sections_test():
-    pass
+    
+    # create Configuration obj and config file
+    slash = get_slash()
+    dirpath = os.path.abspath('RESOURCES' + slash + 'test_resources')
+    filename = 'test_config_file_2'
+    fullpath = dirpath + slash + filename
+    sec1 = ConfigSection('section_1', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    sec2 = ConfigSection('section_2', 'a config section', {'key1': 'val1', 'key2': 'val2'})
+    conf = Configuration(dirpath, filename, [sec1, sec2])
 
-def test_configuration_remove_section_from_conf_file_test():
+    # use method to remove section_1
+    removed = conf._Configuration__remove_section_from_sections('section_1')
+
+    # assert section was removed
+    assert removed == True
+    assert len(conf.sections) == 1
+    assert conf.sections[0].name == 'section_2'
+
+    # cleanup
+    if os.path.exists(fullpath):
+        os.remove(fullpath)
+
+def test_configuration_remove_section_from_conffile_test():
 
     # create Configuration obj and config file
     slash = get_slash()
@@ -491,7 +538,7 @@ def test_configuration_remove_section_from_conf_file_test():
     conf = Configuration(dirpath, filename, [sec1, sec2])
 
     # run tested method on first section
-    deleted = conf._Configuration__remove_section_from_conf_file('section_1')
+    deleted = conf._Configuration__remove_section_from_conffile('section_1')
 
     # assert that method ran successfully and section was deleted
     assert deleted == True
@@ -502,9 +549,12 @@ def test_configuration_remove_section_from_conf_file_test():
     if os.path.exists(fullpath):
         os.remove(fullpath)
 
-def test_configuration_write_dict_to_conf_file_test():
+def test_configuration_get_section_kvs_from_conffile_test():
     pass
 
-def test_configuration_write_section_to_conf_file_test():
+def test_configuration_write_dict_to_conffile_test():
+    pass
+
+def test_configuration_write_section_to_conffile_test():
     pass
 
